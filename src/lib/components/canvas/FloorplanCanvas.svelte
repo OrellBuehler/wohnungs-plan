@@ -424,4 +424,16 @@
       </div>
     {/if}
   {/if}
+
+  <!-- Scale bar -->
+  {#if floorplan?.scale}
+    {@const scaleBarWidth = 100 * effectiveScale * zoom}
+    <div class="absolute bottom-2 right-2 flex flex-col items-end gap-0.5 bg-white/90 rounded shadow-lg px-2 py-1">
+      <div
+        class="h-1.5 bg-slate-700 rounded-sm"
+        style="width: {Math.max(20, Math.min(200, scaleBarWidth))}px;"
+      ></div>
+      <span class="text-xs text-slate-600 font-mono">100 cm</span>
+    </div>
+  {/if}
 </div>

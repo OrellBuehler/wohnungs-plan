@@ -183,7 +183,7 @@
           <Input id="width" type="number" bind:value={width} min={1} required />
         </div>
         <div class="space-y-2">
-          <Label for="height">Depth (cm) *</Label>
+          <Label for="height">Length (cm) *</Label>
           <Input id="height" type="number" bind:value={height} min={1} required />
         </div>
       </div>
@@ -203,7 +203,7 @@
               />
             </div>
             <div class="space-y-1">
-              <Label for="cutoutHeight" class="text-xs">Cutout Depth (cm)</Label>
+              <Label for="cutoutHeight" class="text-xs">Cutout Length (cm)</Label>
               <Input
                 id="cutoutHeight"
                 type="number"
