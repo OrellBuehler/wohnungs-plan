@@ -192,10 +192,19 @@
 
   // Pan functions
   function handleMouseDown(e: { evt: MouseEvent; target: Konva.Node }) {
-    // Only pan if clicking on stage background or image
-    if (e.target.getClassName() === 'Stage' || e.target.getClassName() === 'Image') {
-      isPanning = true;
-      lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
+    // Only pan if clicking on stage background or image (not on furniture items)
+    const className = e.target.getClassName();
+    if (className === 'Stage' || className === 'Image' || className === 'Rect') {
+      // Check if it's a grid line or background, not furniture
+      const isGridOrBg = className === 'Stage' || className === 'Image' ||
+        (className === 'Rect' && (e.target.width() === 1 || e.target.height() === 1));
+
+      if (isGridOrBg) {
+        isPanning = true;
+        lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
+        // Change cursor to grabbing
+        if (containerEl) containerEl.style.cursor = 'grabbing';
+      }
     }
   }
 
@@ -213,6 +222,7 @@
   function handleMouseUp() {
     isPanning = false;
     lastPanPoint = null;
+    if (containerEl) containerEl.style.cursor = 'default';
   }
 
   // Convert cm to pixels using scale

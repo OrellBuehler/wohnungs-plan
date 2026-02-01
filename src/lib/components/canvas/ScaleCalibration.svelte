@@ -31,10 +31,13 @@
   let panY = $state(0);
   let isPanning = $state(false);
   let lastPanPoint = $state<{ x: number; y: number } | null>(null);
+  let mouseDownPoint = $state<{ x: number; y: number } | null>(null);
+  let hasDragged = $state(false);
 
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 8;
   const ZOOM_STEP = 0.1;
+  const DRAG_THRESHOLD = 5; // pixels
 
   // Load image
   $effect(() => {
@@ -106,17 +109,13 @@
     };
   }
 
-  function handleStageClick(e: { target: Konva.Node; evt: MouseEvent }) {
-    // Don't add points while panning
-    if (isPanning) return;
-
+  function placePoint() {
     const stage = stageRef?.node;
     if (!stage) return;
 
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
 
-    // Convert screen position to canvas position
     const canvasPos = screenToCanvas(pointer.x, pointer.y);
 
     if (!point1) {
@@ -185,30 +184,49 @@
     panY = 0;
   }
 
-  // Pan functions (right-click or middle-click to pan)
+  // Pan functions - drag to pan, click (without drag) to place point
   function handleMouseDown(e: { evt: MouseEvent; target: Konva.Node }) {
-    // Pan with right or middle mouse button, or when holding space
-    if (e.evt.button === 1 || e.evt.button === 2) {
-      e.evt.preventDefault();
+    if (e.evt.button === 0) { // Left click
       isPanning = true;
+      hasDragged = false;
+      mouseDownPoint = { x: e.evt.clientX, y: e.evt.clientY };
       lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
     }
   }
 
   function handleMouseMove(e: { evt: MouseEvent }) {
-    if (!isPanning || !lastPanPoint) return;
+    if (!isPanning || !lastPanPoint || !mouseDownPoint) return;
 
     const dx = e.evt.clientX - lastPanPoint.x;
     const dy = e.evt.clientY - lastPanPoint.y;
 
-    panX += dx;
-    panY += dy;
+    // Check if we've moved past the drag threshold
+    const totalDx = Math.abs(e.evt.clientX - mouseDownPoint.x);
+    const totalDy = Math.abs(e.evt.clientY - mouseDownPoint.y);
+    if (totalDx > DRAG_THRESHOLD || totalDy > DRAG_THRESHOLD) {
+      hasDragged = true;
+    }
+
+    if (hasDragged) {
+      panX += dx;
+      panY += dy;
+      if (containerEl) containerEl.style.cursor = 'grabbing';
+    }
+
     lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
   }
 
   function handleMouseUp() {
+    // If we didn't drag, this was a click - place a point
+    if (isPanning && !hasDragged) {
+      placePoint();
+    }
+
     isPanning = false;
     lastPanPoint = null;
+    mouseDownPoint = null;
+    hasDragged = false;
+    if (containerEl) containerEl.style.cursor = 'crosshair';
   }
 
   function handleContextMenu(e: MouseEvent) {
@@ -226,14 +244,14 @@
   <div class="p-4 bg-blue-600 text-white">
     <h2 class="font-semibold mb-1">Set Scale</h2>
     <p class="text-sm text-blue-100">
-      Click two points on your floorplan to draw a reference line, then enter its real-world length.
-      <strong>Scroll to zoom, right-click drag to pan.</strong>
+      Click two points to draw a reference line, then enter its real-world length.
+      <strong>Scroll to zoom, drag to pan.</strong>
     </p>
   </div>
 
   <div
     bind:this={containerEl}
-    class="flex-1 bg-slate-900 relative"
+    class="flex-1 bg-slate-900 relative cursor-crosshair"
     onwheel={handleWheel}
     oncontextmenu={handleContextMenu}
     role="application"
@@ -246,7 +264,6 @@
       scaleY={zoom}
       x={panX}
       y={panY}
-      onpointerclick={handleStageClick}
       onmousedown={handleMouseDown}
       onmousemove={handleMouseMove}
       onmouseup={handleMouseUp}
