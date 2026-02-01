@@ -38,6 +38,7 @@
   let selectedItemId = $state<string | null>(null);
   let showGrid = $state(true);
   let snapToGrid = $state(true);
+  let canvasViewportCenter = $state({ x: 200, y: 200 });
 
   // Dialog state
   let showItemForm = $state(false);
@@ -229,7 +230,7 @@
   }
 
   function handlePlaceItem(id: string) {
-    updateItem(id, { position: { x: 100, y: 100 } });
+    updateItem(id, { position: { x: canvasViewportCenter.x, y: canvasViewportCenter.y } });
     activeTab = 'plan';
   }
 
@@ -276,6 +277,7 @@
             {gridSize}
             {showGrid}
             {snapToGrid}
+            bind:viewportCenter={canvasViewportCenter}
             onItemSelect={handleItemSelect}
             onItemMove={handleItemMove}
             onItemRotate={handleItemRotate}

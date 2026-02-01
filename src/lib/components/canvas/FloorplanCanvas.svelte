@@ -12,6 +12,7 @@
     gridSize: number;
     showGrid: boolean;
     snapToGrid: boolean;
+    viewportCenter?: { x: number; y: number };
     onItemSelect: (id: string | null) => void;
     onItemMove: (id: string, x: number, y: number) => void;
     onItemRotate: (id: string, rotation: number) => void;
@@ -24,6 +25,7 @@
     gridSize = 50,
     showGrid = true,
     snapToGrid = true,
+    viewportCenter = $bindable({ x: 100, y: 100 }),
     onItemSelect,
     onItemMove,
     onItemRotate,
@@ -47,6 +49,13 @@
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.1;
+
+  // Update viewport center for item placement
+  $effect(() => {
+    const centerX = (stageWidth / 2 - panX) / zoom;
+    const centerY = (stageHeight / 2 - panY) / zoom;
+    viewportCenter = { x: Math.round(centerX), y: Math.round(centerY) };
+  });
 
   // Load floorplan image
   $effect(() => {
