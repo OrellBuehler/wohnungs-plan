@@ -41,8 +41,10 @@ export async function getProject(id: string): Promise<Project | undefined> {
 
 export async function saveProject(project: Project): Promise<void> {
   const db = await getDB();
-  project.updatedAt = new Date().toISOString();
-  await db.put('projects', project);
+  // Deep clone to strip Svelte 5 proxy objects (IndexedDB can't clone proxies)
+  const plainProject = JSON.parse(JSON.stringify(project)) as Project;
+  plainProject.updatedAt = new Date().toISOString();
+  await db.put('projects', plainProject);
 }
 
 export async function deleteProject(id: string): Promise<void> {

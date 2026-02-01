@@ -18,7 +18,7 @@
   let width = $state(100);
   let height = $state(100);
   let color = $state('#D4A574');
-  let price = $state<string>('');
+  let price = $state<number | string>('');
   let productUrl = $state('');
 
   const presetColors = ['#D4A574', '#B8956E', '#8B7355', '#6B8E23', '#4682B4', '#708090', '#CD853F', '#DEB887'];
@@ -37,17 +37,20 @@
 
   function handleSubmit(e: Event) {
     e.preventDefault();
-    if (!name.trim()) return;
+    const nameValue = String(name).trim();
+    if (!nameValue) return;
 
-    const priceNum = price.trim() ? parseFloat(price) : null;
+    // Handle price being number or string
+    const priceValue = typeof price === 'number' ? price : (String(price).trim() ? parseFloat(String(price)) : null);
+    const urlValue = String(productUrl).trim() || null;
 
     onSave({
-      name: name.trim(),
-      width,
-      height,
-      color,
-      price: priceNum,
-      productUrl: productUrl.trim() || null,
+      name: nameValue,
+      width: Number(width),
+      height: Number(height),
+      color: String(color),
+      price: priceValue,
+      productUrl: urlValue,
       position: item?.position ?? null,
       rotation: item?.rotation ?? 0,
     });

@@ -17,6 +17,8 @@
   let stageWidth = $state(800);
   let stageHeight = $state(600);
   let image: HTMLImageElement | null = $state(null);
+  let imageNaturalWidth = $state(0);
+  let imageNaturalHeight = $state(0);
 
   let point1 = $state<{ x: number; y: number } | null>(null);
   let point2 = $state<{ x: number; y: number } | null>(null);
@@ -26,9 +28,37 @@
   $effect(() => {
     const img = new Image();
     img.onload = () => {
+      imageNaturalWidth = img.naturalWidth;
+      imageNaturalHeight = img.naturalHeight;
       image = img;
     };
     img.src = imageData;
+  });
+
+  // Calculate image dimensions maintaining aspect ratio
+  const imageDimensions = $derived.by(() => {
+    if (!imageNaturalWidth || !imageNaturalHeight) {
+      return { width: stageWidth, height: stageHeight, x: 0, y: 0 };
+    }
+
+    const imageAspect = imageNaturalWidth / imageNaturalHeight;
+    const stageAspect = stageWidth / stageHeight;
+
+    let width: number;
+    let height: number;
+
+    if (imageAspect > stageAspect) {
+      width = stageWidth;
+      height = stageWidth / imageAspect;
+    } else {
+      height = stageHeight;
+      width = stageHeight * imageAspect;
+    }
+
+    const x = (stageWidth - width) / 2;
+    const y = (stageHeight - height) / 2;
+
+    return { width, height, x, y };
   });
 
   // Resize observer
@@ -93,10 +123,10 @@
         {#if image}
           <KonvaImage
             image={image}
-            x={0}
-            y={0}
-            width={stageWidth}
-            height={stageHeight}
+            x={imageDimensions.x}
+            y={imageDimensions.y}
+            width={imageDimensions.width}
+            height={imageDimensions.height}
           />
         {/if}
 

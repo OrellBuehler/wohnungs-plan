@@ -32,18 +32,53 @@
   let stageWidth = $state(800);
   let stageHeight = $state(600);
   let floorplanImage: HTMLImageElement | null = $state(null);
+  let imageNaturalWidth = $state(0);
+  let imageNaturalHeight = $state(0);
 
   // Load floorplan image
   $effect(() => {
     if (floorplan?.imageData) {
       const img = new Image();
       img.onload = () => {
+        imageNaturalWidth = img.naturalWidth;
+        imageNaturalHeight = img.naturalHeight;
         floorplanImage = img;
       };
       img.src = floorplan.imageData;
     } else {
       floorplanImage = null;
+      imageNaturalWidth = 0;
+      imageNaturalHeight = 0;
     }
+  });
+
+  // Calculate image dimensions maintaining aspect ratio
+  const imageDimensions = $derived.by(() => {
+    if (!imageNaturalWidth || !imageNaturalHeight) {
+      return { width: stageWidth, height: stageHeight, x: 0, y: 0 };
+    }
+
+    const imageAspect = imageNaturalWidth / imageNaturalHeight;
+    const stageAspect = stageWidth / stageHeight;
+
+    let width: number;
+    let height: number;
+
+    if (imageAspect > stageAspect) {
+      // Image is wider than stage - fit to width
+      width = stageWidth;
+      height = stageWidth / imageAspect;
+    } else {
+      // Image is taller than stage - fit to height
+      height = stageHeight;
+      width = stageHeight * imageAspect;
+    }
+
+    // Center the image
+    const x = (stageWidth - width) / 2;
+    const y = (stageHeight - height) / 2;
+
+    return { width, height, x, y };
   });
 
   // Resize observer
@@ -136,10 +171,10 @@
       {#if floorplanImage}
         <KonvaImage
           image={floorplanImage}
-          x={0}
-          y={0}
-          width={stageWidth}
-          height={stageHeight}
+          x={imageDimensions.x}
+          y={imageDimensions.y}
+          width={imageDimensions.width}
+          height={imageDimensions.height}
           opacity={0.8}
         />
       {/if}
