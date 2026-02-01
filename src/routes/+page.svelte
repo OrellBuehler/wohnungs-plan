@@ -1,2 +1,8 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+  import { Button } from "$lib/components/ui/button";
+</script>
+
+<main class="min-h-screen bg-slate-100 p-8">
+  <h1 class="text-3xl font-bold text-slate-800 mb-4">Wohnungs-Plan</h1>
+  <Button>Test Button</Button>
+</main>
