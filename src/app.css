@@ -74,10 +74,16 @@
 }
 
 @theme inline {
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-canvas-bg: #1e293b;
+  --color-canvas-grid: rgba(255, 255, 255, 0.1);
+  --color-wood: #D4A574;
+  --color-wood-dark: #B8956E;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -116,6 +122,10 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
+}
+
+.font-technical {
+  font-family: 'JetBrains Mono', monospace;
 }
