@@ -72,6 +72,16 @@ function shouldQueue(): boolean {
 	return isAuthenticated() && !isOnline();
 }
 
+// Check if we should sync the current project to cloud
+// Only sync if authenticated, online, AND project is not local-only
+function shouldSyncProject(): boolean {
+	return useRemote() && !currentProject?.isLocal;
+}
+
+function shouldQueueProject(): boolean {
+	return shouldQueue() && !currentProject?.isLocal;
+}
+
 function toIsoString(value: string | Date): string {
 	return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
@@ -348,13 +358,13 @@ export function updateProjectName(name: string) {
 		currentProject.name = name;
 		debounceAutoSave();
 
-		if (useRemote()) {
+		if (shouldSyncProject()) {
 			void fetch(`/api/projects/${currentProject.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name })
 			});
-		} else if (shouldQueue()) {
+		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'update',
 				entity: 'project',
@@ -370,9 +380,9 @@ export function setFloorplan(floorplan: Floorplan) {
 		currentProject.floorplan = floorplan;
 		debounceAutoSave();
 
-		if (useRemote()) {
+		if (shouldSyncProject()) {
 			void uploadFloorplan(currentProject.id, floorplan);
-		} else if (shouldQueue()) {
+		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'create',
 				entity: 'floorplan',
@@ -392,11 +402,11 @@ export function clearFloorplan() {
 		currentProject.floorplan = null;
 		debounceAutoSave();
 
-		if (useRemote()) {
+		if (shouldSyncProject()) {
 			void fetch(`/api/projects/${currentProject.id}/floorplan`, {
 				method: 'DELETE'
 			});
-		} else if (shouldQueue()) {
+		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'delete',
 				entity: 'floorplan',
@@ -415,13 +425,13 @@ export function addItem(item: Omit<Item, 'id'>) {
 		currentProject.items = [...currentProject.items, newItem];
 		debounceAutoSave();
 
-		if (useRemote()) {
+		if (shouldSyncProject()) {
 			void fetch(`/api/projects/${currentProject.id}/items`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(buildItemPayload(newItem))
 			});
-		} else if (shouldQueue()) {
+		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'create',
 				entity: 'item',
@@ -445,13 +455,13 @@ export function updateItem(id: string, updates: Partial<Item>) {
 		const updatedItem = currentProject.items.find((item) => item.id === id);
 		if (!updatedItem) return;
 
-		if (useRemote()) {
+		if (shouldSyncProject()) {
 			void fetch(`/api/projects/${currentProject.id}/items/${id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(buildItemPayload(updatedItem))
 			});
-		} else if (shouldQueue()) {
+		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'update',
 				entity: 'item',
@@ -468,11 +478,11 @@ export function deleteItem(id: string) {
 		currentProject.items = currentProject.items.filter((item) => item.id !== id);
 		debounceAutoSave();
 
-		if (useRemote()) {
+		if (shouldSyncProject()) {
 			void fetch(`/api/projects/${currentProject.id}/items/${id}`, {
 				method: 'DELETE'
 			});
-		} else if (shouldQueue()) {
+		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'delete',
 				entity: 'item',
@@ -505,13 +515,13 @@ export function duplicateItem(id: string) {
 			currentProject.items = [...currentProject.items, newItem];
 			debounceAutoSave();
 
-			if (useRemote()) {
+			if (shouldSyncProject()) {
 				void fetch(`/api/projects/${currentProject.id}/items`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(buildItemPayload(newItem))
 				});
-			} else if (shouldQueue()) {
+			} else if (shouldQueueProject()) {
 				queueChange({
 					type: 'create',
 					entity: 'item',
@@ -554,13 +564,13 @@ export function setCurrency(currency: CurrencyCode) {
 		currentProject.currency = currency;
 		debounceAutoSave();
 
-		if (useRemote()) {
+		if (shouldSyncProject()) {
 			void fetch(`/api/projects/${currentProject.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ currency })
 			});
-		} else if (shouldQueue()) {
+		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'update',
 				entity: 'project',
@@ -580,13 +590,13 @@ export function setGridSize(gridSize: number) {
 		currentProject.gridSize = Math.max(1, Math.min(200, gridSize));
 		debounceAutoSave();
 
-		if (useRemote()) {
+		if (shouldSyncProject()) {
 			void fetch(`/api/projects/${currentProject.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ gridSize: currentProject.gridSize })
 			});
-		} else if (shouldQueue()) {
+		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'update',
 				entity: 'project',
