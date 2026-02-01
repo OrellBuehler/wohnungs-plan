@@ -32,6 +32,9 @@ export async function getAllProjects(): Promise<ProjectMeta[]> {
     name,
     createdAt,
     updatedAt,
+    isLocal: true,
+    floorplanUrl: null,
+    memberCount: 0,
   }));
 }
 
