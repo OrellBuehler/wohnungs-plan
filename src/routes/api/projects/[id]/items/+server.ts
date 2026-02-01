@@ -38,12 +38,12 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		rotation: body.rotation ?? 0,
 		color: body.color ?? '#3b82f6',
 		price: body.price ?? null,
-		price_currency: body.priceCurrency ?? 'EUR',
-		product_url: body.productUrl ?? null,
+		priceCurrency: body.priceCurrency ?? 'EUR',
+		productUrl: body.productUrl ?? null,
 		shape: body.shape ?? 'rectangle',
-		cutout_width: body.cutoutWidth ?? null,
-		cutout_height: body.cutoutHeight ?? null,
-		cutout_corner: body.cutoutCorner ?? null
+		cutoutWidth: body.cutoutWidth ?? null,
+		cutoutHeight: body.cutoutHeight ?? null,
+		cutoutCorner: body.cutoutCorner ?? null
 	});
 
 	return json({ item }, { status: 201 });

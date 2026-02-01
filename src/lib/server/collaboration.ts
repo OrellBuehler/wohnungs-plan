@@ -62,7 +62,7 @@ export function addCollaborator(
 		user: {
 			id: user.id,
 			name: user.name,
-			avatarUrl: user.avatar_url
+			avatarUrl: user.avatarUrl
 		},
 		color,
 		cursor: null,

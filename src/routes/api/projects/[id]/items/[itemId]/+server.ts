@@ -14,7 +14,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const existingItem = await getItemById(params.itemId);
-	if (!existingItem || existingItem.project_id !== params.id) {
+	if (!existingItem || existingItem.projectId !== params.id) {
 		throw error(404, 'Item not found');
 	}
 
@@ -28,12 +28,12 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		rotation: body.rotation,
 		color: body.color,
 		price: body.price,
-		price_currency: body.price_currency ?? body.priceCurrency,
-		product_url: body.product_url ?? body.productUrl,
+		priceCurrency: body.priceCurrency,
+		productUrl: body.productUrl,
 		shape: body.shape,
-		cutout_width: body.cutout_width ?? body.cutoutWidth,
-		cutout_height: body.cutout_height ?? body.cutoutHeight,
-		cutout_corner: body.cutout_corner ?? body.cutoutCorner
+		cutoutWidth: body.cutoutWidth,
+		cutoutHeight: body.cutoutHeight,
+		cutoutCorner: body.cutoutCorner
 	});
 
 	return json({ item });
@@ -50,7 +50,7 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const existingItem = await getItemById(params.itemId);
-	if (!existingItem || existingItem.project_id !== params.id) {
+	if (!existingItem || existingItem.projectId !== params.id) {
 		throw error(404, 'Item not found');
 	}
 

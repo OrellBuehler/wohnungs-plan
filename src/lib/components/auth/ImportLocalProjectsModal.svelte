@@ -2,8 +2,8 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { getAllProjects } from '$lib/db';
-	import type { Project } from '$lib/types';
+	import { getAllProjects, getProject } from '$lib/db';
+	import type { Project, ProjectMeta } from '$lib/types';
 	import { Upload, FolderOpen } from 'lucide-svelte';
 
 	interface Props {
@@ -14,7 +14,7 @@
 
 	let { open = $bindable(), onClose, onImport }: Props = $props();
 
-	let localProjects = $state<Project[]>([]);
+	let localProjects = $state<ProjectMeta[]>([]);
 	let selectedIds = $state<Set<string>>(new Set());
 	let isLoading = $state(false);
 	let isImporting = $state(false);
@@ -56,15 +56,20 @@
 	}
 
 	async function handleImport(): Promise<void> {
-		const projectsToImport = localProjects.filter((p) => selectedIds.has(p.id));
-		if (projectsToImport.length === 0) {
+		const selectedProjects = localProjects.filter((p) => selectedIds.has(p.id));
+		if (selectedProjects.length === 0) {
 			onClose();
 			return;
 		}
 
 		isImporting = true;
 		try {
-			await onImport(projectsToImport);
+			// Load full project data for selected projects
+			const fullProjects = await Promise.all(
+				selectedProjects.map((p) => getProject(p.id))
+			);
+			const validProjects = fullProjects.filter((p): p is Project => p !== null);
+			await onImport(validProjects);
 			onClose();
 		} catch (err) {
 			console.error('Import failed:', err);
@@ -113,7 +118,7 @@
 						<div class="flex-1 min-w-0">
 							<p class="text-sm font-medium truncate">{project.name}</p>
 							<p class="text-xs text-muted-foreground">
-								{project.items.length} item{project.items.length !== 1 ? 's' : ''}
+								Updated {new Date(project.updatedAt).toLocaleDateString()}
 							</p>
 						</div>
 					</div>

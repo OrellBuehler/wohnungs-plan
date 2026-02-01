@@ -39,7 +39,7 @@ export const GET: RequestHandler = async ({ locals, params, request }) => {
 
 		return new Response(fileBuffer, {
 			headers: {
-				'Content-Type': floorplan.mime_type,
+				'Content-Type': floorplan.mimeType,
 				'Content-Length': fileStat.size.toString(),
 				'Cache-Control': 'private, max-age=0, must-revalidate',
 				ETag: etag,

@@ -68,7 +68,8 @@
 
   // Calculate total cost with currency conversion
   const totalCost = $derived.by(() => {
-    if (!exchangeRates) {
+    const rates = exchangeRates;
+    if (!rates) {
       // No rates yet, just sum raw prices
       return items.reduce((sum, item) => sum + (item.price ?? 0), 0);
     }
@@ -79,7 +80,7 @@
         item.price,
         item.priceCurrency,
         displayCurrency,
-        exchangeRates
+        rates
       );
       return sum + converted;
     }, 0);

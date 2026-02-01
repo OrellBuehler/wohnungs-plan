@@ -14,10 +14,10 @@ import { isOnline, queueChange } from '$lib/stores/sync.svelte';
 interface ApiProject {
 	id: string;
 	name: string;
-	created_at: string | Date;
-	updated_at: string | Date;
+	createdAt: string | Date | null;
+	updatedAt: string | Date | null;
 	currency: string;
-	grid_size: number;
+	gridSize: number;
 }
 
 interface ApiItem {
@@ -27,27 +27,27 @@ interface ApiItem {
 	height: number;
 	x: number | null;
 	y: number | null;
-	rotation: number;
+	rotation: number | null;
 	color: string;
 	price: number | null;
-	price_currency: string;
-	product_url: string | null;
+	priceCurrency: string | null;
+	productUrl: string | null;
 	shape: string;
-	cutout_width: number | null;
-	cutout_height: number | null;
-	cutout_corner: string | null;
+	cutoutWidth: number | null;
+	cutoutHeight: number | null;
+	cutoutCorner: string | null;
 }
 
 interface ApiFloorplan {
 	id: string;
-	project_id: string;
+	projectId: string;
 	filename: string;
-	mime_type: string;
-	size_bytes: number;
+	mimeType: string;
+	sizeBytes: number;
 	scale: number | null;
-	reference_length: number | null;
-	created_at: string | Date;
-	updated_at: string | Date;
+	referenceLength: number | null;
+	createdAt: string | Date | null;
+	updatedAt: string | Date | null;
 }
 
 let currentProject = $state<Project | null>(null);
@@ -84,14 +84,14 @@ function mapApiItem(item: ApiItem): Item {
 		height: item.height,
 		color: item.color,
 		price: item.price,
-		priceCurrency: item.price_currency as CurrencyCode,
-		productUrl: item.product_url,
+		priceCurrency: (item.priceCurrency ?? 'EUR') as CurrencyCode,
+		productUrl: item.productUrl,
 		position: item.x !== null && item.y !== null ? { x: item.x, y: item.y } : null,
 		rotation: item.rotation ?? 0,
 		shape: item.shape as Item['shape'],
-		cutoutWidth: item.cutout_width ?? undefined,
-		cutoutHeight: item.cutout_height ?? undefined,
-		cutoutCorner: item.cutout_corner ?? undefined
+		cutoutWidth: item.cutoutWidth ?? undefined,
+		cutoutHeight: item.cutoutHeight ?? undefined,
+		cutoutCorner: item.cutoutCorner as Item['cutoutCorner']
 	};
 }
 
@@ -103,18 +103,18 @@ function mapApiProject(
 	return {
 		id: project.id,
 		name: project.name,
-		createdAt: toIsoString(project.created_at),
-		updatedAt: toIsoString(project.updated_at),
+		createdAt: project.createdAt ? toIsoString(project.createdAt) : new Date().toISOString(),
+		updatedAt: project.updatedAt ? toIsoString(project.updatedAt) : new Date().toISOString(),
 		floorplan: floorplan
 			? {
 				imageData: `/api/images/floorplans/${project.id}/${floorplan.filename}`,
 				scale: floorplan.scale ?? 0,
-				referenceLength: floorplan.reference_length ?? 0
+				referenceLength: floorplan.referenceLength ?? 0
 			}
 			: null,
 		items: items.map(mapApiItem),
 		currency: project.currency as CurrencyCode,
-		gridSize: project.grid_size
+		gridSize: project.gridSize
 	};
 }
 
@@ -192,8 +192,8 @@ export async function listProjects(): Promise<ProjectMeta[]> {
 		return (data.projects as ApiProject[]).map((project) => ({
 			id: project.id,
 			name: project.name,
-			createdAt: toIsoString(project.created_at),
-			updatedAt: toIsoString(project.updated_at)
+			createdAt: project.createdAt ? toIsoString(project.createdAt) : new Date().toISOString(),
+			updatedAt: project.updatedAt ? toIsoString(project.updatedAt) : new Date().toISOString()
 		}));
 	} catch (error) {
 		console.error('Failed to load remote projects:', error);

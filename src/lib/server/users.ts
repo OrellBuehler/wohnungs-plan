@@ -1,28 +1,29 @@
-import { getDB } from './db';
-import type { DBUser, UserProfile } from './types';
+import { eq } from 'drizzle-orm';
+import { getDB, users, type User } from './db';
 
-export async function findUserByInfomaniakSub(sub: string): Promise<DBUser | null> {
-	const db = getDB();
-	const [user] = await db`
-		SELECT * FROM users WHERE infomaniak_sub = ${sub}
-	`;
-	return (user as DBUser) ?? null;
+export interface UserProfile {
+	id: string;
+	email: string | null;
+	name: string | null;
+	avatarUrl: string | null;
 }
 
-export async function findUserById(id: string): Promise<DBUser | null> {
+export async function findUserByInfomaniakSub(sub: string): Promise<User | null> {
 	const db = getDB();
-	const [user] = await db`
-		SELECT * FROM users WHERE id = ${id}
-	`;
-	return (user as DBUser) ?? null;
+	const [user] = await db.select().from(users).where(eq(users.infomaniakSub, sub));
+	return user ?? null;
 }
 
-export async function findUserByEmail(email: string): Promise<DBUser | null> {
+export async function findUserById(id: string): Promise<User | null> {
 	const db = getDB();
-	const [user] = await db`
-		SELECT * FROM users WHERE email = ${email}
-	`;
-	return (user as DBUser) ?? null;
+	const [user] = await db.select().from(users).where(eq(users.id, id));
+	return user ?? null;
+}
+
+export async function findUserByEmail(email: string): Promise<User | null> {
+	const db = getDB();
+	const [user] = await db.select().from(users).where(eq(users.email, email));
+	return user ?? null;
 }
 
 export async function createUser(data: {
@@ -30,31 +31,36 @@ export async function createUser(data: {
 	email?: string;
 	name?: string;
 	avatarUrl?: string;
-}): Promise<DBUser> {
+}): Promise<User> {
 	const db = getDB();
-	const [user] = await db`
-		INSERT INTO users (infomaniak_sub, email, name, avatar_url)
-		VALUES (${data.infomaniakSub}, ${data.email ?? null}, ${data.name ?? null}, ${data.avatarUrl ?? null})
-		RETURNING *
-	`;
-	return user as DBUser;
+	const [user] = await db
+		.insert(users)
+		.values({
+			infomaniakSub: data.infomaniakSub,
+			email: data.email ?? null,
+			name: data.name ?? null,
+			avatarUrl: data.avatarUrl ?? null
+		})
+		.returning();
+	return user;
 }
 
 export async function updateUser(
 	id: string,
 	data: { email?: string; name?: string; avatarUrl?: string }
-): Promise<DBUser> {
+): Promise<User> {
 	const db = getDB();
-	const [user] = await db`
-		UPDATE users SET
-			email = COALESCE(${data.email ?? null}, email),
-			name = COALESCE(${data.name ?? null}, name),
-			avatar_url = COALESCE(${data.avatarUrl ?? null}, avatar_url),
-			updated_at = NOW()
-		WHERE id = ${id}
-		RETURNING *
-	`;
-	return user as DBUser;
+	const [user] = await db
+		.update(users)
+		.set({
+			email: data.email,
+			name: data.name,
+			avatarUrl: data.avatarUrl,
+			updatedAt: new Date()
+		})
+		.where(eq(users.id, id))
+		.returning();
+	return user;
 }
 
 export async function upsertUser(data: {
@@ -62,26 +68,34 @@ export async function upsertUser(data: {
 	email?: string;
 	name?: string;
 	avatarUrl?: string;
-}): Promise<DBUser> {
+}): Promise<User> {
 	const db = getDB();
-	const [user] = await db`
-		INSERT INTO users (infomaniak_sub, email, name, avatar_url)
-		VALUES (${data.infomaniakSub}, ${data.email ?? null}, ${data.name ?? null}, ${data.avatarUrl ?? null})
-		ON CONFLICT (infomaniak_sub) DO UPDATE SET
-			email = COALESCE(EXCLUDED.email, users.email),
-			name = COALESCE(EXCLUDED.name, users.name),
-			avatar_url = COALESCE(EXCLUDED.avatar_url, users.avatar_url),
-			updated_at = NOW()
-		RETURNING *
-	`;
-	return user as DBUser;
+	const [user] = await db
+		.insert(users)
+		.values({
+			infomaniakSub: data.infomaniakSub,
+			email: data.email ?? null,
+			name: data.name ?? null,
+			avatarUrl: data.avatarUrl ?? null
+		})
+		.onConflictDoUpdate({
+			target: users.infomaniakSub,
+			set: {
+				email: data.email ?? undefined,
+				name: data.name ?? undefined,
+				avatarUrl: data.avatarUrl ?? undefined,
+				updatedAt: new Date()
+			}
+		})
+		.returning();
+	return user;
 }
 
-export function toUserProfile(user: DBUser): UserProfile {
+export function toUserProfile(user: User): UserProfile {
 	return {
 		id: user.id,
 		email: user.email,
 		name: user.name,
-		avatarUrl: user.avatar_url
+		avatarUrl: user.avatarUrl
 	};
 }

@@ -13,22 +13,22 @@ export const GET: RequestHandler = async ({ params }) => {
 		throw error(404, 'Invite not found');
 	}
 
-	if (invite.accepted_at) {
+	if (invite.acceptedAt) {
 		throw error(410, 'Invite already accepted');
 	}
 
-	if (isExpired(invite.expires_at)) {
+	if (isExpired(invite.expiresAt)) {
 		throw error(410, 'Invite expired');
 	}
 
-	const project = await getProjectById(invite.project_id);
+	const project = await getProjectById(invite.projectId);
 
 	return json({
 		invite: {
-			projectId: invite.project_id,
+			projectId: invite.projectId,
 			email: invite.email,
 			role: invite.role,
-			expiresAt: invite.expires_at,
+			expiresAt: invite.expiresAt,
 			projectName: project?.name ?? null
 		}
 	});
@@ -44,11 +44,11 @@ export const POST: RequestHandler = async ({ locals, params }) => {
 		throw error(404, 'Invite not found');
 	}
 
-	if (invite.accepted_at) {
+	if (invite.acceptedAt) {
 		throw error(410, 'Invite already accepted');
 	}
 
-	if (isExpired(invite.expires_at)) {
+	if (isExpired(invite.expiresAt)) {
 		throw error(410, 'Invite expired');
 	}
 
@@ -58,5 +58,5 @@ export const POST: RequestHandler = async ({ locals, params }) => {
 
 	await acceptInvite(invite, locals.user.id);
 
-	return json({ success: true, projectId: invite.project_id });
+	return json({ success: true, projectId: invite.projectId });
 };

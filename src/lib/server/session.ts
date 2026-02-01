@@ -1,6 +1,6 @@
-import { getDB } from './db';
+import { eq, gt, lt } from 'drizzle-orm';
+import { getDB, sessions, users, type Session, type User } from './db';
 import { config } from './env';
-import type { DBSession, DBUser } from './types';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -8,90 +8,70 @@ export function generateSessionId(): string {
 	return crypto.randomUUID();
 }
 
-export async function createSession(
-	userId: string,
-	refreshToken?: string
-): Promise<DBSession> {
+export async function createSession(userId: string, refreshToken?: string): Promise<Session> {
 	const db = getDB();
 	const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
 
-	const [session] = await db`
-		INSERT INTO sessions (user_id, refresh_token, expires_at)
-		VALUES (${userId}, ${refreshToken ?? null}, ${expiresAt})
-		RETURNING *
-	`;
+	const [session] = await db
+		.insert(sessions)
+		.values({
+			userId,
+			refreshToken: refreshToken ?? null,
+			expiresAt
+		})
+		.returning();
 
-	return session as DBSession;
+	return session;
 }
 
-export async function getSession(sessionId: string): Promise<DBSession | null> {
+export async function getSession(sessionId: string): Promise<Session | null> {
 	const db = getDB();
-	const [session] = await db`
-		SELECT * FROM sessions
-		WHERE id = ${sessionId} AND expires_at > NOW()
-	`;
+	const [session] = await db
+		.select()
+		.from(sessions)
+		.where(eq(sessions.id, sessionId));
 
-	return (session as DBSession) ?? null;
+	if (!session || session.expiresAt < new Date()) {
+		return null;
+	}
+
+	return session;
 }
 
 export async function getSessionWithUser(
 	sessionId: string
-): Promise<{ session: DBSession; user: DBUser } | null> {
+): Promise<{ session: Session; user: User } | null> {
 	const db = getDB();
-	const [result] = await db`
-		SELECT
-			s.id as session_id,
-			s.user_id,
-			s.refresh_token,
-			s.expires_at as session_expires_at,
-			s.created_at as session_created_at,
-			u.id as user_id,
-			u.infomaniak_sub,
-			u.email,
-			u.name,
-			u.avatar_url,
-			u.created_at as user_created_at,
-			u.updated_at as user_updated_at
-		FROM sessions s
-		JOIN users u ON s.user_id = u.id
-		WHERE s.id = ${sessionId} AND s.expires_at > NOW()
-	`;
+	const result = await db
+		.select({
+			session: sessions,
+			user: users
+		})
+		.from(sessions)
+		.innerJoin(users, eq(sessions.userId, users.id))
+		.where(eq(sessions.id, sessionId));
 
-	if (!result) return null;
+	const [row] = result;
+	if (!row || row.session.expiresAt < new Date()) {
+		return null;
+	}
 
-	return {
-		session: {
-			id: result.session_id,
-			user_id: result.user_id,
-			refresh_token: result.refresh_token,
-			expires_at: result.session_expires_at,
-			created_at: result.session_created_at
-		},
-		user: {
-			id: result.user_id,
-			infomaniak_sub: result.infomaniak_sub,
-			email: result.email,
-			name: result.name,
-			avatar_url: result.avatar_url,
-			created_at: result.user_created_at,
-			updated_at: result.user_updated_at
-		}
-	};
+	return { session: row.session, user: row.user };
 }
 
 export async function deleteSession(sessionId: string): Promise<void> {
 	const db = getDB();
-	await db`DELETE FROM sessions WHERE id = ${sessionId}`;
+	await db.delete(sessions).where(eq(sessions.id, sessionId));
 }
 
 export async function deleteUserSessions(userId: string): Promise<void> {
 	const db = getDB();
-	await db`DELETE FROM sessions WHERE user_id = ${userId}`;
+	await db.delete(sessions).where(eq(sessions.userId, userId));
 }
 
 export async function cleanExpiredSessions(): Promise<void> {
 	const db = getDB();
-	await db`DELETE FROM sessions WHERE expires_at < NOW()`;
+	await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
 }
 
 type SameSiteValue = 'lax' | 'strict' | 'none' | 'Lax' | 'Strict' | 'None';
