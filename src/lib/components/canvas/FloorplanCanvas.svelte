@@ -29,11 +29,23 @@
   }: Props = $props();
 
   let containerEl: HTMLDivElement;
+  let stageRef: { node: Konva.Stage } | undefined = $state();
   let stageWidth = $state(800);
   let stageHeight = $state(600);
   let floorplanImage: HTMLImageElement | null = $state(null);
   let imageNaturalWidth = $state(0);
   let imageNaturalHeight = $state(0);
+
+  // Zoom and pan state
+  let zoom = $state(1);
+  let panX = $state(0);
+  let panY = $state(0);
+  let isPanning = $state(false);
+  let lastPanPoint = $state<{ x: number; y: number } | null>(null);
+
+  const MIN_ZOOM = 0.25;
+  const MAX_ZOOM = 4;
+  const ZOOM_STEP = 0.1;
 
   // Load floorplan image
   $effect(() => {
@@ -65,16 +77,13 @@
     let height: number;
 
     if (imageAspect > stageAspect) {
-      // Image is wider than stage - fit to width
       width = stageWidth;
       height = stageWidth / imageAspect;
     } else {
-      // Image is taller than stage - fit to height
       height = stageHeight;
       width = stageHeight * imageAspect;
     }
 
-    // Center the image
     const x = (stageWidth - width) / 2;
     const y = (stageHeight - height) / 2;
 
@@ -100,7 +109,6 @@
   }
 
   function handleStageClick(e: { target: Konva.Node }) {
-    // Check if clicked on stage background
     if (e.target.getClassName() === 'Stage') {
       onItemSelect(null);
     }
@@ -124,9 +132,92 @@
     }
   }
 
+  // Zoom functions
+  function handleWheel(e: WheelEvent) {
+    e.preventDefault();
+    const stage = stageRef?.node;
+    if (!stage) return;
+
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+
+    const oldZoom = zoom;
+    const newZoom = e.deltaY < 0
+      ? Math.min(MAX_ZOOM, zoom + ZOOM_STEP)
+      : Math.max(MIN_ZOOM, zoom - ZOOM_STEP);
+
+    // Zoom toward pointer position
+    const mousePointTo = {
+      x: (pointer.x - panX) / oldZoom,
+      y: (pointer.y - panY) / oldZoom,
+    };
+
+    zoom = newZoom;
+    panX = pointer.x - mousePointTo.x * newZoom;
+    panY = pointer.y - mousePointTo.y * newZoom;
+  }
+
+  function zoomIn() {
+    const newZoom = Math.min(MAX_ZOOM, zoom + ZOOM_STEP * 2);
+    // Zoom toward center
+    const centerX = stageWidth / 2;
+    const centerY = stageHeight / 2;
+    const mousePointTo = {
+      x: (centerX - panX) / zoom,
+      y: (centerY - panY) / zoom,
+    };
+    zoom = newZoom;
+    panX = centerX - mousePointTo.x * newZoom;
+    panY = centerY - mousePointTo.y * newZoom;
+  }
+
+  function zoomOut() {
+    const newZoom = Math.max(MIN_ZOOM, zoom - ZOOM_STEP * 2);
+    const centerX = stageWidth / 2;
+    const centerY = stageHeight / 2;
+    const mousePointTo = {
+      x: (centerX - panX) / zoom,
+      y: (centerY - panY) / zoom,
+    };
+    zoom = newZoom;
+    panX = centerX - mousePointTo.x * newZoom;
+    panY = centerY - mousePointTo.y * newZoom;
+  }
+
+  function resetView() {
+    zoom = 1;
+    panX = 0;
+    panY = 0;
+  }
+
+  // Pan functions
+  function handleMouseDown(e: { evt: MouseEvent; target: Konva.Node }) {
+    // Only pan if clicking on stage background or image
+    if (e.target.getClassName() === 'Stage' || e.target.getClassName() === 'Image') {
+      isPanning = true;
+      lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
+    }
+  }
+
+  function handleMouseMove(e: { evt: MouseEvent }) {
+    if (!isPanning || !lastPanPoint) return;
+
+    const dx = e.evt.clientX - lastPanPoint.x;
+    const dy = e.evt.clientY - lastPanPoint.y;
+
+    panX += dx;
+    panY += dy;
+    lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
+  }
+
+  function handleMouseUp() {
+    isPanning = false;
+    lastPanPoint = null;
+  }
+
   // Convert cm to pixels using scale
   function cmToPixels(cm: number): number {
-    if (!floorplan?.scale) return cm * 2; // Default fallback
+    if (!floorplan?.scale) return cm * 2;
     return cm * floorplan.scale;
   }
 
@@ -142,8 +233,25 @@
   });
 </script>
 
-<div bind:this={containerEl} class="w-full h-full bg-canvas-bg relative">
-  <Stage width={stageWidth} height={stageHeight} onpointerclick={handleStageClick}>
+<div
+  bind:this={containerEl}
+  class="w-full h-full bg-canvas-bg relative"
+  onwheel={handleWheel}
+>
+  <Stage
+    bind:this={stageRef}
+    width={stageWidth}
+    height={stageHeight}
+    scaleX={zoom}
+    scaleY={zoom}
+    x={panX}
+    y={panY}
+    onpointerclick={handleStageClick}
+    onmousedown={handleMouseDown}
+    onmousemove={handleMouseMove}
+    onmouseup={handleMouseUp}
+    onmouseleave={handleMouseUp}
+  >
     <Layer>
       <!-- Grid -->
       {#if showGrid}
@@ -208,13 +316,41 @@
     </Layer>
   </Stage>
 
+  <!-- Zoom controls -->
+  <div class="absolute top-2 right-2 flex flex-col gap-1 bg-white rounded shadow-lg p-1">
+    <button
+      class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600 font-bold"
+      onclick={zoomIn}
+      title="Zoom in"
+    >
+      +
+    </button>
+    <div class="text-xs text-center text-slate-500 py-1">
+      {Math.round(zoom * 100)}%
+    </div>
+    <button
+      class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600 font-bold"
+      onclick={zoomOut}
+      title="Zoom out"
+    >
+      −
+    </button>
+    <button
+      class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600 text-xs"
+      onclick={resetView}
+      title="Reset view"
+    >
+      ⟲
+    </button>
+  </div>
+
   <!-- Rotation controls for selected item -->
   {#if selectedItemId}
     {@const selectedItem = items.find(i => i.id === selectedItemId)}
     {#if selectedItem?.position}
       <div
         class="absolute flex gap-1 bg-white rounded shadow-lg p-1"
-        style="left: {selectedItem.position.x}px; top: {selectedItem.position.y - 40}px;"
+        style="left: {(selectedItem.position.x * zoom) + panX}px; top: {(selectedItem.position.y * zoom) + panY - 40}px;"
       >
         <button
           class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600"
