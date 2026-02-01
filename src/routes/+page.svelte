@@ -1,341 +1,204 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import type { Item, ProjectMeta } from '$lib/types';
-  import type { CurrencyCode } from '$lib/utils/currency';
-  import {
-    getProject,
-    setProject,
-    createProject,
-    updateProjectName,
-    setFloorplan,
-    clearFloorplan,
-    addItem,
-    updateItem,
-    deleteItem,
-    duplicateItem,
-    getItems,
-    getCurrency,
-    setCurrency,
-    getGridSize,
-    setGridSize,
-    listProjects,
-    loadProjectById,
-    removeProject,
-  } from '$lib/stores/project.svelte';
-  import { saveProject } from '$lib/db';
-  import { downloadProject, importProjectFromJSON, readFileAsJSON } from '$lib/utils/export';
-  import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import type { ProjectMeta } from '$lib/types';
+	import { Button } from '$lib/components/ui/button';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import { Plus } from 'lucide-svelte';
+	import House from 'lucide-svelte/icons/house';
+	import ProjectCard from '$lib/components/projects/ProjectCard.svelte';
+	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
+	import LoginButton from '$lib/components/auth/LoginButton.svelte';
+	import UserMenu from '$lib/components/auth/UserMenu.svelte';
+	import {
+		listProjects,
+		createProject,
+		removeProject,
+		syncProjectToCloud
+	} from '$lib/stores/project.svelte';
+	import { isAuthenticated, fetchUser } from '$lib/stores/auth.svelte';
 
-  import Header from '$lib/components/layout/Header.svelte';
-  import MobileNav from '$lib/components/layout/MobileNav.svelte';
-  import FloorplanCanvas from '$lib/components/canvas/FloorplanCanvas.svelte';
-  import FloorplanUpload from '$lib/components/canvas/FloorplanUpload.svelte';
-  import ScaleCalibration from '$lib/components/canvas/ScaleCalibration.svelte';
-  import CanvasControls from '$lib/components/canvas/CanvasControls.svelte';
-  import ItemList from '$lib/components/items/ItemList.svelte';
-  import ItemForm from '$lib/components/items/ItemForm.svelte';
-  import ProjectListDialog from '$lib/components/projects/ProjectListDialog.svelte';
+	// State
+	let projects = $state<ProjectMeta[]>([]);
+	let isLoading = $state(true);
+	let error = $state<string | null>(null);
 
-  // App state
-  let activeTab = $state<'plan' | 'items'>('plan');
-  let selectedItemId = $state<string | null>(null);
-  let showGrid = $state(true);
-  let snapToGrid = $state(true);
-  let canvasViewportCenter = $state({ x: 200, y: 200 });
+	// Share dialog state
+	let shareDialogOpen = $state(false);
+	let shareProjectId = $state<string | null>(null);
 
-  // Dialog state
-  let showItemForm = $state(false);
-  let editingItem = $state<Partial<Item> | null>(null);
-  let showProjectList = $state(false);
-  let projectList = $state<ProjectMeta[]>([]);
+	// Delete dialog state
+	let deleteDialogOpen = $state(false);
+	let deleteProject = $state<ProjectMeta | null>(null);
 
-  // Calibration state
-  let pendingImageData = $state<string | null>(null);
+	// Derived
+	const authenticated = $derived(isAuthenticated());
+	const showSignInBanner = $derived(!authenticated && projects.length > 0);
 
-  // Exchange rate state
-  let exchangeRates = $state<ExchangeRates | null>(null);
-  let isLoadingRates = $state(false);
+	onMount(async () => {
+		await fetchUser();
+		await loadProjects();
+	});
 
-  // Reactive project data
-  const project = $derived(getProject());
-  const items = $derived(getItems());
-  const displayCurrency = $derived(getCurrency());
-  const gridSize = $derived(getGridSize());
+	async function loadProjects() {
+		isLoading = true;
+		error = null;
+		try {
+			projects = await listProjects();
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to load projects';
+		} finally {
+			isLoading = false;
+		}
+	}
 
-  function handleGridSizeChange(newSize: number) {
-    setGridSize(newSize);
-  }
+	async function handleNew() {
+		const project = createProject('New Project');
+		await goto(`/projects/${project.id}`);
+	}
 
-  // Calculate total cost with currency conversion
-  const totalCost = $derived.by(() => {
-    const rates = exchangeRates;
-    if (!rates) {
-      // No rates yet, just sum raw prices
-      return items.reduce((sum, item) => sum + (item.price ?? 0), 0);
-    }
+	function handleOpen(id: string) {
+		goto(`/projects/${id}`);
+	}
 
-    return items.reduce((sum, item) => {
-      if (item.price === null) return sum;
-      const converted = convertCurrency(
-        item.price,
-        item.priceCurrency,
-        displayCurrency,
-        rates
-      );
-      return sum + converted;
-    }, 0);
-  });
+	function handleShare(id: string) {
+		shareProjectId = id;
+		shareDialogOpen = true;
+	}
 
-  // Fetch exchange rates when display currency changes
-  $effect(() => {
-    const currency = displayCurrency;
-    loadExchangeRates(currency);
-  });
+	function handleDeleteClick(id: string) {
+		const project = projects.find((p) => p.id === id);
+		if (project) {
+			deleteProject = project;
+			deleteDialogOpen = true;
+		}
+	}
 
-  async function loadExchangeRates(baseCurrency: CurrencyCode) {
-    isLoadingRates = true;
-    try {
-      exchangeRates = await fetchExchangeRates(baseCurrency);
-    } finally {
-      isLoadingRates = false;
-    }
-  }
+	async function confirmDelete() {
+		if (deleteProject) {
+			await removeProject(deleteProject.id);
+			deleteDialogOpen = false;
+			deleteProject = null;
+			await loadProjects();
+		}
+	}
 
-  function handleDisplayCurrencyChange(newCurrency: CurrencyCode) {
-    setCurrency(newCurrency);
-  }
-
-  onMount(async () => {
-    const projects = await listProjects();
-    if (projects.length > 0) {
-      const loaded = await loadProjectById(projects[0].id);
-      if (loaded) setProject(loaded);
-    } else {
-      createProject('My Apartment');
-    }
-  });
-
-  // Header actions
-  async function handleNew() {
-    if (confirm('Create a new project? Unsaved changes will be lost.')) {
-      createProject('New Project');
-    }
-  }
-
-  async function handleOpen() {
-    projectList = await listProjects();
-    showProjectList = true;
-  }
-
-  async function handleSelectProject(id: string) {
-    const loaded = await loadProjectById(id);
-    if (loaded) setProject(loaded);
-  }
-
-  async function handleDeleteProject(id: string) {
-    await removeProject(id);
-    projectList = await listProjects();
-    if (project?.id === id) {
-      if (projectList.length > 0) {
-        const loaded = await loadProjectById(projectList[0].id);
-        if (loaded) setProject(loaded);
-      } else {
-        createProject('My Apartment');
-      }
-    }
-  }
-
-  function handleExport() {
-    if (project) downloadProject(project);
-  }
-
-  async function handleImport() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (file) {
-        const json = await readFileAsJSON(file);
-        const imported = importProjectFromJSON(json);
-        if (imported) {
-          setProject(imported);
-          await saveProject(imported);
-        } else {
-          alert('Invalid project file');
-        }
-      }
-    };
-    input.click();
-  }
-
-  function handleRename(newName: string) {
-    updateProjectName(newName);
-  }
-
-  // Floorplan actions
-  function handleFloorplanUpload(imageData: string) {
-    pendingImageData = imageData;
-  }
-
-  function handleCalibrate(scale: number, referenceLength: number) {
-    if (pendingImageData) {
-      setFloorplan({
-        imageData: pendingImageData,
-        scale,
-        referenceLength,
-      });
-      pendingImageData = null;
-    }
-  }
-
-  function handleCancelCalibration() {
-    pendingImageData = null;
-  }
-
-  function handleChangeFloorplan() {
-    if (confirm('Change floorplan? Item positions will be kept.')) {
-      clearFloorplan();
-    }
-  }
-
-  // Item actions
-  function handleAddItem() {
-    editingItem = null;
-    showItemForm = true;
-  }
-
-  function handleEditItem(id: string) {
-    const item = items.find((i) => i.id === id);
-    if (item) {
-      editingItem = item;
-      showItemForm = true;
-    }
-  }
-
-  function handleSaveItem(itemData: Omit<Item, 'id'>) {
-    if (editingItem?.id) {
-      updateItem(editingItem.id, itemData);
-    } else {
-      addItem(itemData);
-    }
-  }
-
-  function handleDeleteItem(id: string) {
-    if (confirm('Delete this item?')) {
-      deleteItem(id);
-      if (selectedItemId === id) selectedItemId = null;
-    }
-  }
-
-  function handleDuplicateItem(id: string) {
-    duplicateItem(id);
-  }
-
-  function handlePlaceItem(id: string) {
-    updateItem(id, { position: { x: canvasViewportCenter.x, y: canvasViewportCenter.y } });
-    activeTab = 'plan';
-  }
-
-  // Canvas actions
-  function handleItemSelect(id: string | null) {
-    selectedItemId = id;
-  }
-
-  function handleItemMove(id: string, x: number, y: number) {
-    updateItem(id, { position: { x, y } });
-  }
-
-  function handleItemRotate(id: string, rotation: number) {
-    updateItem(id, { rotation });
-  }
+	async function handleSync(id: string) {
+		const success = await syncProjectToCloud(id);
+		if (success) {
+			await loadProjects();
+		}
+	}
 </script>
 
-{#if project}
-  <Header
-    projectName={project.name}
-    onRename={handleRename}
-    onNew={handleNew}
-    onOpen={handleOpen}
-    onExport={handleExport}
-    onImport={handleImport}
-  />
+<div class="min-h-screen bg-slate-50 flex flex-col">
+	<!-- Header -->
+	<header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
+		<h1 class="text-xl font-semibold text-slate-800">Wohnungs-Plan</h1>
+		<div>
+			{#if authenticated}
+				<UserMenu />
+			{:else}
+				<LoginButton />
+			{/if}
+		</div>
+	</header>
 
-  <main class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
-    <div class="flex-1 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
-      <div class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden">
-        {#if pendingImageData}
-          <ScaleCalibration
-            imageData={pendingImageData}
-            onCalibrate={handleCalibrate}
-            onCancel={handleCancelCalibration}
-          />
-        {:else if !project.floorplan}
-          <FloorplanUpload onUpload={handleFloorplanUpload} />
-        {:else}
-          <FloorplanCanvas
-            floorplan={project.floorplan}
-            {items}
-            {selectedItemId}
-            {gridSize}
-            {showGrid}
-            {snapToGrid}
-            bind:viewportCenter={canvasViewportCenter}
-            onItemSelect={handleItemSelect}
-            onItemMove={handleItemMove}
-            onItemRotate={handleItemRotate}
-          />
-        {/if}
-      </div>
+	<!-- Main -->
+	<main class="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full">
+		<!-- Title + New button -->
+		<div class="flex items-center justify-between mb-6">
+			<h2 class="text-2xl font-bold text-slate-800">My Projects</h2>
+			<Button onclick={handleNew}>
+				<Plus class="size-4 mr-2" />
+				New Project
+			</Button>
+		</div>
 
-      {#if project.floorplan && !pendingImageData}
-        <CanvasControls
-          bind:showGrid
-          bind:snapToGrid
-          {gridSize}
-          onChangeFloorplan={handleChangeFloorplan}
-          onGridSizeChange={handleGridSizeChange}
-        />
-      {/if}
-    </div>
+		<!-- Loading state -->
+		{#if isLoading}
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+				{#each Array(6) as _}
+					<div class="rounded-lg border border-slate-200 bg-white overflow-hidden">
+						<div class="aspect-video bg-slate-100 animate-pulse"></div>
+						<div class="p-3 space-y-2">
+							<div class="h-5 bg-slate-100 rounded animate-pulse w-3/4"></div>
+							<div class="h-4 bg-slate-100 rounded animate-pulse w-1/2"></div>
+						</div>
+					</div>
+				{/each}
+			</div>
 
-    <aside class="w-full md:w-80 min-h-0 {activeTab === 'items' ? 'flex' : 'hidden'} md:flex flex-col bg-white border-l border-slate-200">
-      <ItemList
-        {items}
-        {selectedItemId}
-        {totalCost}
-        {displayCurrency}
-        {isLoadingRates}
-        onItemSelect={handleItemSelect}
-        onItemEdit={handleEditItem}
-        onItemDelete={handleDeleteItem}
-        onItemDuplicate={handleDuplicateItem}
-        onItemPlace={handlePlaceItem}
-        onAddItem={handleAddItem}
-        onDisplayCurrencyChange={handleDisplayCurrencyChange}
-      />
-    </aside>
-  </main>
+		<!-- Error state -->
+		{:else if error}
+			<div class="flex flex-col items-center justify-center py-16 text-center">
+				<p class="text-red-600 mb-4">{error}</p>
+				<Button variant="outline" onclick={loadProjects}>Retry</Button>
+			</div>
 
-  <MobileNav {activeTab} onTabChange={(tab) => (activeTab = tab)} />
+		<!-- Empty state -->
+		{:else if projects.length === 0}
+			<div class="flex flex-col items-center justify-center py-16 text-center">
+				<House class="size-16 text-slate-300 mb-4" />
+				<h3 class="text-lg font-medium text-slate-800 mb-2">No projects yet</h3>
+				<p class="text-slate-500 mb-6">Create your first floor plan project to get started.</p>
+				<Button onclick={handleNew}>
+					<Plus class="size-4 mr-2" />
+					Create your first project
+				</Button>
+			</div>
 
-  <ItemForm
-    bind:open={showItemForm}
-    item={editingItem}
-    defaultCurrency={displayCurrency}
-    onSave={handleSaveItem}
-    onClose={() => (showItemForm = false)}
-  />
+		<!-- Projects grid -->
+		{:else}
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+				{#each projects as project (project.id)}
+					<ProjectCard
+						{project}
+						onOpen={handleOpen}
+						onDelete={handleDeleteClick}
+						onShare={handleShare}
+						onSync={handleSync}
+					/>
+				{/each}
+			</div>
+		{/if}
 
-  <ProjectListDialog
-    bind:open={showProjectList}
-    projects={projectList}
-    onSelect={handleSelectProject}
-    onDelete={handleDeleteProject}
-    onClose={() => (showProjectList = false)}
-  />
-{:else}
-  <div class="flex-1 flex items-center justify-center">
-    <p class="text-slate-500">Loading...</p>
-  </div>
+		<!-- Sign-in banner -->
+		{#if showSignInBanner}
+			<div class="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between">
+				<p class="text-sm text-blue-800">
+					Sign in to sync and share your projects across devices
+				</p>
+				<LoginButton />
+			</div>
+		{/if}
+	</main>
+</div>
+
+<!-- Share Dialog -->
+{#if shareProjectId}
+	<ShareDialog
+		bind:open={shareDialogOpen}
+		projectId={shareProjectId}
+		onClose={() => {
+			shareDialogOpen = false;
+			shareProjectId = null;
+		}}
+	/>
 {/if}
+
+<!-- Delete Confirmation Dialog -->
+<Dialog.Root bind:open={deleteDialogOpen}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>Delete Project</Dialog.Title>
+			<Dialog.Description>
+				Are you sure you want to delete "{deleteProject?.name}"? This action cannot be undone.
+			</Dialog.Description>
+		</Dialog.Header>
+		<Dialog.Footer class="gap-2 sm:gap-0">
+			<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>Cancel</Button>
+			<Button variant="destructive" onclick={confirmDelete}>Delete</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
