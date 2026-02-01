@@ -12,6 +12,8 @@ export interface Floorplan {
 export type ItemShape = 'rectangle' | 'l-shape';
 export type CutoutCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
+import type { CurrencyCode } from '$lib/utils/currency';
+
 export interface Item {
   id: string;
   name: string;
@@ -19,6 +21,7 @@ export interface Item {
   height: number;           // Centimeters (outer bounds)
   color: string;            // Hex color
   price: number | null;
+  priceCurrency: CurrencyCode; // Currency for this item's price
   productUrl: string | null;
   position: Position | null; // Null if not placed
   rotation: number;         // Degrees

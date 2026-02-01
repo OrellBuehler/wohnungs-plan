@@ -33,10 +33,11 @@ export function importProjectFromJSON(json: string): Project | null {
     if (!data.currency) {
       data.currency = DEFAULT_CURRENCY;
     }
-    // Add default shape to items if missing (backwards compatibility)
+    // Add default fields to items if missing (backwards compatibility)
     data.items = data.items.map((item: Record<string, unknown>) => ({
       ...item,
       shape: item.shape ?? 'rectangle',
+      priceCurrency: item.priceCurrency ?? data.currency ?? DEFAULT_CURRENCY,
     }));
     return data as Project;
   } catch {

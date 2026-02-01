@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Item } from '$lib/types';
-  import type { CurrencyCode } from '$lib/utils/currency';
   import { getCurrencySymbol } from '$lib/utils/currency';
   import { getLShapePoints, getRectPoints } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
@@ -10,7 +9,6 @@
   interface Props {
     item: Item;
     isSelected: boolean;
-    currency: CurrencyCode;
     onSelect: () => void;
     onEdit: () => void;
     onDelete: () => void;
@@ -18,9 +16,10 @@
     onPlace: () => void;
   }
 
-  let { item, isSelected, currency, onSelect, onEdit, onDelete, onDuplicate, onPlace }: Props = $props();
+  let { item, isSelected, onSelect, onEdit, onDelete, onDuplicate, onPlace }: Props = $props();
 
-  const currencySymbol = $derived(getCurrencySymbol(currency));
+  // Use the item's own currency
+  const currencySymbol = $derived(getCurrencySymbol(item.priceCurrency));
 
   // Generate SVG path for shape preview
   const previewPath = $derived.by(() => {

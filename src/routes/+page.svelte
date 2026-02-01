@@ -14,12 +14,12 @@
     deleteItem,
     duplicateItem,
     getItems,
-    getTotalCost,
     getCurrency,
     setCurrency,
   } from '$lib/stores/project.svelte';
   import { getAllProjects, getProject as loadProject, deleteProject, saveProject } from '$lib/db';
   import { downloadProject, importProjectFromJSON, readFileAsJSON } from '$lib/utils/export';
+  import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 
   import Header from '$lib/components/layout/Header.svelte';
   import MobileNav from '$lib/components/layout/MobileNav.svelte';
@@ -47,13 +47,50 @@
   // Calibration state
   let pendingImageData = $state<string | null>(null);
 
+  // Exchange rate state
+  let exchangeRates = $state<ExchangeRates | null>(null);
+  let isLoadingRates = $state(false);
+
   // Reactive project data
   const project = $derived(getProject());
   const items = $derived(getItems());
-  const totalCost = $derived(getTotalCost());
-  const currency = $derived(getCurrency());
+  const displayCurrency = $derived(getCurrency());
 
-  function handleCurrencyChange(newCurrency: CurrencyCode) {
+  // Calculate total cost with currency conversion
+  const totalCost = $derived.by(() => {
+    if (!exchangeRates) {
+      // No rates yet, just sum raw prices
+      return items.reduce((sum, item) => sum + (item.price ?? 0), 0);
+    }
+
+    return items.reduce((sum, item) => {
+      if (item.price === null) return sum;
+      const converted = convertCurrency(
+        item.price,
+        item.priceCurrency,
+        displayCurrency,
+        exchangeRates
+      );
+      return sum + converted;
+    }, 0);
+  });
+
+  // Fetch exchange rates when display currency changes
+  $effect(() => {
+    const currency = displayCurrency;
+    loadExchangeRates(currency);
+  });
+
+  async function loadExchangeRates(baseCurrency: CurrencyCode) {
+    isLoadingRates = true;
+    try {
+      exchangeRates = await fetchExchangeRates(baseCurrency);
+    } finally {
+      isLoadingRates = false;
+    }
+  }
+
+  function handleDisplayCurrencyChange(newCurrency: CurrencyCode) {
     setCurrency(newCurrency);
   }
 
@@ -255,14 +292,15 @@
         {items}
         {selectedItemId}
         {totalCost}
-        {currency}
+        {displayCurrency}
+        {isLoadingRates}
         onItemSelect={handleItemSelect}
         onItemEdit={handleEditItem}
         onItemDelete={handleDeleteItem}
         onItemDuplicate={handleDuplicateItem}
         onItemPlace={handlePlaceItem}
         onAddItem={handleAddItem}
-        onCurrencyChange={handleCurrencyChange}
+        onDisplayCurrencyChange={handleDisplayCurrencyChange}
       />
     </aside>
   </main>
@@ -272,7 +310,7 @@
   <ItemForm
     bind:open={showItemForm}
     item={editingItem}
-    {currency}
+    defaultCurrency={displayCurrency}
     onSave={handleSaveItem}
     onClose={() => (showItemForm = false)}
   />

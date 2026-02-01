@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Item, ItemShape, CutoutCorner } from '$lib/types';
   import type { CurrencyCode } from '$lib/utils/currency';
-  import { getCurrencySymbol } from '$lib/utils/currency';
+  import { CURRENCIES, DEFAULT_CURRENCY } from '$lib/utils/currency';
   import { getLShapePoints, getRectPoints } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
@@ -12,20 +12,19 @@
   interface Props {
     open: boolean;
     item: Partial<Item> | null;
-    currency: CurrencyCode;
+    defaultCurrency: CurrencyCode;
     onSave: (item: Omit<Item, 'id'>) => void;
     onClose: () => void;
   }
 
-  let { open = $bindable(), item, currency, onSave, onClose }: Props = $props();
-
-  const currencySymbol = $derived(getCurrencySymbol(currency));
+  let { open = $bindable(), item, defaultCurrency, onSave, onClose }: Props = $props();
 
   let name = $state('');
   let width = $state(100);
   let height = $state(100);
   let color = $state('#D4A574');
   let price = $state<number | string>('');
+  let priceCurrency = $state<CurrencyCode>(DEFAULT_CURRENCY);
   let productUrl = $state('');
   let shape = $state<ItemShape>('rectangle');
   let cutoutWidth = $state(50);
@@ -49,6 +48,7 @@
       height = item?.height ?? 100;
       color = item?.color ?? '#D4A574';
       price = item?.price !== null && item?.price !== undefined ? item.price.toString() : '';
+      priceCurrency = item?.priceCurrency ?? defaultCurrency;
       productUrl = item?.productUrl ?? '';
       shape = item?.shape ?? 'rectangle';
       cutoutWidth = item?.cutoutWidth ?? 50;
@@ -102,6 +102,7 @@
       height: Number(height),
       color: String(color),
       price: priceValue,
+      priceCurrency,
       productUrl: urlValue,
       position: item?.position ?? null,
       rotation: item?.rotation ?? 0,
@@ -246,15 +247,32 @@
       </div>
 
       <div class="space-y-2">
-        <Label for="price">Price ({currencySymbol})</Label>
-        <Input
-          id="price"
-          type="number"
-          step="0.01"
-          min={0}
-          bind:value={price}
-          placeholder="Optional"
-        />
+        <Label for="price">Price</Label>
+        <div class="flex gap-2">
+          <Input
+            id="price"
+            type="number"
+            step="0.01"
+            min={0}
+            bind:value={price}
+            placeholder="Optional"
+            class="flex-1"
+          />
+          <Select.Root
+            type="single"
+            value={priceCurrency}
+            onValueChange={(v) => (priceCurrency = v as CurrencyCode)}
+          >
+            <Select.Trigger class="w-24">
+              {priceCurrency}
+            </Select.Trigger>
+            <Select.Content>
+              {#each CURRENCIES as curr (curr.code)}
+                <Select.Item value={curr.code}>{curr.symbol} {curr.code}</Select.Item>
+              {/each}
+            </Select.Content>
+          </Select.Root>
+        </div>
       </div>
 
       <div class="space-y-2">
