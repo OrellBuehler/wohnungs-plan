@@ -2,6 +2,7 @@
   import { Stage, Layer, Image as KonvaImage, Rect } from 'svelte-konva';
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
+  import { getOverlappingItems } from '$lib/utils/geometry';
 
   interface Props {
     floorplan: Floorplan | null;
@@ -98,6 +99,12 @@
   const verticalLines = $derived(Array.from({ length: Math.ceil(stageWidth / gridSize) + 1 }, (_, i) => i * gridSize));
   const horizontalLines = $derived(Array.from({ length: Math.ceil(stageHeight / gridSize) + 1 }, (_, i) => i * gridSize));
   const placedItems = $derived(items.filter(i => i.position !== null));
+
+  // Overlap detection
+  const overlappingIds = $derived.by(() => {
+    const scale = floorplan?.scale ?? 2;
+    return getOverlappingItems(items, scale);
+  });
 </script>
 
 <div bind:this={containerEl} class="w-full h-full bg-canvas-bg relative">
@@ -141,12 +148,14 @@
     <Layer>
       <!-- Furniture items -->
       {#each placedItems as item (item.id)}
+        {@const isOverlapping = overlappingIds.has(item.id)}
         <Rect
           x={item.position!.x}
           y={item.position!.y}
           width={cmToPixels(item.width)}
           height={cmToPixels(item.height)}
-          fill={item.color}
+          fill={isOverlapping ? '#F87171' : item.color}
+          opacity={isOverlapping ? 0.7 : 1}
           rotation={item.rotation}
           draggable
           shadowColor="black"
@@ -154,7 +163,7 @@
           shadowOpacity={0.3}
           shadowOffsetX={4}
           shadowOffsetY={4}
-          stroke={selectedItemId === item.id ? '#60A5FA' : 'transparent'}
+          stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
           strokeWidth={2}
           cornerRadius={2}
           onpointerclick={() => onItemSelect(item.id)}
