@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Stage, Layer, Image as KonvaImage, Rect, Line } from 'svelte-konva';
+  import { Stage, Layer, Image as KonvaImage, Rect, Line, Text, Group } from 'svelte-konva';
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
   import { getOverlappingItems, getItemShapePoints } from '$lib/utils/geometry';
@@ -315,48 +315,71 @@
       <!-- Furniture items -->
       {#each placedItems as item (item.id)}
         {@const isOverlapping = overlappingIds.has(item.id)}
-        {#if item.shape === 'l-shape'}
-          <Line
-            x={item.position!.x}
-            y={item.position!.y}
-            points={getItemShapePoints(item, effectiveScale)}
-            closed={true}
-            fill={isOverlapping ? '#F87171' : item.color}
-            opacity={isOverlapping ? 0.7 : 1}
-            rotation={item.rotation}
-            draggable
-            shadowColor="black"
-            shadowBlur={10}
-            shadowOpacity={0.3}
-            shadowOffsetX={4}
-            shadowOffsetY={4}
-            stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
-            strokeWidth={2}
-            onpointerclick={() => onItemSelect(item.id)}
-            ondragend={(e) => handleDragEnd(item.id, e)}
+        {@const itemWidthPx = cmToPixels(item.width)}
+        {@const itemHeightPx = cmToPixels(item.height)}
+        <Group
+          x={item.position!.x}
+          y={item.position!.y}
+          rotation={item.rotation}
+          draggable
+          onpointerclick={() => onItemSelect(item.id)}
+          ondragend={(e) => handleDragEnd(item.id, e)}
+        >
+          {#if item.shape === 'l-shape'}
+            <Line
+              points={getItemShapePoints(item, effectiveScale)}
+              closed={true}
+              fill={isOverlapping ? '#F87171' : item.color}
+              opacity={isOverlapping ? 0.7 : 1}
+              shadowColor="black"
+              shadowBlur={10}
+              shadowOpacity={0.3}
+              shadowOffsetX={4}
+              shadowOffsetY={4}
+              stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
+              strokeWidth={2}
+            />
+          {:else}
+            <Rect
+              width={itemWidthPx}
+              height={itemHeightPx}
+              fill={isOverlapping ? '#F87171' : item.color}
+              opacity={isOverlapping ? 0.7 : 1}
+              shadowColor="black"
+              shadowBlur={10}
+              shadowOpacity={0.3}
+              shadowOffsetX={4}
+              shadowOffsetY={4}
+              stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
+              strokeWidth={2}
+              cornerRadius={2}
+            />
+          {/if}
+          <!-- Item label -->
+          <Text
+            x={0}
+            y={itemHeightPx / 2 - 12}
+            text={item.name}
+            fontSize={12}
+            fontFamily="system-ui, sans-serif"
+            fontStyle="bold"
+            fill="#1e293b"
+            align="center"
+            width={itemWidthPx}
+            listening={false}
           />
-        {:else}
-          <Rect
-            x={item.position!.x}
-            y={item.position!.y}
-            width={cmToPixels(item.width)}
-            height={cmToPixels(item.height)}
-            fill={isOverlapping ? '#F87171' : item.color}
-            opacity={isOverlapping ? 0.7 : 1}
-            rotation={item.rotation}
-            draggable
-            shadowColor="black"
-            shadowBlur={10}
-            shadowOpacity={0.3}
-            shadowOffsetX={4}
-            shadowOffsetY={4}
-            stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
-            strokeWidth={2}
-            cornerRadius={2}
-            onpointerclick={() => onItemSelect(item.id)}
-            ondragend={(e) => handleDragEnd(item.id, e)}
+          <Text
+            x={0}
+            y={itemHeightPx / 2 + 2}
+            text={`${item.width} × ${item.height} cm`}
+            fontSize={10}
+            fontFamily="system-ui, sans-serif"
+            fill="#475569"
+            align="center"
+            width={itemWidthPx}
+            listening={false}
           />
-        {/if}
+        </Group>
       {/each}
     </Layer>
   </Stage>
