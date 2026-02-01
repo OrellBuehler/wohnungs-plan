@@ -11,7 +11,9 @@
 	import LoginButton from '$lib/components/auth/LoginButton.svelte';
 	import UserMenu from '$lib/components/auth/UserMenu.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
+	import SEO from '$lib/components/SEO.svelte';
 	import { isAuthenticated } from '$lib/stores/auth.svelte';
+	import type { PageData } from './$types';
 	import {
 		getProject,
 		setProject,
@@ -40,6 +42,8 @@
 	import CanvasControls from '$lib/components/canvas/CanvasControls.svelte';
 	import ItemList from '$lib/components/items/ItemList.svelte';
 	import ItemForm from '$lib/components/items/ItemForm.svelte';
+
+	let { data }: { data: PageData } = $props();
 
 	// Route params
 	const projectId = $derived($page.params.id);
@@ -273,7 +277,32 @@
 	function handleItemRotate(id: string, rotation: number) {
 		updateItem(id, { rotation });
 	}
+
+	async function handleThumbnailReady(dataUrl: string) {
+		if (!project) return;
+		try {
+			await fetch('/api/thumbnails', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					projectId: project.id,
+					imageData: dataUrl
+				})
+			});
+		} catch (error) {
+			console.error('Failed to save thumbnail:', error);
+		}
+	}
 </script>
+
+{#if data.seo}
+	<SEO
+		title={data.seo.title}
+		description={data.seo.description}
+		image={data.seo.image}
+		url={data.seo.url}
+	/>
+{/if}
 
 {#if project}
 	<header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
@@ -353,6 +382,7 @@
 						onItemSelect={handleItemSelect}
 						onItemMove={handleItemMove}
 						onItemRotate={handleItemRotate}
+						onThumbnailReady={handleThumbnailReady}
 					/>
 				{/if}
 			</div>

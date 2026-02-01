@@ -17,6 +17,7 @@
     onItemSelect: (id: string | null) => void;
     onItemMove: (id: string, x: number, y: number) => void;
     onItemRotate: (id: string, rotation: number) => void;
+    onThumbnailReady?: (dataUrl: string) => void;
   }
 
   let {
@@ -30,6 +31,7 @@
     onItemSelect,
     onItemMove,
     onItemRotate,
+    onThumbnailReady,
   }: Props = $props();
 
   let containerEl: HTMLDivElement;
@@ -348,6 +350,42 @@
   // Overlap detection
   const overlappingIds = $derived.by(() => {
     return getOverlappingItems(items, effectiveScale);
+  });
+
+  // Thumbnail generation - debounced after changes
+  let thumbnailTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  function generateThumbnail() {
+    const stage = stageRef?.node;
+    if (!stage || !onThumbnailReady) return;
+
+    // Reset view temporarily for consistent thumbnail
+    const originalScale = { x: stage.scaleX(), y: stage.scaleY() };
+    const originalPos = { x: stage.x(), y: stage.y() };
+
+    stage.scale({ x: 1, y: 1 });
+    stage.position({ x: 0, y: 0 });
+
+    const dataUrl = stage.toDataURL({ pixelRatio: 0.5 });
+
+    // Restore view
+    stage.scale(originalScale);
+    stage.position(originalPos);
+
+    onThumbnailReady(dataUrl);
+  }
+
+  function debounceThumbnail() {
+    if (!onThumbnailReady) return;
+    if (thumbnailTimeout) clearTimeout(thumbnailTimeout);
+    thumbnailTimeout = setTimeout(generateThumbnail, 2000);
+  }
+
+  // Generate thumbnail when items or floorplan changes
+  $effect(() => {
+    // Track dependencies
+    const _ = [items.length, floorplanImage];
+    debounceThumbnail();
   });
 </script>
 
