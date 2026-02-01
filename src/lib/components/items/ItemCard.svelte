@@ -2,6 +2,7 @@
   import type { Item } from '$lib/types';
   import type { CurrencyCode } from '$lib/utils/currency';
   import { getCurrencySymbol } from '$lib/utils/currency';
+  import { getLShapePoints, getRectPoints } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
   import * as Card from '$lib/components/ui/card';
   import { Separator } from '$lib/components/ui/separator';
@@ -20,6 +21,41 @@
   let { item, isSelected, currency, onSelect, onEdit, onDelete, onDuplicate, onPlace }: Props = $props();
 
   const currencySymbol = $derived(getCurrencySymbol(currency));
+
+  // Generate SVG path for shape preview
+  const previewPath = $derived.by(() => {
+    const previewSize = 32;
+    const padding = 2;
+    const maxDim = previewSize - padding * 2;
+    const scaleX = maxDim / Math.max(item.width, 1);
+    const scaleY = maxDim / Math.max(item.height, 1);
+    const scale = Math.min(scaleX, scaleY);
+
+    const w = item.width * scale;
+    const h = item.height * scale;
+
+    let points: number[];
+    if (item.shape === 'l-shape' && item.cutoutWidth && item.cutoutHeight && item.cutoutCorner) {
+      const cw = item.cutoutWidth * scale;
+      const ch = item.cutoutHeight * scale;
+      points = getLShapePoints(w, h, cw, ch, item.cutoutCorner);
+    } else {
+      points = getRectPoints(w, h);
+    }
+
+    // Offset to center in the preview area
+    const offsetX = padding + (maxDim - w) / 2;
+    const offsetY = padding + (maxDim - h) / 2;
+
+    // Convert to SVG path
+    const pathParts: string[] = [];
+    for (let i = 0; i < points.length; i += 2) {
+      const cmd = i === 0 ? 'M' : 'L';
+      pathParts.push(`${cmd}${points[i] + offsetX},${points[i + 1] + offsetY}`);
+    }
+    pathParts.push('Z');
+    return pathParts.join(' ');
+  });
 
   function withStopPropagation(handler: () => void) {
     return (e: MouseEvent) => {
@@ -40,10 +76,9 @@
 >
   <Card.Content class="p-3">
     <div class="flex items-start gap-3">
-      <div
-        class="w-8 h-8 rounded flex-shrink-0"
-        style="background-color: {item.color}"
-      ></div>
+      <svg width="32" height="32" class="flex-shrink-0 rounded border border-slate-200 bg-slate-50">
+        <path d={previewPath} fill={item.color} stroke="#374151" stroke-width="0.5" />
+      </svg>
 
       <div class="flex-1 min-w-0">
         <h3 class="font-medium text-slate-800 truncate">{item.name}</h3>

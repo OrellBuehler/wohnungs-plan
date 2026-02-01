@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { Stage, Layer, Image as KonvaImage, Rect } from 'svelte-konva';
+  import { Stage, Layer, Image as KonvaImage, Rect, Line } from 'svelte-konva';
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
-  import { getOverlappingItems } from '$lib/utils/geometry';
+  import { getOverlappingItems, getItemShapePoints } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
 
   interface Props {
@@ -195,17 +195,16 @@
   function handleMouseDown(e: { evt: MouseEvent; target: Konva.Node }) {
     // Only pan if clicking on stage background or image (not on furniture items)
     const className = e.target.getClassName();
-    if (className === 'Stage' || className === 'Image' || className === 'Rect') {
-      // Check if it's a grid line or background, not furniture
-      const isGridOrBg = className === 'Stage' || className === 'Image' ||
-        (className === 'Rect' && (e.target.width() === 1 || e.target.height() === 1));
+    // Check if it's a grid line or background, not furniture
+    // Furniture items are Rect (with width > 1) or Line shapes
+    const isGridOrBg = className === 'Stage' || className === 'Image' ||
+      (className === 'Rect' && (e.target.width() === 1 || e.target.height() === 1));
 
-      if (isGridOrBg) {
-        isPanning = true;
-        lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
-        // Change cursor to grabbing
-        if (containerEl) containerEl.style.cursor = 'grabbing';
-      }
+    if (isGridOrBg) {
+      isPanning = true;
+      lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
+      // Change cursor to grabbing
+      if (containerEl) containerEl.style.cursor = 'grabbing';
     }
   }
 
@@ -303,26 +302,49 @@
       <!-- Furniture items -->
       {#each placedItems as item (item.id)}
         {@const isOverlapping = overlappingIds.has(item.id)}
-        <Rect
-          x={item.position!.x}
-          y={item.position!.y}
-          width={cmToPixels(item.width)}
-          height={cmToPixels(item.height)}
-          fill={isOverlapping ? '#F87171' : item.color}
-          opacity={isOverlapping ? 0.7 : 1}
-          rotation={item.rotation}
-          draggable
-          shadowColor="black"
-          shadowBlur={10}
-          shadowOpacity={0.3}
-          shadowOffsetX={4}
-          shadowOffsetY={4}
-          stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
-          strokeWidth={2}
-          cornerRadius={2}
-          onpointerclick={() => onItemSelect(item.id)}
-          ondragend={(e) => handleDragEnd(item.id, e)}
-        />
+        {@const scale = floorplan?.scale ?? 2}
+        {#if item.shape === 'l-shape'}
+          <Line
+            x={item.position!.x}
+            y={item.position!.y}
+            points={getItemShapePoints(item, scale)}
+            closed={true}
+            fill={isOverlapping ? '#F87171' : item.color}
+            opacity={isOverlapping ? 0.7 : 1}
+            rotation={item.rotation}
+            draggable
+            shadowColor="black"
+            shadowBlur={10}
+            shadowOpacity={0.3}
+            shadowOffsetX={4}
+            shadowOffsetY={4}
+            stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
+            strokeWidth={2}
+            onpointerclick={() => onItemSelect(item.id)}
+            ondragend={(e) => handleDragEnd(item.id, e)}
+          />
+        {:else}
+          <Rect
+            x={item.position!.x}
+            y={item.position!.y}
+            width={cmToPixels(item.width)}
+            height={cmToPixels(item.height)}
+            fill={isOverlapping ? '#F87171' : item.color}
+            opacity={isOverlapping ? 0.7 : 1}
+            rotation={item.rotation}
+            draggable
+            shadowColor="black"
+            shadowBlur={10}
+            shadowOpacity={0.3}
+            shadowOffsetX={4}
+            shadowOffsetY={4}
+            stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
+            strokeWidth={2}
+            cornerRadius={2}
+            onpointerclick={() => onItemSelect(item.id)}
+            ondragend={(e) => handleDragEnd(item.id, e)}
+          />
+        {/if}
       {/each}
     </Layer>
   </Stage>
