@@ -147,10 +147,14 @@ async function uploadFloorplan(projectId: string, floorplan: Floorplan): Promise
 	const formData = new FormData();
 	formData.set('file', file);
 
-	await fetch(`/api/projects/${projectId}/floorplan`, {
+	const response = await fetch(`/api/projects/${projectId}/floorplan`, {
 		method: 'POST',
 		body: formData
 	});
+
+	if (!response.ok) {
+		throw new Error('Failed to upload floorplan');
+	}
 }
 
 function parseDataUrl(dataUrl: string): { data: Blob; mimeType: string } {
@@ -181,23 +185,85 @@ export function setProject(project: Project | null) {
 }
 
 export async function listProjects(): Promise<ProjectMeta[]> {
-	if (!useRemote()) {
-		return getLocalProjects();
+	const localProjects = await getLocalProjects();
+	const localMetas: ProjectMeta[] = localProjects.map((p) => ({
+		...p,
+		isLocal: true,
+		floorplanUrl: null, // Will be loaded separately for local
+		memberCount: 0
+	}));
+
+	if (!isAuthenticated()) {
+		return localMetas;
 	}
 
 	try {
 		const response = await fetch('/api/projects');
 		if (!response.ok) throw new Error('Failed to load projects');
 		const data = await response.json();
-		return (data.projects as ApiProject[]).map((project) => ({
-			id: project.id,
-			name: project.name,
-			createdAt: project.createdAt ? toIsoString(project.createdAt) : new Date().toISOString(),
-			updatedAt: project.updatedAt ? toIsoString(project.updatedAt) : new Date().toISOString()
-		}));
+		const cloudMetas: ProjectMeta[] = data.projects;
+
+		// Merge: cloud projects override local ones with same ID
+		const cloudIds = new Set(cloudMetas.map((p: ProjectMeta) => p.id));
+		const localOnly = localMetas.filter((p) => !cloudIds.has(p.id));
+
+		return [...cloudMetas, ...localOnly].sort(
+			(a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+		);
 	} catch (error) {
 		console.error('Failed to load remote projects:', error);
-		return getLocalProjects();
+		return localMetas;
+	}
+}
+
+export async function getLocalFloorplanUrl(projectId: string): Promise<string | null> {
+	const project = await loadLocalProject(projectId);
+	return project?.floorplan?.imageData ?? null;
+}
+
+export async function syncProjectToCloud(projectId: string): Promise<boolean> {
+	if (!isAuthenticated()) return false;
+
+	const project = await loadLocalProject(projectId);
+	if (!project) return false;
+
+	try {
+		// Create project in cloud
+		const createRes = await fetch('/api/projects', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				id: project.id,
+				name: project.name,
+				currency: project.currency,
+				gridSize: project.gridSize
+			})
+		});
+		if (!createRes.ok) throw new Error('Failed to create project');
+
+		// Upload floorplan if exists
+		if (project.floorplan) {
+			await uploadFloorplan(project.id, project.floorplan);
+		}
+
+		// Create all items - check each response
+		for (const item of project.items) {
+			const itemRes = await fetch(`/api/projects/${project.id}/items`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(buildItemPayload(item))
+			});
+			if (!itemRes.ok) {
+				throw new Error(`Failed to create item: ${item.name}`);
+			}
+		}
+
+		// Only remove from local storage after ALL operations succeed
+		await deleteLocalProject(projectId);
+		return true;
+	} catch (error) {
+		console.error('Failed to sync project:', error);
+		return false;
 	}
 }
 
