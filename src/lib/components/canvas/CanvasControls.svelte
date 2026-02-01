@@ -29,7 +29,7 @@
   }
 </script>
 
-<div class="flex items-center gap-4 px-4 pb-4 text-sm">
+<div class="flex-shrink-0 flex items-center gap-4 px-4 pb-4 text-sm">
   <Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
     <Checkbox bind:checked={showGrid} />
     Grid

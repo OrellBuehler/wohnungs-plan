@@ -82,7 +82,7 @@
 </script>
 
 <div class="flex flex-col h-full min-h-0">
-  <div class="p-4">
+  <div class="flex-shrink-0 p-4">
     <div class="flex items-center justify-between mb-3">
       <h2 class="font-semibold text-slate-800">Items ({items.length})</h2>
       <Button size="sm" onclick={onAddItem}>+ Add</Button>
@@ -145,7 +145,7 @@
 
   <Separator />
 
-  <div class="p-4 bg-slate-50">
+  <div class="flex-shrink-0 p-4 bg-slate-50">
     <div class="flex justify-between items-center">
       <div class="flex items-center gap-2">
         <span class="text-sm text-slate-600">Total</span>
