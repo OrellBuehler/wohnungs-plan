@@ -48,4 +48,8 @@ export interface ProjectMeta {
   name: string;
   createdAt: string;
   updatedAt: string;
+  // New fields for overview page
+  isLocal: boolean;              // true if only in IndexedDB
+  floorplanUrl: string | null;   // thumbnail URL or null
+  memberCount: number;           // 0 for local, 1+ for shared cloud projects
 }
