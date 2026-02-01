@@ -31,7 +31,18 @@
   let cutoutHeight = $state(50);
   let cutoutCorner = $state<CutoutCorner>('bottom-right');
 
-  const presetColors = ['#D4A574', '#B8956E', '#8B7355', '#6B8E23', '#4682B4', '#708090', '#CD853F', '#DEB887'];
+  const presetColors = [
+    '#E8D4B8', // Light wood / cream
+    '#8B5A2B', // Dark wood / walnut
+    '#64748B', // Slate gray
+    '#3B82F6', // Blue
+    '#22C55E', // Green
+    '#EF4444', // Red
+    '#A855F7', // Purple
+    '#F59E0B', // Amber / yellow
+    '#14B8A6', // Teal
+    '#1F2937', // Charcoal / black
+  ];
 
   const cutoutCornerOptions: { value: CutoutCorner; label: string }[] = [
     { value: 'top-left', label: 'Top Left' },
