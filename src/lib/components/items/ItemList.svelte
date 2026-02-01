@@ -5,6 +5,7 @@
   import { Button } from '$lib/components/ui/button';
   import { Separator } from '$lib/components/ui/separator';
   import * as Select from '$lib/components/ui/select';
+  import { Plus } from 'lucide-svelte';
   import ItemCard from './ItemCard.svelte';
 
   interface Props {
@@ -85,7 +86,7 @@
   <div class="flex-shrink-0 p-4">
     <div class="flex items-center justify-between mb-3">
       <h2 class="font-semibold text-slate-800">Items ({items.length})</h2>
-      <Button size="sm" onclick={onAddItem}>+ Add</Button>
+      <Button size="sm" onclick={onAddItem}><Plus size={16} class="mr-1" /> Add</Button>
     </div>
 
     <div class="flex gap-2 text-sm">

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+  import { Menu } from 'lucide-svelte';
 
   interface Props {
     projectName: string;
@@ -27,7 +28,9 @@
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
         {#snippet child({ props })}
-          <Button {...props} variant="outline" size="sm">Menu</Button>
+          <Button {...props} variant="outline" size="sm">
+            <Menu size={16} class="mr-1" /> Menu
+          </Button>
         {/snippet}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>

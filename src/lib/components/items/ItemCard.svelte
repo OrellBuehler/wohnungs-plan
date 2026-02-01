@@ -5,6 +5,7 @@
   import { Button } from '$lib/components/ui/button';
   import * as Card from '$lib/components/ui/card';
   import { Separator } from '$lib/components/ui/separator';
+  import { Pencil, MapPin, Copy, Trash2, ExternalLink } from 'lucide-svelte';
 
   interface Props {
     item: Item;
@@ -100,10 +101,10 @@
             href={item.productUrl}
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-blue-600 hover:underline"
+            class="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
             onclick={(e) => e.stopPropagation()}
           >
-            View product
+            <ExternalLink size={12} /> View
           </a>
         {/if}
       </div>
@@ -113,18 +114,18 @@
       <Separator class="my-3" />
       <div class="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" onclick={withStopPropagation(onEdit)}>
-          Edit
+          <Pencil size={14} class="mr-1" /> Edit
         </Button>
         {#if !item.position}
           <Button size="sm" variant="outline" onclick={withStopPropagation(onPlace)}>
-            Place
+            <MapPin size={14} class="mr-1" /> Place
           </Button>
         {/if}
         <Button size="sm" variant="outline" onclick={withStopPropagation(onDuplicate)}>
-          Duplicate
+          <Copy size={14} class="mr-1" /> Duplicate
         </Button>
         <Button size="sm" variant="destructive" onclick={withStopPropagation(onDelete)}>
-          Delete
+          <Trash2 size={14} class="mr-1" /> Delete
         </Button>
       </div>
     {/if}

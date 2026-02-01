@@ -4,6 +4,7 @@
   import type Konva from 'konva';
   import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
+  import { Plus, Minus, RotateCcw, RotateCw, Lock, Unlock, RefreshCw } from 'lucide-svelte';
 
   interface Props {
     floorplan: Floorplan | null;
@@ -510,12 +511,12 @@
     <Button
       variant="ghost"
       size="icon-sm"
-      class="text-slate-600 font-bold"
+      class="text-slate-600"
       onclick={zoomIn}
       title="Zoom in"
       disabled={zoomLocked}
     >
-      +
+      <Plus size={16} />
     </Button>
     <div class="text-xs text-center text-slate-500 py-1">
       {Math.round(zoom * 100)}%
@@ -523,21 +524,21 @@
     <Button
       variant="ghost"
       size="icon-sm"
-      class="text-slate-600 font-bold"
+      class="text-slate-600"
       onclick={zoomOut}
       title="Zoom out"
       disabled={zoomLocked}
     >
-      −
+      <Minus size={16} />
     </Button>
     <Button
       variant="ghost"
       size="icon-sm"
-      class="text-slate-600 text-xs"
+      class="text-slate-600"
       onclick={resetView}
       title="Reset view"
     >
-      ⟲
+      <RefreshCw size={14} />
     </Button>
     <Button
       variant="ghost"
@@ -546,7 +547,11 @@
       onclick={() => zoomLocked = !zoomLocked}
       title={zoomLocked ? 'Unlock zoom' : 'Lock zoom'}
     >
-      {zoomLocked ? '🔒' : '🔓'}
+      {#if zoomLocked}
+        <Lock size={14} />
+      {:else}
+        <Unlock size={14} />
+      {/if}
     </Button>
   </div>
 
@@ -565,7 +570,7 @@
           onclick={() => handleRotate(selectedItemId, 'ccw')}
           title="Rotate left"
         >
-          ↶
+          <RotateCcw size={16} />
         </Button>
         <Button
           variant="ghost"
@@ -574,7 +579,7 @@
           onclick={() => handleRotate(selectedItemId, 'cw')}
           title="Rotate right"
         >
-          ↷
+          <RotateCw size={16} />
         </Button>
       </div>
     {/if}

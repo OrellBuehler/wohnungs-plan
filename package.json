@@ -32,6 +32,7 @@
 	"dependencies": {
 		"idb": "^8.0.3",
 		"konva": "^10.2.0",
+		"lucide-svelte": "^0.563.0",
 		"svelte-konva": "^1.0.1"
 	}
 }

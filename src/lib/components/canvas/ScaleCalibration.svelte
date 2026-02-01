@@ -3,6 +3,7 @@
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
+  import { Plus, Minus, RefreshCw } from 'lucide-svelte';
   import type Konva from 'konva';
 
   interface Props {
@@ -321,11 +322,11 @@
       <Button
         variant="ghost"
         size="icon-sm"
-        class="text-slate-600 font-bold"
+        class="text-slate-600"
         onclick={zoomIn}
         title="Zoom in"
       >
-        +
+        <Plus size={16} />
       </Button>
       <div class="text-xs text-center text-slate-500 py-1">
         {Math.round(zoom * 100)}%
@@ -333,20 +334,20 @@
       <Button
         variant="ghost"
         size="icon-sm"
-        class="text-slate-600 font-bold"
+        class="text-slate-600"
         onclick={zoomOut}
         title="Zoom out"
       >
-        −
+        <Minus size={16} />
       </Button>
       <Button
         variant="ghost"
         size="icon-sm"
-        class="text-slate-600 text-xs"
+        class="text-slate-600"
         onclick={resetView}
         title="Reset view"
       >
-        ⟲
+        <RefreshCw size={14} />
       </Button>
     </div>
   </div>
