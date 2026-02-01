@@ -96,9 +96,18 @@
     );
   });
 
+  // Calculate the ratio between displayed image and natural image
+  const displayToNaturalRatio = $derived.by(() => {
+    if (!imageDimensions.width || !imageNaturalWidth) return 1;
+    return imageNaturalWidth / imageDimensions.width;
+  });
+
+  // Scale in natural image pixels per cm (not display pixels)
   const scale = $derived.by(() => {
     if (lineLength === 0 || referenceLength <= 0) return 0;
-    return lineLength / referenceLength;
+    // Convert line length from display pixels to natural image pixels
+    const naturalLineLength = lineLength * displayToNaturalRatio;
+    return naturalLineLength / referenceLength;
   });
 
   // Convert screen coordinates to canvas coordinates

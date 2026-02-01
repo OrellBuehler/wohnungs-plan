@@ -225,11 +225,25 @@
     if (containerEl) containerEl.style.cursor = 'default';
   }
 
-  // Convert cm to pixels using scale
+  // Calculate the display scale (ratio of display size to natural image size)
+  const displayScale = $derived.by(() => {
+    if (!imageNaturalWidth || !imageDimensions.width) return 1;
+    return imageDimensions.width / imageNaturalWidth;
+  });
+
+  // Convert cm to display pixels using stored scale (natural pixels/cm) and display scale
   function cmToPixels(cm: number): number {
     if (!floorplan?.scale) return cm * 2;
-    return cm * floorplan.scale;
+    // floorplan.scale is in natural image pixels per cm
+    // multiply by displayScale to get display pixels
+    return cm * floorplan.scale * displayScale;
   }
+
+  // Get the effective scale for overlap detection (in display pixels per cm)
+  const effectiveScale = $derived.by(() => {
+    if (!floorplan?.scale) return 2;
+    return floorplan.scale * displayScale;
+  });
 
   // Grid lines for rendering
   const verticalLines = $derived(Array.from({ length: Math.ceil(stageWidth / gridSize) + 1 }, (_, i) => i * gridSize));
@@ -238,8 +252,7 @@
 
   // Overlap detection
   const overlappingIds = $derived.by(() => {
-    const scale = floorplan?.scale ?? 2;
-    return getOverlappingItems(items, scale);
+    return getOverlappingItems(items, effectiveScale);
   });
 </script>
 
@@ -302,12 +315,11 @@
       <!-- Furniture items -->
       {#each placedItems as item (item.id)}
         {@const isOverlapping = overlappingIds.has(item.id)}
-        {@const scale = floorplan?.scale ?? 2}
         {#if item.shape === 'l-shape'}
           <Line
             x={item.position!.x}
             y={item.position!.y}
-            points={getItemShapePoints(item, scale)}
+            points={getItemShapePoints(item, effectiveScale)}
             closed={true}
             fill={isOverlapping ? '#F87171' : item.color}
             opacity={isOverlapping ? 0.7 : 1}
