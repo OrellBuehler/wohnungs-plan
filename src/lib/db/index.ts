@@ -63,5 +63,6 @@ export function createNewProject(name: string = 'Untitled Project'): Project {
     floorplan: null,
     items: [],
     currency: DEFAULT_CURRENCY,
+    gridSize: 50,
   };
 }

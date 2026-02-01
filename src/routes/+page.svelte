@@ -16,6 +16,8 @@
     getItems,
     getCurrency,
     setCurrency,
+    getGridSize,
+    setGridSize,
   } from '$lib/stores/project.svelte';
   import { getAllProjects, getProject as loadProject, deleteProject, saveProject } from '$lib/db';
   import { downloadProject, importProjectFromJSON, readFileAsJSON } from '$lib/utils/export';
@@ -36,7 +38,6 @@
   let selectedItemId = $state<string | null>(null);
   let showGrid = $state(true);
   let snapToGrid = $state(true);
-  let gridSize = $state(50);
 
   // Dialog state
   let showItemForm = $state(false);
@@ -55,6 +56,11 @@
   const project = $derived(getProject());
   const items = $derived(getItems());
   const displayCurrency = $derived(getCurrency());
+  const gridSize = $derived(getGridSize());
+
+  function handleGridSizeChange(newSize: number) {
+    setGridSize(newSize);
+  }
 
   // Calculate total cost with currency conversion
   const totalCost = $derived.by(() => {
@@ -281,8 +287,9 @@
         <CanvasControls
           bind:showGrid
           bind:snapToGrid
-          bind:gridSize
+          {gridSize}
           onChangeFloorplan={handleChangeFloorplan}
+          onGridSizeChange={handleGridSizeChange}
         />
       {/if}
     </div>

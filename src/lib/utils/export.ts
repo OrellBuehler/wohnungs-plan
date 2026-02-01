@@ -33,6 +33,10 @@ export function importProjectFromJSON(json: string): Project | null {
     if (!data.currency) {
       data.currency = DEFAULT_CURRENCY;
     }
+    // Add default gridSize if missing (backwards compatibility)
+    if (!data.gridSize) {
+      data.gridSize = 50;
+    }
     // Add default fields to items if missing (backwards compatibility)
     data.items = data.items.map((item: Record<string, unknown>) => ({
       ...item,

@@ -137,3 +137,14 @@ export function setCurrency(currency: CurrencyCode) {
     debounceAutoSave();
   }
 }
+
+export function getGridSize(): number {
+  return currentProject?.gridSize ?? 50;
+}
+
+export function setGridSize(gridSize: number) {
+  if (currentProject) {
+    currentProject.gridSize = Math.max(1, Math.min(200, gridSize));
+    debounceAutoSave();
+  }
+}

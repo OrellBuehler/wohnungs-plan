@@ -10,14 +10,23 @@
     snapToGrid: boolean;
     gridSize: number;
     onChangeFloorplan: () => void;
+    onGridSizeChange: (size: number) => void;
   }
 
   let {
     showGrid = $bindable(),
     snapToGrid = $bindable(),
-    gridSize = $bindable(),
+    gridSize,
     onChangeFloorplan,
+    onGridSizeChange,
   }: Props = $props();
+
+  function handleGridSizeInput(e: Event) {
+    const value = parseInt((e.target as HTMLInputElement).value, 10);
+    if (!isNaN(value)) {
+      onGridSizeChange(value);
+    }
+  }
 </script>
 
 <div class="flex items-center gap-4 px-4 pb-4 text-sm">
@@ -37,10 +46,11 @@
     Grid size:
     <Input
       type="number"
-      bind:value={gridSize}
-      min={10}
-      max={100}
-      step={10}
+      value={gridSize}
+      oninput={handleGridSizeInput}
+      min={1}
+      max={200}
+      step={1}
       class="w-16 h-8 font-mono text-sm"
     />
     px

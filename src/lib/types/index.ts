@@ -32,8 +32,6 @@ export interface Item {
   cutoutCorner?: CutoutCorner; // Which corner is cut out
 }
 
-import type { CurrencyCode } from '$lib/utils/currency';
-
 export interface Project {
   id: string;
   name: string;
@@ -42,6 +40,7 @@ export interface Project {
   floorplan: Floorplan | null;
   items: Item[];
   currency: CurrencyCode;
+  gridSize: number;          // Grid size in pixels
 }
 
 export interface ProjectMeta {
