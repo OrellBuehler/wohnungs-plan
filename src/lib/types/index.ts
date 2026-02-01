@@ -41,6 +41,7 @@ export interface Project {
   items: Item[];
   currency: CurrencyCode;
   gridSize: number;          // Grid size in pixels
+  isLocal?: boolean;         // true if stored only in IndexedDB
 }
 
 export interface ProjectMeta {

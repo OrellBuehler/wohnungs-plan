@@ -270,7 +270,10 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 export async function loadProjectById(id: string): Promise<Project | null> {
 	if (!useRemote()) {
 		const local = await loadLocalProject(id);
-		return local ?? null;
+		if (local) {
+			return { ...local, isLocal: true };
+		}
+		return null;
 	}
 
 	try {
@@ -278,12 +281,16 @@ export async function loadProjectById(id: string): Promise<Project | null> {
 		if (!response.ok) throw new Error('Failed to load project');
 		const data = await response.json();
 		const project = mapApiProject(data.project, data.items ?? [], data.floorplan ?? null);
+		project.isLocal = false;
 		await saveLocalProject(project);
 		return project;
 	} catch (error) {
 		console.error('Failed to load remote project:', error);
 		const local = await loadLocalProject(id);
-		return local ?? null;
+		if (local) {
+			return { ...local, isLocal: true };
+		}
+		return null;
 	}
 }
 
