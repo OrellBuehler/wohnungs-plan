@@ -18,8 +18,11 @@
     setCurrency,
     getGridSize,
     setGridSize,
+    listProjects,
+    loadProjectById,
+    removeProject,
   } from '$lib/stores/project.svelte';
-  import { getAllProjects, getProject as loadProject, deleteProject, saveProject } from '$lib/db';
+  import { saveProject } from '$lib/db';
   import { downloadProject, importProjectFromJSON, readFileAsJSON } from '$lib/utils/export';
   import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 
@@ -102,9 +105,9 @@
   }
 
   onMount(async () => {
-    const projects = await getAllProjects();
+    const projects = await listProjects();
     if (projects.length > 0) {
-      const loaded = await loadProject(projects[0].id);
+      const loaded = await loadProjectById(projects[0].id);
       if (loaded) setProject(loaded);
     } else {
       createProject('My Apartment');
@@ -119,21 +122,21 @@
   }
 
   async function handleOpen() {
-    projectList = await getAllProjects();
+    projectList = await listProjects();
     showProjectList = true;
   }
 
   async function handleSelectProject(id: string) {
-    const loaded = await loadProject(id);
+    const loaded = await loadProjectById(id);
     if (loaded) setProject(loaded);
   }
 
   async function handleDeleteProject(id: string) {
-    await deleteProject(id);
-    projectList = await getAllProjects();
+    await removeProject(id);
+    projectList = await listProjects();
     if (project?.id === id) {
       if (projectList.length > 0) {
-        const loaded = await loadProject(projectList[0].id);
+        const loaded = await loadProjectById(projectList[0].id);
         if (loaded) setProject(loaded);
       } else {
         createProject('My Apartment');

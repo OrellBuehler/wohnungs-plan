@@ -2,6 +2,9 @@
   import { Button } from "$lib/components/ui/button";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
   import { Menu } from 'lucide-svelte';
+  import LoginButton from '$lib/components/auth/LoginButton.svelte';
+  import UserMenu from '$lib/components/auth/UserMenu.svelte';
+  import { isAuthenticated } from '$lib/stores/auth.svelte';
 
   interface Props {
     projectName: string;
@@ -13,6 +16,8 @@
   }
 
   let { projectName, onRename, onNew, onOpen, onExport, onImport }: Props = $props();
+
+  const authed = $derived(isAuthenticated());
 </script>
 
 <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
@@ -25,6 +30,11 @@
   </Button>
 
   <div class="flex items-center gap-2">
+    {#if authed}
+      <UserMenu />
+    {:else}
+      <LoginButton />
+    {/if}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
         {#snippet child({ props })}

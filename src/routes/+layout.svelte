@@ -1,8 +1,14 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { onMount } from 'svelte';
+	import { fetchUser } from '$lib/stores/auth.svelte';
 
 	let { children } = $props();
+
+	onMount(() => {
+		fetchUser();
+	});
 </script>
 
 <svelte:head>
