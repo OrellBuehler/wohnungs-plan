@@ -1,4 +1,6 @@
 import type { Project, Item, Floorplan, Position } from '$lib/types';
+import type { CurrencyCode } from '$lib/utils/currency';
+import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 import { saveProject, createNewProject } from '$lib/db';
 
 let currentProject = $state<Project | null>(null);
@@ -123,4 +125,15 @@ export function getTotalCost() {
     (sum, item) => sum + (item.price ?? 0),
     0
   );
+}
+
+export function getCurrency(): CurrencyCode {
+  return currentProject?.currency ?? DEFAULT_CURRENCY;
+}
+
+export function setCurrency(currency: CurrencyCode) {
+  if (currentProject) {
+    currentProject.currency = currency;
+    debounceAutoSave();
+  }
 }

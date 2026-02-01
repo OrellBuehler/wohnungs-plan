@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Item } from '$lib/types';
+  import type { CurrencyCode } from '$lib/utils/currency';
+  import { getCurrencySymbol } from '$lib/utils/currency';
   import { Button } from '$lib/components/ui/button';
   import * as Card from '$lib/components/ui/card';
   import { Separator } from '$lib/components/ui/separator';
@@ -7,6 +9,7 @@
   interface Props {
     item: Item;
     isSelected: boolean;
+    currency: CurrencyCode;
     onSelect: () => void;
     onEdit: () => void;
     onDelete: () => void;
@@ -14,7 +17,9 @@
     onPlace: () => void;
   }
 
-  let { item, isSelected, onSelect, onEdit, onDelete, onDuplicate, onPlace }: Props = $props();
+  let { item, isSelected, currency, onSelect, onEdit, onDelete, onDuplicate, onPlace }: Props = $props();
+
+  const currencySymbol = $derived(getCurrencySymbol(currency));
 
   function withStopPropagation(handler: () => void) {
     return (e: MouseEvent) => {
@@ -46,7 +51,7 @@
           {item.width} x {item.height} cm
         </p>
         {#if item.price !== null}
-          <p class="text-sm font-medium text-slate-700">{item.price.toFixed(2)}</p>
+          <p class="text-sm font-medium text-slate-700">{currencySymbol}{item.price.toFixed(2)}</p>
         {/if}
       </div>
 

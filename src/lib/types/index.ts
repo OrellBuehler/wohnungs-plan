@@ -21,6 +21,8 @@ export interface Item {
   rotation: number;         // Degrees
 }
 
+import type { CurrencyCode } from '$lib/utils/currency';
+
 export interface Project {
   id: string;
   name: string;
@@ -28,6 +30,7 @@ export interface Project {
   updatedAt: string;
   floorplan: Floorplan | null;
   items: Item[];
+  currency: CurrencyCode;
 }
 
 export interface ProjectMeta {

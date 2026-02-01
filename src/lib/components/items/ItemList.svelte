@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Item } from '$lib/types';
+  import type { CurrencyCode } from '$lib/utils/currency';
+  import { CURRENCIES, getCurrencySymbol } from '$lib/utils/currency';
   import { Button } from '$lib/components/ui/button';
   import { Separator } from '$lib/components/ui/separator';
   import * as Select from '$lib/components/ui/select';
@@ -9,25 +11,31 @@
     items: Item[];
     selectedItemId: string | null;
     totalCost: number;
+    currency: CurrencyCode;
     onItemSelect: (id: string | null) => void;
     onItemEdit: (id: string) => void;
     onItemDelete: (id: string) => void;
     onItemDuplicate: (id: string) => void;
     onItemPlace: (id: string) => void;
     onAddItem: () => void;
+    onCurrencyChange: (currency: CurrencyCode) => void;
   }
 
   let {
     items,
     selectedItemId,
     totalCost,
+    currency,
     onItemSelect,
     onItemEdit,
     onItemDelete,
     onItemDuplicate,
     onItemPlace,
     onAddItem,
+    onCurrencyChange,
   }: Props = $props();
+
+  const currencySymbol = $derived(getCurrencySymbol(currency));
 
   let sortBy = $state<'name' | 'price' | 'status'>('name');
   let filterBy = $state<'all' | 'placed' | 'unplaced'>('all');
@@ -122,6 +130,7 @@
       {#each filteredItems as item (item.id)}
         <ItemCard
           {item}
+          {currency}
           isSelected={selectedItemId === item.id}
           onSelect={() => onItemSelect(item.id)}
           onEdit={() => onItemEdit(item.id)}
@@ -137,8 +146,24 @@
 
   <div class="p-4 bg-slate-50">
     <div class="flex justify-between items-center">
-      <span class="text-sm text-slate-600">Total Cost</span>
-      <span class="text-lg font-semibold text-slate-800">{totalCost.toFixed(2)}</span>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-slate-600">Total Cost</span>
+        <Select.Root
+          type="single"
+          value={currency}
+          onValueChange={(v) => onCurrencyChange(v as CurrencyCode)}
+        >
+          <Select.Trigger class="w-[90px] h-7 text-xs">
+            {currency}
+          </Select.Trigger>
+          <Select.Content>
+            {#each CURRENCIES as curr (curr.code)}
+              <Select.Item value={curr.code}>{curr.symbol} {curr.code}</Select.Item>
+            {/each}
+          </Select.Content>
+        </Select.Root>
+      </div>
+      <span class="text-lg font-semibold text-slate-800">{currencySymbol}{totalCost.toFixed(2)}</span>
     </div>
   </div>
 </div>

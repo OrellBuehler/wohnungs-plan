@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { Item, ProjectMeta } from '$lib/types';
+  import type { CurrencyCode } from '$lib/utils/currency';
   import {
     getProject,
     setProject,
@@ -14,6 +15,8 @@
     duplicateItem,
     getItems,
     getTotalCost,
+    getCurrency,
+    setCurrency,
   } from '$lib/stores/project.svelte';
   import { getAllProjects, getProject as loadProject, deleteProject, saveProject } from '$lib/db';
   import { downloadProject, importProjectFromJSON, readFileAsJSON } from '$lib/utils/export';
@@ -48,6 +51,11 @@
   const project = $derived(getProject());
   const items = $derived(getItems());
   const totalCost = $derived(getTotalCost());
+  const currency = $derived(getCurrency());
+
+  function handleCurrencyChange(newCurrency: CurrencyCode) {
+    setCurrency(newCurrency);
+  }
 
   onMount(async () => {
     const projects = await getAllProjects();
@@ -247,12 +255,14 @@
         {items}
         {selectedItemId}
         {totalCost}
+        {currency}
         onItemSelect={handleItemSelect}
         onItemEdit={handleEditItem}
         onItemDelete={handleDeleteItem}
         onItemDuplicate={handleDuplicateItem}
         onItemPlace={handlePlaceItem}
         onAddItem={handleAddItem}
+        onCurrencyChange={handleCurrencyChange}
       />
     </aside>
   </main>
@@ -262,6 +272,7 @@
   <ItemForm
     bind:open={showItemForm}
     item={editingItem}
+    {currency}
     onSave={handleSaveItem}
     onClose={() => (showItemForm = false)}
   />

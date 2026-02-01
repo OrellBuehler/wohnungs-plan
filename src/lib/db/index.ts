@@ -1,5 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Project, ProjectMeta } from '$lib/types';
+import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 
 interface WohnungsPlanDB extends DBSchema {
   projects: {
@@ -61,5 +62,6 @@ export function createNewProject(name: string = 'Untitled Project'): Project {
     updatedAt: now,
     floorplan: null,
     items: [],
+    currency: DEFAULT_CURRENCY,
   };
 }

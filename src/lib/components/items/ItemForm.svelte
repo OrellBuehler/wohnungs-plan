@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Item } from '$lib/types';
+  import type { CurrencyCode } from '$lib/utils/currency';
+  import { getCurrencySymbol } from '$lib/utils/currency';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
@@ -8,11 +10,14 @@
   interface Props {
     open: boolean;
     item: Partial<Item> | null;
+    currency: CurrencyCode;
     onSave: (item: Omit<Item, 'id'>) => void;
     onClose: () => void;
   }
 
-  let { open = $bindable(), item, onSave, onClose }: Props = $props();
+  let { open = $bindable(), item, currency, onSave, onClose }: Props = $props();
+
+  const currencySymbol = $derived(getCurrencySymbol(currency));
 
   let name = $state('');
   let width = $state(100);
@@ -111,7 +116,7 @@
       </div>
 
       <div class="space-y-2">
-        <Label for="price">Price (€)</Label>
+        <Label for="price">Price ({currencySymbol})</Label>
         <Input
           id="price"
           type="number"

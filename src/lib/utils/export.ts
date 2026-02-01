@@ -1,4 +1,5 @@
 import type { Project } from '$lib/types';
+import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 
 export function exportProjectToJSON(project: Project): string {
   return JSON.stringify(project, null, 2);
@@ -28,6 +29,10 @@ export function importProjectFromJSON(json: string): Project | null {
     data.id = crypto.randomUUID();
     data.createdAt = new Date().toISOString();
     data.updatedAt = new Date().toISOString();
+    // Add default currency if missing (backwards compatibility)
+    if (!data.currency) {
+      data.currency = DEFAULT_CURRENCY;
+    }
     return data as Project;
   } catch {
     return null;
