@@ -21,16 +21,16 @@
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger>
 			{#snippet child({ props })}
-				<Button variant="ghost" class="relative h-9 w-9 rounded-full" {...props}>
+				<Button variant="ghost" class="relative h-9 w-9 rounded-full p-0 overflow-hidden" {...props}>
 					{#if user.avatarUrl}
 						<img
 							src={user.avatarUrl}
 							alt={user.name ?? 'User avatar'}
-							class="h-9 w-9 rounded-full object-cover"
+							class="absolute inset-0 h-full w-full rounded-full object-cover"
 						/>
 					{:else}
 						<div
-							class="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium"
+							class="flex h-full w-full items-center justify-center rounded-full bg-muted text-sm font-medium"
 						>
 							{getInitials(user.name)}
 						</div>
