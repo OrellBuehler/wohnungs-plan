@@ -96,7 +96,7 @@ export function getItemShapePoints(item: Item, scale: number): number[] {
 /**
  * Get the axis-aligned bounding box for a rotated rectangle
  */
-function getRotatedBoundingBox(
+export function getRotatedBoundingBox(
   x: number,
   y: number,
   width: number,

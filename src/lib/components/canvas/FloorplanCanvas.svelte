@@ -2,7 +2,7 @@
   import { Stage, Layer, Image as KonvaImage, Rect, Line, Text, Group } from 'svelte-konva';
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
-  import { getOverlappingItems, getItemShapePoints } from '$lib/utils/geometry';
+  import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
 
   interface Props {
@@ -45,10 +45,16 @@
   let panY = $state(0);
   let isPanning = $state(false);
   let lastPanPoint = $state<{ x: number; y: number } | null>(null);
+  let zoomLocked = $state(false);
+
+  // Alignment guides state
+  let alignmentGuides = $state<{ type: 'h' | 'v'; pos: number }[]>([]);
+  let draggingItemId = $state<string | null>(null);
 
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.1;
+  const ALIGNMENT_THRESHOLD = 5; // pixels
 
   // Update viewport center for item placement
   $effect(() => {
@@ -131,6 +137,83 @@
     node.x(x);
     node.y(y);
     onItemMove(itemId, x, y);
+    draggingItemId = null;
+    alignmentGuides = [];
+  }
+
+  function handleDragStart(itemId: string) {
+    draggingItemId = itemId;
+  }
+
+  function handleDragMove(itemId: string, e: { target: Konva.Node }) {
+    const node = e.target;
+    const dragX = node.x();
+    const dragY = node.y();
+
+    const draggedItem = items.find(i => i.id === itemId);
+    if (!draggedItem) return;
+
+    const dragW = cmToPixels(draggedItem.width);
+    const dragH = cmToPixels(draggedItem.height);
+
+    // Get rotated bounding box for dragged item
+    const dragBox = getRotatedBoundingBox(dragX, dragY, dragW, dragH, draggedItem.rotation);
+    const dragCenterX = (dragBox.minX + dragBox.maxX) / 2;
+    const dragCenterY = (dragBox.minY + dragBox.maxY) / 2;
+
+    const guides: { type: 'h' | 'v'; pos: number }[] = [];
+    let snapX: number | null = null;
+    let snapY: number | null = null;
+
+    for (const other of placedItems) {
+      if (other.id === itemId) continue;
+
+      const otherW = cmToPixels(other.width);
+      const otherH = cmToPixels(other.height);
+
+      // Get rotated bounding box for other item
+      const otherBox = getRotatedBoundingBox(other.position!.x, other.position!.y, otherW, otherH, other.rotation);
+      const otherCenterX = (otherBox.minX + otherBox.maxX) / 2;
+      const otherCenterY = (otherBox.minY + otherBox.maxY) / 2;
+
+      // Check vertical alignments (x positions) using bounding box edges
+      const vChecks = [
+        { drag: dragBox.minX, other: otherBox.minX, offset: dragBox.minX - dragX },
+        { drag: dragBox.minX, other: otherBox.maxX, offset: dragBox.minX - dragX },
+        { drag: dragBox.maxX, other: otherBox.minX, offset: dragBox.maxX - dragX },
+        { drag: dragBox.maxX, other: otherBox.maxX, offset: dragBox.maxX - dragX },
+        { drag: dragCenterX, other: otherCenterX, offset: dragCenterX - dragX },
+      ];
+
+      for (const check of vChecks) {
+        if (Math.abs(check.drag - check.other) < ALIGNMENT_THRESHOLD) {
+          guides.push({ type: 'v', pos: check.other });
+          if (snapX === null) snapX = dragX + (check.other - check.drag);
+        }
+      }
+
+      // Check horizontal alignments (y positions) using bounding box edges
+      const hChecks = [
+        { drag: dragBox.minY, other: otherBox.minY, offset: dragBox.minY - dragY },
+        { drag: dragBox.minY, other: otherBox.maxY, offset: dragBox.minY - dragY },
+        { drag: dragBox.maxY, other: otherBox.minY, offset: dragBox.maxY - dragY },
+        { drag: dragBox.maxY, other: otherBox.maxY, offset: dragBox.maxY - dragY },
+        { drag: dragCenterY, other: otherCenterY, offset: dragCenterY - dragY },
+      ];
+
+      for (const check of hChecks) {
+        if (Math.abs(check.drag - check.other) < ALIGNMENT_THRESHOLD) {
+          guides.push({ type: 'h', pos: check.other });
+          if (snapY === null) snapY = dragY + (check.other - check.drag);
+        }
+      }
+    }
+
+    // Snap to alignment if found
+    if (snapX !== null) node.x(snapX);
+    if (snapY !== null) node.y(snapY);
+
+    alignmentGuides = guides;
   }
 
   function handleRotate(itemId: string, direction: 'cw' | 'ccw') {
@@ -145,6 +228,8 @@
   // Zoom functions
   function handleWheel(e: WheelEvent) {
     e.preventDefault();
+    if (zoomLocked) return;
+
     const stage = stageRef?.node;
     if (!stage) return;
 
@@ -332,6 +417,8 @@
           rotation={item.rotation}
           draggable
           onpointerclick={() => onItemSelect(item.id)}
+          ondragstart={() => handleDragStart(item.id)}
+          ondragmove={(e) => handleDragMove(item.id, e)}
           ondragend={(e) => handleDragEnd(item.id, e)}
         >
           {#if item.shape === 'l-shape'}
@@ -391,6 +478,31 @@
         </Group>
       {/each}
     </Layer>
+
+    <!-- Alignment guides -->
+    {#if alignmentGuides.length > 0}
+      <Layer>
+        {#each alignmentGuides as guide}
+          {#if guide.type === 'v'}
+            <Line
+              points={[guide.pos, -10000, guide.pos, 10000]}
+              stroke="#3B82F6"
+              strokeWidth={1}
+              dash={[4, 4]}
+              listening={false}
+            />
+          {:else}
+            <Line
+              points={[-10000, guide.pos, 10000, guide.pos]}
+              stroke="#3B82F6"
+              strokeWidth={1}
+              dash={[4, 4]}
+              listening={false}
+            />
+          {/if}
+        {/each}
+      </Layer>
+    {/if}
   </Stage>
 
   <!-- Zoom controls -->
@@ -401,6 +513,7 @@
       class="text-slate-600 font-bold"
       onclick={zoomIn}
       title="Zoom in"
+      disabled={zoomLocked}
     >
       +
     </Button>
@@ -413,6 +526,7 @@
       class="text-slate-600 font-bold"
       onclick={zoomOut}
       title="Zoom out"
+      disabled={zoomLocked}
     >
       −
     </Button>
@@ -424,6 +538,15 @@
       title="Reset view"
     >
       ⟲
+    </Button>
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      class={zoomLocked ? 'text-blue-600 bg-blue-50' : 'text-slate-600'}
+      onclick={() => zoomLocked = !zoomLocked}
+      title={zoomLocked ? 'Unlock zoom' : 'Lock zoom'}
+    >
+      {zoomLocked ? '🔒' : '🔓'}
     </Button>
   </div>
 
