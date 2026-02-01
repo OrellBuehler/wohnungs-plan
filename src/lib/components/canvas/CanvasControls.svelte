@@ -1,67 +1,59 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button';
+  import { Checkbox } from '$lib/components/ui/checkbox';
+  import { Input } from '$lib/components/ui/input';
+  import { Label } from '$lib/components/ui/label';
+  import { Separator } from '$lib/components/ui/separator';
 
   interface Props {
     showGrid: boolean;
     snapToGrid: boolean;
     gridSize: number;
-    onShowGridChange: (show: boolean) => void;
-    onSnapToGridChange: (snap: boolean) => void;
-    onGridSizeChange: (size: number) => void;
-    onResetFloorplan: () => void;
+    onChangeFloorplan: () => void;
   }
 
   let {
-    showGrid,
-    snapToGrid,
-    gridSize,
-    onShowGridChange,
-    onSnapToGridChange,
-    onGridSizeChange,
-    onResetFloorplan,
+    showGrid = $bindable(),
+    snapToGrid = $bindable(),
+    gridSize = $bindable(),
+    onChangeFloorplan,
   }: Props = $props();
 </script>
 
-<div class="flex items-center gap-4 px-4 py-2 bg-white border-t border-slate-200">
-  <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-    <input
-      type="checkbox"
-      checked={showGrid}
-      onchange={(e) => onShowGridChange(e.currentTarget.checked)}
-      class="rounded"
-    />
+<div class="flex items-center gap-4 px-4 pb-4 text-sm">
+  <Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
+    <Checkbox bind:checked={showGrid} />
     Grid
-  </label>
+  </Label>
 
-  <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-    <input
-      type="checkbox"
-      checked={snapToGrid}
-      onchange={(e) => onSnapToGridChange(e.currentTarget.checked)}
-      class="rounded"
-    />
+  <Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
+    <Checkbox bind:checked={snapToGrid} />
     Snap
-  </label>
+  </Label>
 
-  <div class="h-6 w-px bg-slate-200"></div>
+  <Separator orientation="vertical" class="h-6" />
 
-  <label class="flex items-center gap-2 text-sm text-slate-600">
-    Grid:
-    <input
+  <Label class="flex items-center gap-2 text-slate-600">
+    Grid size:
+    <Input
       type="number"
-      value={gridSize}
+      bind:value={gridSize}
       min={10}
       max={100}
       step={10}
-      onchange={(e) => onGridSizeChange(parseInt(e.currentTarget.value))}
-      class="w-14 px-2 py-1 rounded border border-slate-200 font-mono text-sm"
+      class="w-16 h-8 font-mono text-sm"
     />
     px
-  </label>
+  </Label>
 
   <div class="flex-1"></div>
 
-  <Button size="sm" variant="ghost" onclick={onResetFloorplan}>
+  <Button
+    variant="ghost"
+    size="sm"
+    class="text-slate-500 hover:text-slate-700"
+    onclick={onChangeFloorplan}
+  >
     Change Floorplan
   </Button>
 </div>

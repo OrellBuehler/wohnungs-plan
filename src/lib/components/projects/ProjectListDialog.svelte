@@ -42,13 +42,16 @@
         <div class="space-y-2">
           {#each projects as project (project.id)}
             <div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
-              <button
-                class="flex-1 text-left"
+              <Button
+                variant="ghost"
+                class="flex-1 text-left justify-start h-auto py-0"
                 onclick={() => { onSelect(project.id); handleClose(); }}
               >
-                <h3 class="font-medium text-slate-800">{project.name}</h3>
-                <p class="text-sm text-slate-500">Updated {formatDate(project.updatedAt)}</p>
-              </button>
+                <div class="flex flex-col items-start">
+                  <h3 class="font-medium text-slate-800">{project.name}</h3>
+                  <p class="text-sm text-slate-500">Updated {formatDate(project.updatedAt)}</p>
+                </div>
+              </Button>
               <Button
                 size="sm"
                 variant="ghost"

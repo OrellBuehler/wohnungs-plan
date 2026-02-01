@@ -90,15 +90,17 @@
         <Label>Color</Label>
         <div class="flex gap-2 flex-wrap">
           {#each presetColors as presetColor}
-            <button
+            <Button
               type="button"
-              class="w-8 h-8 rounded border-2 transition-all {color === presetColor
+              variant="ghost"
+              size="icon-sm"
+              class="w-8 h-8 rounded border-2 p-0 transition-all {color === presetColor
                 ? 'border-blue-500 scale-110'
                 : 'border-transparent'}"
               style="background-color: {presetColor}"
               onclick={() => (color = presetColor)}
               aria-label="Select color {presetColor}"
-            ></button>
+            ></Button>
           {/each}
           <input
             type="color"

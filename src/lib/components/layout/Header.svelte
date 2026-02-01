@@ -15,12 +15,13 @@
 </script>
 
 <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
-  <button
-    class="text-lg font-semibold text-slate-800 hover:text-slate-600 transition-colors"
+  <Button
+    variant="ghost"
+    class="text-lg font-semibold text-slate-800 hover:text-slate-600"
     onclick={onRename}
   >
     {projectName}
-  </button>
+  </Button>
 
   <div class="flex items-center gap-2">
     <DropdownMenu.Root>

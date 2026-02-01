@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Item } from '$lib/types';
   import { Button } from '$lib/components/ui/button';
+  import { Separator } from '$lib/components/ui/separator';
+  import * as Select from '$lib/components/ui/select';
   import ItemCard from './ItemCard.svelte';
 
   interface Props {
@@ -30,17 +32,30 @@
   let sortBy = $state<'name' | 'price' | 'status'>('name');
   let filterBy = $state<'all' | 'placed' | 'unplaced'>('all');
 
+  const filterOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'placed', label: 'Placed' },
+    { value: 'unplaced', label: 'Unplaced' },
+  ] as const;
+
+  const sortOptions = [
+    { value: 'name', label: 'Name' },
+    { value: 'price', label: 'Price' },
+    { value: 'status', label: 'Status' },
+  ] as const;
+
+  const filterLabel = $derived(filterOptions.find(o => o.value === filterBy)?.label ?? 'All');
+  const sortLabel = $derived(sortOptions.find(o => o.value === sortBy)?.label ?? 'Name');
+
   const filteredItems = $derived.by(() => {
     let result = [...items];
 
-    // Filter
     if (filterBy === 'placed') {
       result = result.filter(i => i.position !== null);
     } else if (filterBy === 'unplaced') {
       result = result.filter(i => i.position === null);
     }
 
-    // Sort
     result.sort((a, b) => {
       if (sortBy === 'name') return a.name.localeCompare(b.name);
       if (sortBy === 'price') return (b.price ?? 0) - (a.price ?? 0);
@@ -57,31 +72,46 @@
 </script>
 
 <div class="flex flex-col h-full">
-  <div class="p-4 border-b border-slate-200">
+  <div class="p-4">
     <div class="flex items-center justify-between mb-3">
       <h2 class="font-semibold text-slate-800">Items ({items.length})</h2>
       <Button size="sm" onclick={onAddItem}>+ Add</Button>
     </div>
 
     <div class="flex gap-2 text-sm">
-      <select
-        class="px-2 py-1 rounded border border-slate-200 text-slate-600 bg-white"
-        bind:value={filterBy}
+      <Select.Root
+        type="single"
+        value={filterBy}
+        onValueChange={(v) => (filterBy = v as typeof filterBy)}
       >
-        <option value="all">All</option>
-        <option value="placed">Placed</option>
-        <option value="unplaced">Unplaced</option>
-      </select>
-      <select
-        class="px-2 py-1 rounded border border-slate-200 text-slate-600 bg-white"
-        bind:value={sortBy}
+        <Select.Trigger class="w-[100px] h-8">
+          {filterLabel}
+        </Select.Trigger>
+        <Select.Content>
+          {#each filterOptions as option (option.value)}
+            <Select.Item value={option.value}>{option.label}</Select.Item>
+          {/each}
+        </Select.Content>
+      </Select.Root>
+
+      <Select.Root
+        type="single"
+        value={sortBy}
+        onValueChange={(v) => (sortBy = v as typeof sortBy)}
       >
-        <option value="name">Name</option>
-        <option value="price">Price</option>
-        <option value="status">Status</option>
-      </select>
+        <Select.Trigger class="w-[90px] h-8">
+          {sortLabel}
+        </Select.Trigger>
+        <Select.Content>
+          {#each sortOptions as option (option.value)}
+            <Select.Item value={option.value}>{option.label}</Select.Item>
+          {/each}
+        </Select.Content>
+      </Select.Root>
     </div>
   </div>
+
+  <Separator />
 
   <div class="flex-1 overflow-y-auto p-4 space-y-2">
     {#if filteredItems.length === 0}
@@ -103,10 +133,12 @@
     {/if}
   </div>
 
-  <div class="p-4 border-t border-slate-200 bg-slate-50">
+  <Separator />
+
+  <div class="p-4 bg-slate-50">
     <div class="flex justify-between items-center">
       <span class="text-sm text-slate-600">Total Cost</span>
-      <span class="text-lg font-semibold text-slate-800">€{totalCost.toFixed(2)}</span>
+      <span class="text-lg font-semibold text-slate-800">{totalCost.toFixed(2)}</span>
     </div>
   </div>
 </div>

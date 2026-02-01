@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { Item, ProjectMeta, Floorplan } from '$lib/types';
+  import type { Item, ProjectMeta } from '$lib/types';
   import {
     getProject,
     setProject,
@@ -23,6 +23,7 @@
   import FloorplanCanvas from '$lib/components/canvas/FloorplanCanvas.svelte';
   import FloorplanUpload from '$lib/components/canvas/FloorplanUpload.svelte';
   import ScaleCalibration from '$lib/components/canvas/ScaleCalibration.svelte';
+  import CanvasControls from '$lib/components/canvas/CanvasControls.svelte';
   import ItemList from '$lib/components/items/ItemList.svelte';
   import ItemForm from '$lib/components/items/ItemForm.svelte';
   import ProjectListDialog from '$lib/components/projects/ProjectListDialog.svelte';
@@ -49,7 +50,6 @@
   const totalCost = $derived(getTotalCost());
 
   onMount(async () => {
-    // Load most recent project or create new one
     const projects = await getAllProjects();
     if (projects.length > 0) {
       const loaded = await loadProject(projects[0].id);
@@ -178,7 +178,6 @@
   }
 
   function handlePlaceItem(id: string) {
-    // Place item at center of canvas
     updateItem(id, { position: { x: 100, y: 100 } });
     activeTab = 'plan';
   }
@@ -208,7 +207,6 @@
   />
 
   <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
-    <!-- Canvas area -->
     <div class="flex-1 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
       <div class="flex-1 m-2 md:m-4 rounded-lg overflow-hidden">
         {#if pendingImageData}
@@ -234,41 +232,16 @@
         {/if}
       </div>
 
-      <!-- Canvas controls -->
       {#if project.floorplan && !pendingImageData}
-        <div class="flex items-center gap-4 px-4 pb-4 text-sm">
-          <label class="flex items-center gap-2 text-slate-600">
-            <input type="checkbox" bind:checked={showGrid} class="rounded" />
-            Grid
-          </label>
-          <label class="flex items-center gap-2 text-slate-600">
-            <input type="checkbox" bind:checked={snapToGrid} class="rounded" />
-            Snap
-          </label>
-          <label class="flex items-center gap-2 text-slate-600">
-            Grid size:
-            <input
-              type="number"
-              bind:value={gridSize}
-              min={10}
-              max={100}
-              step={10}
-              class="w-16 px-2 py-1 rounded border border-slate-200 font-mono text-sm"
-            />
-            px
-          </label>
-          <div class="flex-1"></div>
-          <button
-            class="text-sm text-slate-500 hover:text-slate-700"
-            onclick={handleChangeFloorplan}
-          >
-            Change Floorplan
-          </button>
-        </div>
+        <CanvasControls
+          bind:showGrid
+          bind:snapToGrid
+          bind:gridSize
+          onChangeFloorplan={handleChangeFloorplan}
+        />
       {/if}
     </div>
 
-    <!-- Item list sidebar -->
     <aside class="w-full md:w-80 {activeTab === 'items' ? 'flex' : 'hidden'} md:flex flex-col bg-white border-l border-slate-200">
       <ItemList
         {items}
@@ -286,7 +259,6 @@
 
   <MobileNav {activeTab} onTabChange={(tab) => (activeTab = tab)} />
 
-  <!-- Dialogs -->
   <ItemForm
     bind:open={showItemForm}
     item={editingItem}

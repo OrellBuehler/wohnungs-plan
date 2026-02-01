@@ -3,6 +3,7 @@
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
   import { getOverlappingItems } from '$lib/utils/geometry';
+  import { Button } from '$lib/components/ui/button';
 
   interface Props {
     floorplan: Floorplan | null;
@@ -328,30 +329,36 @@
 
   <!-- Zoom controls -->
   <div class="absolute top-2 right-2 flex flex-col gap-1 bg-white rounded shadow-lg p-1">
-    <button
-      class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600 font-bold"
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      class="text-slate-600 font-bold"
       onclick={zoomIn}
       title="Zoom in"
     >
       +
-    </button>
+    </Button>
     <div class="text-xs text-center text-slate-500 py-1">
       {Math.round(zoom * 100)}%
     </div>
-    <button
-      class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600 font-bold"
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      class="text-slate-600 font-bold"
       onclick={zoomOut}
       title="Zoom out"
     >
       −
-    </button>
-    <button
-      class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600 text-xs"
+    </Button>
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      class="text-slate-600 text-xs"
       onclick={resetView}
       title="Reset view"
     >
       ⟲
-    </button>
+    </Button>
   </div>
 
   <!-- Rotation controls for selected item -->
@@ -362,20 +369,24 @@
         class="absolute flex gap-1 bg-white rounded shadow-lg p-1"
         style="left: {(selectedItem.position.x * zoom) + panX}px; top: {(selectedItem.position.y * zoom) + panY - 40}px;"
       >
-        <button
-          class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600"
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          class="text-slate-600"
           onclick={() => handleRotate(selectedItemId, 'ccw')}
           title="Rotate left"
         >
           ↶
-        </button>
-        <button
-          class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600"
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          class="text-slate-600"
           onclick={() => handleRotate(selectedItemId, 'cw')}
           title="Rotate right"
         >
           ↷
-        </button>
+        </Button>
       </div>
     {/if}
   {/if}
