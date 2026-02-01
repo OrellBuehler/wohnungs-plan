@@ -169,9 +169,8 @@
     input.click();
   }
 
-  function handleRename() {
-    const newName = prompt('Enter project name:', project?.name);
-    if (newName) updateProjectName(newName);
+  function handleRename(newName: string) {
+    updateProjectName(newName);
   }
 
   // Floorplan actions
