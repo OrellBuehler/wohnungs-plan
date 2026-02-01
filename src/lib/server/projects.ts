@@ -1,6 +1,7 @@
-import { eq, desc, asc, and } from 'drizzle-orm';
+import { eq, desc, asc, and, or, sql, inArray } from 'drizzle-orm';
 import { getDB, projects, projectMembers, items, floorplans, type Project, type Item, type Floorplan } from './db';
 import type { ProjectWithRole, ProjectRole } from './types';
+import type { ProjectMeta } from '$lib/types';
 
 export async function getUserProjects(userId: string): Promise<ProjectWithRole[]> {
 	const db = getDB();
@@ -21,6 +22,72 @@ export async function getUserProjects(userId: string): Promise<ProjectWithRole[]
 		.orderBy(desc(projects.updatedAt));
 
 	return result as ProjectWithRole[];
+}
+
+export async function getUserProjectsWithDetails(userId: string): Promise<ProjectMeta[]> {
+	const db = getDB();
+
+	// First get the user's projects (without floorplan join to avoid duplicates)
+	const results = await db
+		.select({
+			id: projects.id,
+			name: projects.name,
+			createdAt: projects.createdAt,
+			updatedAt: projects.updatedAt
+		})
+		.from(projects)
+		.leftJoin(projectMembers, eq(projectMembers.projectId, projects.id))
+		.where(or(eq(projects.ownerId, userId), eq(projectMembers.userId, userId)))
+		.groupBy(projects.id)
+		.orderBy(desc(projects.updatedAt));
+
+	if (results.length === 0) {
+		return [];
+	}
+
+	const projectIds = results.map((p) => p.id);
+
+	// Get latest floorplan for each project
+	const floorplanResults = await db
+		.select({
+			projectId: floorplans.projectId,
+			filename: floorplans.filename
+		})
+		.from(floorplans)
+		.where(inArray(floorplans.projectId, projectIds))
+		.orderBy(desc(floorplans.createdAt));
+
+	// Keep only first (latest) floorplan per project
+	const floorplanMap = new Map<string, string>();
+	for (const fp of floorplanResults) {
+		if (!floorplanMap.has(fp.projectId)) {
+			floorplanMap.set(fp.projectId, fp.filename);
+		}
+	}
+
+	// Get member counts for these projects only
+	const memberCounts = await db
+		.select({
+			projectId: projectMembers.projectId,
+			count: sql<number>`count(*)`.as('count')
+		})
+		.from(projectMembers)
+		.where(inArray(projectMembers.projectId, projectIds))
+		.groupBy(projectMembers.projectId);
+
+	const countMap = new Map(memberCounts.map((m) => [m.projectId, Number(m.count)]));
+
+	return results.map((p) => ({
+		id: p.id,
+		name: p.name,
+		createdAt: p.createdAt?.toISOString() ?? new Date().toISOString(),
+		updatedAt: p.updatedAt?.toISOString() ?? new Date().toISOString(),
+		isLocal: false,
+		floorplanUrl: floorplanMap.has(p.id)
+			? `/api/images/floorplans/${p.id}/${floorplanMap.get(p.id)}`
+			: null,
+		memberCount: countMap.get(p.id) ?? 1
+	}));
 }
 
 export async function getProjectById(projectId: string): Promise<Project | null> {

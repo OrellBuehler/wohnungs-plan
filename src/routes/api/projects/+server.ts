@@ -1,13 +1,13 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getUserProjects, createProject } from '$lib/server/projects';
+import { getUserProjectsWithDetails, createProject } from '$lib/server/projects';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	if (!locals.user) {
 		throw error(401, 'Authentication required');
 	}
 
-	const projects = await getUserProjects(locals.user.id);
+	const projects = await getUserProjectsWithDetails(locals.user.id);
 	return json({ projects });
 };
 
