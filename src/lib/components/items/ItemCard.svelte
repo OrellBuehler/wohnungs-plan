@@ -111,7 +111,7 @@
 
     {#if isSelected}
       <Separator class="my-3" />
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" onclick={withStopPropagation(onEdit)}>
           Edit
         </Button>
