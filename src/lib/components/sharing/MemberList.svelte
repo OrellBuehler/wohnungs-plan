@@ -1,0 +1,108 @@
+<script lang="ts">
+	import { Button } from '$lib/components/ui/button';
+	import * as Select from '$lib/components/ui/select';
+	import { UserMinus } from 'lucide-svelte';
+
+	export type ProjectRole = 'owner' | 'editor' | 'viewer';
+
+	export interface Member {
+		userId: string;
+		name: string | null;
+		email: string | null;
+		avatarUrl: string | null;
+		role: ProjectRole;
+	}
+
+	interface Props {
+		members: Member[];
+		currentUserId: string | null;
+		canManage: boolean;
+		onRoleChange: (userId: string, role: ProjectRole) => void;
+		onRemove: (userId: string) => void;
+	}
+
+	let { members, currentUserId, canManage, onRoleChange, onRemove }: Props = $props();
+
+	const roleOptions: { value: ProjectRole; label: string }[] = [
+		{ value: 'owner', label: 'Owner' },
+		{ value: 'editor', label: 'Editor' },
+		{ value: 'viewer', label: 'Viewer' }
+	];
+
+	function getInitials(name: string | null): string {
+		if (!name) return '?';
+		return name
+			.split(' ')
+			.map((n) => n[0])
+			.join('')
+			.toUpperCase()
+			.slice(0, 2);
+	}
+</script>
+
+<div class="space-y-3">
+	{#if members.length === 0}
+		<p class="text-sm text-muted-foreground">No members yet.</p>
+	{:else}
+		{#each members as member (member.userId)}
+			<div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3">
+				<div class="flex items-center gap-3 min-w-0">
+					<div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+						{#if member.avatarUrl}
+							<img
+								src={member.avatarUrl}
+								alt={member.name ?? 'Member'}
+								class="h-full w-full rounded-full object-cover"
+							/>
+						{:else}
+							{getInitials(member.name)}
+						{/if}
+					</div>
+					<div class="min-w-0">
+						<p class="text-sm font-medium truncate">
+							{member.name ?? member.email ?? 'Member'}
+							{#if currentUserId && member.userId === currentUserId}
+								<span class="text-xs text-muted-foreground">(You)</span>
+							{/if}
+						</p>
+						{#if member.email}
+							<p class="text-xs text-muted-foreground truncate">{member.email}</p>
+						{/if}
+					</div>
+				</div>
+
+				<div class="flex items-center gap-2">
+					{#if canManage}
+						<Select.Root
+							type="single"
+							value={member.role}
+							onValueChange={(v) => onRoleChange(member.userId, v as ProjectRole)}
+						>
+							<Select.Trigger class="h-8 min-w-[100px]">
+								{roleOptions.find((o) => o.value === member.role)?.label ?? 'Role'}
+							</Select.Trigger>
+							<Select.Content>
+								{#each roleOptions as option (option.value)}
+									<Select.Item value={option.value}>{option.label}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					{:else}
+						<span class="text-xs text-muted-foreground">{member.role}</span>
+					{/if}
+
+					{#if canManage && member.role !== 'owner'}
+						<Button
+							variant="ghost"
+							size="icon-sm"
+							class="text-red-600 hover:text-red-700"
+							onclick={() => onRemove(member.userId)}
+						>
+							<UserMinus class="h-4 w-4" />
+						</Button>
+					{/if}
+				</div>
+			</div>
+		{/each}
+	{/if}
+</div>
