@@ -81,7 +81,7 @@
   });
 </script>
 
-<div class="flex flex-col h-full">
+<div class="flex flex-col h-full min-h-0">
   <div class="p-4">
     <div class="flex items-center justify-between mb-3">
       <h2 class="font-semibold text-slate-800">Items ({items.length})</h2>
@@ -123,7 +123,7 @@
 
   <Separator />
 
-  <div class="flex-1 overflow-y-auto p-4 space-y-2">
+  <div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
     {#if filteredItems.length === 0}
       <p class="text-slate-500 text-sm text-center py-8">
         {items.length === 0 ? 'No items yet. Add your first item!' : 'No items match filter.'}

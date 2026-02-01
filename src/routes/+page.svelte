@@ -257,8 +257,8 @@
     onImport={handleImport}
   />
 
-  <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
-    <div class="flex-1 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
+  <main class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
+    <div class="flex-1 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
       <div class="flex-1 m-2 md:m-4 rounded-lg overflow-hidden">
         {#if pendingImageData}
           <ScaleCalibration
@@ -294,7 +294,7 @@
       {/if}
     </div>
 
-    <aside class="w-full md:w-80 {activeTab === 'items' ? 'flex' : 'hidden'} md:flex flex-col bg-white border-l border-slate-200">
+    <aside class="w-full md:w-80 min-h-0 {activeTab === 'items' ? 'flex' : 'hidden'} md:flex flex-col bg-white border-l border-slate-200">
       <ItemList
         {items}
         {selectedItemId}
