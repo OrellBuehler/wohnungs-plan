@@ -32,7 +32,7 @@
 		setGridSize,
 		loadProjectById
 	} from '$lib/stores/project.svelte';
-	import { saveProject } from '$lib/db';
+	import { saveProject as saveLocalProject, saveThumbnail } from '$lib/db';
 	import { downloadProject, importProjectFromJSON, readFileAsJSON } from '$lib/utils/export';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 
@@ -194,7 +194,7 @@
 				const imported = importProjectFromJSON(json);
 				if (imported) {
 					setProject(imported);
-					await saveProject(imported);
+					await saveLocalProject(imported);
 				} else {
 					alert('Invalid project file');
 				}
@@ -298,14 +298,20 @@
 	async function handleThumbnailReady(dataUrl: string) {
 		if (!project) return;
 		try {
-			await fetch('/api/thumbnails', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					projectId: project.id,
-					imageData: dataUrl
-				})
-			});
+			if (project.isLocal) {
+				// Save to IndexedDB for local projects
+				await saveThumbnail(project.id, dataUrl);
+			} else {
+				// Upload to server for cloud projects
+				await fetch('/api/thumbnails', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						projectId: project.id,
+						imageData: dataUrl
+					})
+				});
+			}
 		} catch (error) {
 			console.error('Failed to save thumbnail:', error);
 		}
