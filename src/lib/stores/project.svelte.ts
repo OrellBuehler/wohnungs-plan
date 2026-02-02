@@ -397,6 +397,32 @@ export function setFloorplan(floorplan: Floorplan) {
 	}
 }
 
+export function updateFloorplanScale(scale: number, referenceLength: number) {
+	if (currentProject?.floorplan) {
+		currentProject.floorplan = {
+			...currentProject.floorplan,
+			scale,
+			referenceLength
+		};
+		debounceAutoSave();
+
+		if (shouldSyncProject()) {
+			void fetch(`/api/projects/${currentProject.id}/floorplan`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ scale, referenceLength })
+			});
+		} else if (shouldQueueProject()) {
+			queueChange({
+				type: 'update',
+				entity: 'floorplan',
+				projectId: currentProject.id,
+				data: { scale, referenceLength }
+			});
+		}
+	}
+}
+
 export function clearFloorplan() {
 	if (currentProject) {
 		currentProject.floorplan = null;

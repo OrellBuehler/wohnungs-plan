@@ -1,7 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { createFloorplan, saveFloorplanFile, deleteFloorplan } from '$lib/server/floorplans';
+import { getProjectRole, getProjectFloorplan } from '$lib/server/projects';
+import { createFloorplan, saveFloorplanFile, deleteFloorplan, updateFloorplanScale } from '$lib/server/floorplans';
 import { config } from '$lib/server/env';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const;
@@ -96,6 +96,32 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	});
 
 	return json({ floorplan }, { status: 201 });
+};
+
+export const PATCH: RequestHandler = async ({ locals, params, request }) => {
+	if (!locals.user) {
+		throw error(401, 'Authentication required');
+	}
+
+	const role = await getProjectRole(params.id, locals.user.id);
+	if (!role || role === 'viewer') {
+		throw error(403, 'Edit access required');
+	}
+
+	const floorplan = await getProjectFloorplan(params.id);
+	if (!floorplan) {
+		throw error(404, 'Floorplan not found');
+	}
+
+	const body = await request.json();
+	const { scale, referenceLength } = body;
+
+	if (typeof scale !== 'number' || typeof referenceLength !== 'number') {
+		throw error(400, 'scale and referenceLength are required');
+	}
+
+	const updated = await updateFloorplanScale(floorplan.id, scale, referenceLength);
+	return json({ floorplan: updated });
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {

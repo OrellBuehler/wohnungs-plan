@@ -19,6 +19,7 @@
 		setProject,
 		updateProjectName,
 		setFloorplan,
+		updateFloorplanScale,
 		clearFloorplan,
 		addItem,
 		updateItem,
@@ -208,13 +209,9 @@
 	}
 
 	function handleCalibrate(scale: number, referenceLength: number) {
-		if (isRecalibrating && project?.floorplan) {
-			// Update existing floorplan with new scale
-			setFloorplan({
-				imageData: project.floorplan.imageData,
-				scale,
-				referenceLength
-			});
+		if (isRecalibrating) {
+			// Update existing floorplan scale only (no re-upload)
+			updateFloorplanScale(scale, referenceLength);
 			isRecalibrating = false;
 		} else if (pendingImageData) {
 			// New floorplan upload
