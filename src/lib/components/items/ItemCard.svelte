@@ -10,6 +10,7 @@
   interface Props {
     item: Item;
     isSelected: boolean;
+    readonly?: boolean;
     onSelect: () => void;
     onEdit: () => void;
     onDelete: () => void;
@@ -18,7 +19,7 @@
     onUnplace: () => void;
   }
 
-  let { item, isSelected, onSelect, onEdit, onDelete, onDuplicate, onPlace, onUnplace }: Props = $props();
+  let { item, isSelected, readonly = false, onSelect, onEdit, onDelete, onDuplicate, onPlace, onUnplace }: Props = $props();
 
   // Use the item's own currency
   const currencySymbol = $derived(getCurrencySymbol(item.priceCurrency));
@@ -121,7 +122,7 @@
           <Button size="sm" variant="outline" onclick={withStopPropagation(onUnplace)}>
             <MapPinOff size={14} class="mr-1" /> Unplace
           </Button>
-        {:else}
+        {:else if !readonly}
           <Button size="sm" variant="outline" onclick={withStopPropagation(onPlace)}>
             <MapPin size={14} class="mr-1" /> Place
           </Button>

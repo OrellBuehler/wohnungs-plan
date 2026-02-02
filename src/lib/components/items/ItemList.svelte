@@ -14,6 +14,7 @@
     totalCost: number;
     displayCurrency: CurrencyCode;
     isLoadingRates: boolean;
+    readonly?: boolean;
     onItemSelect: (id: string | null) => void;
     onItemEdit: (id: string) => void;
     onItemDelete: (id: string) => void;
@@ -30,6 +31,7 @@
     totalCost,
     displayCurrency,
     isLoadingRates,
+    readonly = false,
     onItemSelect,
     onItemEdit,
     onItemDelete,
@@ -135,6 +137,7 @@
       {#each filteredItems as item (item.id)}
         <ItemCard
           {item}
+          {readonly}
           isSelected={selectedItemId === item.id}
           onSelect={() => onItemSelect(item.id)}
           onEdit={() => onItemEdit(item.id)}
