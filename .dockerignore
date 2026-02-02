@@ -34,9 +34,6 @@ docs
 *.spec.*
 coverage
 
-# Drizzle
-drizzle
-
 # Uploads (mounted at runtime)
 uploads
 
