@@ -648,6 +648,83 @@
       {/each}
     </Layer>
 
+    <!-- Distance indicators -->
+    {#if distanceIndicators.length > 0}
+      <Layer>
+        {#each distanceIndicators as indicator}
+          {@const dx = indicator.pointB.x - indicator.pointA.x}
+          {@const dy = indicator.pointB.y - indicator.pointA.y}
+          {@const length = Math.sqrt(dx * dx + dy * dy)}
+          {@const angle = Math.atan2(dy, dx)}
+          {@const midX = (indicator.pointA.x + indicator.pointB.x) / 2}
+          {@const midY = (indicator.pointA.y + indicator.pointB.y) / 2}
+          {@const labelText = `${Math.round(indicator.distanceCm)} cm`}
+
+          <!-- Main dimension line -->
+          <Line
+            points={[indicator.pointA.x, indicator.pointA.y, indicator.pointB.x, indicator.pointB.y]}
+            stroke="#3B82F6"
+            strokeWidth={1.5}
+            listening={false}
+          />
+
+          <!-- End cap at pointA -->
+          <Line
+            points={[
+              indicator.pointA.x - Math.sin(angle) * END_CAP_LENGTH,
+              indicator.pointA.y + Math.cos(angle) * END_CAP_LENGTH,
+              indicator.pointA.x + Math.sin(angle) * END_CAP_LENGTH,
+              indicator.pointA.y - Math.cos(angle) * END_CAP_LENGTH,
+            ]}
+            stroke="#3B82F6"
+            strokeWidth={1.5}
+            listening={false}
+          />
+
+          <!-- End cap at pointB -->
+          <Line
+            points={[
+              indicator.pointB.x - Math.sin(angle) * END_CAP_LENGTH,
+              indicator.pointB.y + Math.cos(angle) * END_CAP_LENGTH,
+              indicator.pointB.x + Math.sin(angle) * END_CAP_LENGTH,
+              indicator.pointB.y - Math.cos(angle) * END_CAP_LENGTH,
+            ]}
+            stroke="#3B82F6"
+            strokeWidth={1.5}
+            listening={false}
+          />
+
+          <!-- Distance label with background -->
+          <Group x={midX} y={midY} listening={false}>
+            <Rect
+              x={-30}
+              y={-10}
+              width={60}
+              height={20}
+              fill="white"
+              cornerRadius={4}
+              shadowColor="black"
+              shadowBlur={2}
+              shadowOpacity={0.2}
+            />
+            <Text
+              x={-30}
+              y={-10}
+              width={60}
+              height={20}
+              text={labelText}
+              fontSize={11}
+              fontFamily="system-ui, sans-serif"
+              fontStyle="bold"
+              fill="#3B82F6"
+              align="center"
+              verticalAlign="middle"
+            />
+          </Group>
+        {/each}
+      </Layer>
+    {/if}
+
     <!-- Alignment guides -->
     {#if alignmentGuides.length > 0}
       <Layer>
