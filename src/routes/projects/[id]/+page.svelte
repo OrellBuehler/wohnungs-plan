@@ -43,6 +43,7 @@
 	import CanvasControls from '$lib/components/canvas/CanvasControls.svelte';
 	import ItemList from '$lib/components/items/ItemList.svelte';
 	import ItemForm from '$lib/components/items/ItemForm.svelte';
+	import ItemBottomSheet from '$lib/components/items/ItemBottomSheet.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -63,6 +64,7 @@
 	let showItemForm = $state(false);
 	let editingItem = $state<Partial<Item> | null>(null);
 	let showShareDialog = $state(false);
+	let showItemBottomSheet = $state(false);
 
 	// Track if project is local-only (not synced to cloud)
 	let isLocalProject = $state(true);
@@ -192,6 +194,13 @@
 		}
 	});
 
+	$effect(() => {
+		// Close bottom sheet when switching tabs
+		if (activeTab && showItemBottomSheet) {
+			showItemBottomSheet = false;
+		}
+	});
+
 	async function handleExport() {
 		if (!project) return;
 
@@ -313,6 +322,23 @@
 	function handleUnplaceItem(id: string) {
 		updateItem(id, { position: null });
 		if (selectedItemId === id) selectedItemId = null;
+	}
+
+	function handleItemTap(id: string | null) {
+		if (id && isMobile) {
+			selectedItemId = id;
+			showItemBottomSheet = true;
+		}
+	}
+
+	function handleItemBottomSheetEdit(id: string) {
+		showItemBottomSheet = false;
+		handleEditItem(id);
+	}
+
+	function handleItemBottomSheetClose() {
+		showItemBottomSheet = false;
+		selectedItemId = null;
 	}
 
 	// Canvas actions
@@ -501,6 +527,13 @@
 		bind:open={showShareDialog}
 		projectId={project.id}
 		onClose={() => (showShareDialog = false)}
+	/>
+
+	<ItemBottomSheet
+		bind:open={showItemBottomSheet}
+		item={items.find((i) => i.id === selectedItemId) ?? null}
+		onEdit={handleItemBottomSheetEdit}
+		onClose={handleItemBottomSheetClose}
 	/>
 {:else}
 	<div class="flex-1 flex items-center justify-center">
