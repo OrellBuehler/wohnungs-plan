@@ -77,6 +77,7 @@ export function createNewProject(name: string = 'Untitled Project'): Project {
     items: [],
     currency: DEFAULT_CURRENCY,
     gridSize: 50,
+    isLocal: true,
   };
 }
 

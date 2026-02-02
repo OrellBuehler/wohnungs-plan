@@ -303,7 +303,7 @@
 				await saveThumbnail(project.id, dataUrl);
 			} else {
 				// Upload to server for cloud projects
-				await fetch('/api/thumbnails', {
+				const response = await fetch('/api/thumbnails', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
@@ -311,6 +311,9 @@
 						imageData: dataUrl
 					})
 				});
+				if (!response.ok) {
+					throw new Error(`Failed to upload thumbnail: ${response.status}`);
+				}
 			}
 		} catch (error) {
 			console.error('Failed to save thumbnail:', error);
