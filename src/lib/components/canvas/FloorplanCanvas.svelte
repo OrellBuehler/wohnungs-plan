@@ -66,11 +66,13 @@
   const ZOOM_STEP = 0.1;
   const ALIGNMENT_THRESHOLD = 5; // pixels
 
-  // Update viewport center for item placement
+  // Update viewport center for item placement (in natural image coordinates)
   $effect(() => {
-    const centerX = (stageWidth / 2 - panX) / zoom;
-    const centerY = (stageHeight / 2 - panY) / zoom;
-    viewportCenter = { x: Math.round(centerX), y: Math.round(centerY) };
+    const displayCenterX = (stageWidth / 2 - panX) / zoom;
+    const displayCenterY = (stageHeight / 2 - panY) / zoom;
+    // Convert to natural coordinates so placed items are stored screen-independently
+    const natural = displayToNatural(displayCenterX, displayCenterY);
+    viewportCenter = { x: Math.round(natural.x), y: Math.round(natural.y) };
   });
 
   // Load floorplan image
@@ -142,11 +144,13 @@
 
   function handleDragEnd(itemId: string, e: { target: Konva.Node }) {
     const node = e.target;
-    const x = snapValue(node.x());
-    const y = snapValue(node.y());
-    node.x(x);
-    node.y(y);
-    onItemMove(itemId, x, y);
+    const displayX = snapValue(node.x());
+    const displayY = snapValue(node.y());
+    node.x(displayX);
+    node.y(displayY);
+    // Convert to natural image coordinates for storage (screen-size independent)
+    const natural = displayToNatural(displayX, displayY);
+    onItemMove(itemId, natural.x, natural.y);
     draggingItemId = null;
     alignmentGuides = [];
   }
@@ -181,8 +185,11 @@
       const otherW = cmToPixels(other.width);
       const otherH = cmToPixels(other.height);
 
+      // Convert other item's natural coordinates to display coordinates for alignment
+      const otherDisplayPos = naturalToDisplay(other.position!.x, other.position!.y);
+
       // Get rotated bounding box for other item
-      const otherBox = getRotatedBoundingBox(other.position!.x, other.position!.y, otherW, otherH, other.rotation);
+      const otherBox = getRotatedBoundingBox(otherDisplayPos.x, otherDisplayPos.y, otherW, otherH, other.rotation);
       const otherCenterX = (otherBox.minX + otherBox.maxX) / 2;
       const otherCenterY = (otherBox.minY + otherBox.maxY) / 2;
 
@@ -373,6 +380,23 @@
     return imageDimensions.width / imageNaturalWidth;
   });
 
+  // Convert display coordinates to natural image coordinates for storage
+  // This makes positions screen-size independent
+  function displayToNatural(displayX: number, displayY: number): { x: number; y: number } {
+    return {
+      x: (displayX - imageDimensions.x) / displayScale,
+      y: (displayY - imageDimensions.y) / displayScale
+    };
+  }
+
+  // Convert natural image coordinates to display coordinates for rendering
+  function naturalToDisplay(naturalX: number, naturalY: number): { x: number; y: number } {
+    return {
+      x: naturalX * displayScale + imageDimensions.x,
+      y: naturalY * displayScale + imageDimensions.y
+    };
+  }
+
   // Convert cm to display pixels using stored scale (natural pixels/cm) and display scale
   function cmToPixels(cm: number): number {
     if (!floorplan?.scale) return cm * 2;
@@ -495,9 +519,10 @@
         {@const isOverlapping = overlappingIds.has(item.id)}
         {@const itemWidthPx = cmToPixels(item.width)}
         {@const itemHeightPx = cmToPixels(item.height)}
+        {@const displayPos = naturalToDisplay(item.position!.x, item.position!.y)}
         <Group
-          x={item.position!.x}
-          y={item.position!.y}
+          x={displayPos.x}
+          y={displayPos.y}
           rotation={item.rotation}
           draggable
           onpointerclick={() => onItemSelect(item.id)}
