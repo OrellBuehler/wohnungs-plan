@@ -8,16 +8,25 @@ interface WohnungsPlanDB extends DBSchema {
     value: Project;
     indexes: { 'by-updated': string };
   };
+  thumbnails: {
+    key: string;
+    value: { projectId: string; dataUrl: string };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<WohnungsPlanDB>> | null = null;
 
 function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB<WohnungsPlanDB>('wohnungs-plan', 1, {
+    dbPromise = openDB<WohnungsPlanDB>('wohnungs-plan', 2, {
       upgrade(db) {
-        const store = db.createObjectStore('projects', { keyPath: 'id' });
-        store.createIndex('by-updated', 'updatedAt');
+        if (!db.objectStoreNames.contains('projects')) {
+          const store = db.createObjectStore('projects', { keyPath: 'id' });
+          store.createIndex('by-updated', 'updatedAt');
+        }
+        if (!db.objectStoreNames.contains('thumbnails')) {
+          db.createObjectStore('thumbnails', { keyPath: 'projectId' });
+        }
       },
     });
   }
@@ -54,6 +63,7 @@ export async function saveProject(project: Project): Promise<void> {
 export async function deleteProject(id: string): Promise<void> {
   const db = await getDB();
   await db.delete('projects', id);
+  await db.delete('thumbnails', id);
 }
 
 export function createNewProject(name: string = 'Untitled Project'): Project {
@@ -68,4 +78,20 @@ export function createNewProject(name: string = 'Untitled Project'): Project {
     currency: DEFAULT_CURRENCY,
     gridSize: 50,
   };
+}
+
+export async function saveThumbnail(projectId: string, dataUrl: string): Promise<void> {
+  const db = await getDB();
+  await db.put('thumbnails', { projectId, dataUrl });
+}
+
+export async function getThumbnail(projectId: string): Promise<string | null> {
+  const db = await getDB();
+  const record = await db.get('thumbnails', projectId);
+  return record?.dataUrl ?? null;
+}
+
+export async function deleteThumbnail(projectId: string): Promise<void> {
+  const db = await getDB();
+  await db.delete('thumbnails', projectId);
 }
