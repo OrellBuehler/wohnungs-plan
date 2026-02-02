@@ -654,7 +654,6 @@
         {#each distanceIndicators as indicator}
           {@const dx = indicator.pointB.x - indicator.pointA.x}
           {@const dy = indicator.pointB.y - indicator.pointA.y}
-          {@const length = Math.sqrt(dx * dx + dy * dy)}
           {@const angle = Math.atan2(dy, dx)}
           {@const midX = (indicator.pointA.x + indicator.pointB.x) / 2}
           {@const midY = (indicator.pointA.y + indicator.pointB.y) / 2}
