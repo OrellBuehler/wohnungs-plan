@@ -1,6 +1,5 @@
 <script lang="ts">
 	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { fetchUser } from '$lib/stores/auth.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip';
@@ -23,7 +22,10 @@
 />
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href="/icon.svg" type="image/svg+xml" />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+	<link rel="manifest" href="/manifest.json" />
+	<meta name="theme-color" content="#4E74FF" />
 </svelte:head>
 
 <Tooltip.Provider>

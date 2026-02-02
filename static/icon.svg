@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Glass background -->
+    <linearGradient id="bg" x1="160" y1="220" x2="860" y2="860" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#79D7FF"/>
+      <stop offset="0.55" stop-color="#4E74FF"/>
+      <stop offset="1" stop-color="#B56BFF"/>
+    </linearGradient>
+
+    <radialGradient id="spec" cx="330" cy="250" r="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="0.35" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#000" flood-opacity="0.22"/>
+    </filter>
+
+    <filter id="glyphShadow">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#1B2B6F" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- white canvas -->
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+
+  <!-- glass tile -->
+  <g filter="url(#shadow)">
+    <rect x="160" y="160" width="704" height="704" rx="160" fill="url(#bg)"/>
+    <rect x="160" y="160" width="704" height="704" rx="160" fill="url(#spec)"/>
+    <rect x="170" y="170" width="684" height="684" rx="152"
+          fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="6"/>
+  </g>
+
+  <!-- furniture icon (top-down, simple, bold) -->
+  <g filter="url(#glyphShadow)" fill="#FFFFFF" fill-opacity="0.97">
+    <!-- seat -->
+    <rect x="360" y="440" width="304" height="240" rx="64"/>
+
+    <!-- backrest -->
+    <rect x="360" y="360" width="304" height="96" rx="48"/>
+
+    <!-- left arm -->
+    <rect x="312" y="440" width="72" height="240" rx="36"/>
+
+    <!-- right arm -->
+    <rect x="640" y="440" width="72" height="240" rx="36"/>
+
+    <!-- cushion separation (very subtle) -->
+    <rect x="500" y="460" width="24" height="200" rx="12" opacity="0.12"/>
+  </g>
+</svg>
