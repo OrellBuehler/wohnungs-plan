@@ -1,5 +1,11 @@
 import type { Handle } from '@sveltejs/kit';
 import { getSessionWithUser, parseSessionCookie } from '$lib/server/session';
+import { runMigrations } from '$lib/server/db';
+
+// Run migrations on server startup
+export async function init() {
+	await runMigrations();
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Parse session from cookie

@@ -36,6 +36,9 @@ RUN mkdir -p /app/uploads && chown -R sveltekit:nodejs /app/uploads
 COPY --from=builder --chown=sveltekit:nodejs /app/build ./build
 COPY --from=builder --chown=sveltekit:nodejs /app/package.json ./
 
+# Copy database migrations
+COPY --from=builder --chown=sveltekit:nodejs /app/drizzle ./drizzle
+
 # Switch to non-root user
 USER sveltekit
 
