@@ -32,8 +32,8 @@
 		setGridSize,
 		loadProjectById
 	} from '$lib/stores/project.svelte';
-	import { saveProject as saveLocalProject, saveThumbnail } from '$lib/db';
-	import { downloadProject, importProjectFromJSON, readFileAsJSON } from '$lib/utils/export';
+	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
+	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail } from '$lib/utils/export';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
@@ -179,8 +179,19 @@
 		}
 	});
 
-	function handleExport() {
-		if (project) downloadProject(project);
+	async function handleExport() {
+		if (!project) return;
+
+		// Fetch thumbnail based on project type
+		let thumbnail: string | null = null;
+		if (project.isLocal) {
+			thumbnail = await getThumbnail(project.id);
+		} else {
+			thumbnail = await fetchServerThumbnail(project.id);
+		}
+
+		// Export with thumbnail
+		downloadProject(project, thumbnail);
 	}
 
 	async function handleImport() {
