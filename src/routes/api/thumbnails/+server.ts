@@ -1,9 +1,16 @@
 import { json, error } from '@sveltejs/kit';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
 import type { RequestHandler } from './$types';
+import { config } from '$lib/server/env';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
-const THUMBNAILS_DIR = 'static/thumbnails';
+function getThumbnailsDir(): string {
+	return join(config.uploads.dir, 'thumbnails');
+}
+
+function getThumbnailPath(projectId: string): string {
+	return join(getThumbnailsDir(), `${projectId}.png`);
+}
 
 export const POST: RequestHandler = async ({ request }) => {
 	const { projectId, imageData } = await request.json();
@@ -22,16 +29,17 @@ export const POST: RequestHandler = async ({ request }) => {
 		throw error(400, 'Invalid projectId format');
 	}
 
-	// Ensure thumbnails directory exists
-	if (!existsSync(THUMBNAILS_DIR)) {
-		await mkdir(THUMBNAILS_DIR, { recursive: true });
+	try {
+		// Ensure thumbnails directory exists
+		await mkdir(getThumbnailsDir(), { recursive: true });
+
+		// Decode base64 and save
+		const base64Data = imageData.replace(/^data:image\/png;base64,/, '');
+		await writeFile(getThumbnailPath(projectId), Buffer.from(base64Data, 'base64'));
+
+		return json({ success: true });
+	} catch (err) {
+		console.error('Failed to save thumbnail:', err);
+		throw error(500, 'Failed to save thumbnail');
 	}
-
-	// Decode base64 and save to static folder
-	const base64Data = imageData.replace(/^data:image\/png;base64,/, '');
-	const filePath = `${THUMBNAILS_DIR}/${projectId}.png`;
-
-	await writeFile(filePath, Buffer.from(base64Data, 'base64'));
-
-	return json({ success: true });
 };

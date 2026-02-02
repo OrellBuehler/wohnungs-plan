@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		seo: {
 			title: `${project.name} - Floorplanner`,
 			description: 'View this floor plan on Floorplanner',
-			image: `${BASE_URL}/thumbnails/${project.id}.png`,
+			image: `${BASE_URL}/api/images/thumbnails/${project.id}`,
 			url: `${BASE_URL}/projects/${project.id}`
 		}
 	};
