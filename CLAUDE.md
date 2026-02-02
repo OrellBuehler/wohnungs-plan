@@ -27,6 +27,11 @@ bun db:studio    # Open Drizzle Studio
 - Available: Button, Card, Dialog, Sheet, Tabs, Select, Dropdown Menu, Input, Label, Checkbox, Slider, Separator, Tooltip
 - Add new components via: `bunx shadcn-svelte@latest add <component>`
 
+## SvelteKit Navigation
+
+- Avoid `history.pushState()` and `history.replaceState()` as they conflict with SvelteKit's router
+- Use `pushState` and `replaceState` from `$app/navigation` instead
+
 ## Git Commits
 
 - Always commit changes when work is complete
