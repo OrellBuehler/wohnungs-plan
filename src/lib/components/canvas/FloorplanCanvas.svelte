@@ -13,6 +13,7 @@
     gridSize: number;
     showGrid: boolean;
     snapToGrid: boolean;
+    readonly?: boolean;
     viewportCenter?: { x: number; y: number };
     onItemSelect: (id: string | null) => void;
     onItemMove: (id: string, x: number, y: number) => void;
@@ -28,6 +29,7 @@
     gridSize = 50,
     showGrid = true,
     snapToGrid = true,
+    readonly = false,
     viewportCenter = $bindable({ x: 100, y: 100 }),
     onItemSelect,
     onItemMove,
@@ -591,12 +593,12 @@
           x={displayPos.x}
           y={displayPos.y}
           rotation={item.rotation}
-          draggable
+          draggable={!readonly}
           onpointerclick={() => onItemSelect(item.id)}
-          oncontextmenu={(e) => handleItemContextMenu(item.id, e)}
-          ondragstart={() => handleDragStart(item.id)}
-          ondragmove={(e) => handleDragMove(item.id, e)}
-          ondragend={(e) => handleDragEnd(item.id, e)}
+          oncontextmenu={readonly ? undefined : (e) => handleItemContextMenu(item.id, e)}
+          ondragstart={readonly ? undefined : () => handleDragStart(item.id)}
+          ondragmove={readonly ? undefined : (e) => handleDragMove(item.id, e)}
+          ondragend={readonly ? undefined : (e) => handleDragEnd(item.id, e)}
         >
           {#if item.shape === 'l-shape'}
             <Line
