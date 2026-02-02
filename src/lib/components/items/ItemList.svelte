@@ -19,6 +19,7 @@
     onItemDelete: (id: string) => void;
     onItemDuplicate: (id: string) => void;
     onItemPlace: (id: string) => void;
+    onItemUnplace: (id: string) => void;
     onAddItem: () => void;
     onDisplayCurrencyChange: (currency: CurrencyCode) => void;
   }
@@ -34,6 +35,7 @@
     onItemDelete,
     onItemDuplicate,
     onItemPlace,
+    onItemUnplace,
     onAddItem,
     onDisplayCurrencyChange,
   }: Props = $props();
@@ -139,6 +141,7 @@
           onDelete={() => onItemDelete(item.id)}
           onDuplicate={() => onItemDuplicate(item.id)}
           onPlace={() => onItemPlace(item.id)}
+          onUnplace={() => onItemUnplace(item.id)}
         />
       {/each}
     {/if}

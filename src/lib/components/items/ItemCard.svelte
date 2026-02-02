@@ -5,7 +5,7 @@
   import { Button } from '$lib/components/ui/button';
   import * as Card from '$lib/components/ui/card';
   import { Separator } from '$lib/components/ui/separator';
-  import { Pencil, MapPin, Copy, Trash2, ExternalLink } from 'lucide-svelte';
+  import { Pencil, MapPin, MapPinOff, Copy, Trash2, ExternalLink } from 'lucide-svelte';
 
   interface Props {
     item: Item;
@@ -15,9 +15,10 @@
     onDelete: () => void;
     onDuplicate: () => void;
     onPlace: () => void;
+    onUnplace: () => void;
   }
 
-  let { item, isSelected, onSelect, onEdit, onDelete, onDuplicate, onPlace }: Props = $props();
+  let { item, isSelected, onSelect, onEdit, onDelete, onDuplicate, onPlace, onUnplace }: Props = $props();
 
   // Use the item's own currency
   const currencySymbol = $derived(getCurrencySymbol(item.priceCurrency));
@@ -116,7 +117,11 @@
         <Button size="sm" variant="outline" onclick={withStopPropagation(onEdit)}>
           <Pencil size={14} class="mr-1" /> Edit
         </Button>
-        {#if !item.position}
+        {#if item.position}
+          <Button size="sm" variant="outline" onclick={withStopPropagation(onUnplace)}>
+            <MapPinOff size={14} class="mr-1" /> Unplace
+          </Button>
+        {:else}
           <Button size="sm" variant="outline" onclick={withStopPropagation(onPlace)}>
             <MapPin size={14} class="mr-1" /> Place
           </Button>

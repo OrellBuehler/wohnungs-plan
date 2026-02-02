@@ -277,6 +277,11 @@
 		activeTab = 'plan';
 	}
 
+	function handleUnplaceItem(id: string) {
+		updateItem(id, { position: null });
+		if (selectedItemId === id) selectedItemId = null;
+	}
+
 	// Canvas actions
 	function handleItemSelect(id: string | null) {
 		selectedItemId = id;
@@ -400,6 +405,7 @@
 						onItemSelect={handleItemSelect}
 						onItemMove={handleItemMove}
 						onItemRotate={handleItemRotate}
+						onItemUnplace={handleUnplaceItem}
 						onThumbnailReady={handleThumbnailReady}
 					/>
 				{/if}
@@ -432,6 +438,7 @@
 				onItemDelete={handleDeleteItem}
 				onItemDuplicate={handleDuplicateItem}
 				onItemPlace={handlePlaceItem}
+				onItemUnplace={handleUnplaceItem}
 				onAddItem={handleAddItem}
 				onDisplayCurrencyChange={handleDisplayCurrencyChange}
 			/>

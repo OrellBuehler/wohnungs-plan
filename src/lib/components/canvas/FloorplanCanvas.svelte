@@ -4,7 +4,7 @@
   import type Konva from 'konva';
   import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
-  import { Plus, Minus, RotateCcw, RotateCw, Lock, Unlock, RefreshCw } from 'lucide-svelte';
+  import { Plus, Minus, RotateCcw, RotateCw, Lock, Unlock, RefreshCw, MapPinOff } from 'lucide-svelte';
 
   interface Props {
     floorplan: Floorplan | null;
@@ -17,6 +17,7 @@
     onItemSelect: (id: string | null) => void;
     onItemMove: (id: string, x: number, y: number) => void;
     onItemRotate: (id: string, rotation: number) => void;
+    onItemUnplace: (id: string) => void;
     onThumbnailReady?: (dataUrl: string) => void;
   }
 
@@ -31,6 +32,7 @@
     onItemSelect,
     onItemMove,
     onItemRotate,
+    onItemUnplace,
     onThumbnailReady,
   }: Props = $props();
 
@@ -593,7 +595,7 @@
     </Button>
   </div>
 
-  <!-- Rotation controls for selected item -->
+  <!-- Controls for selected item -->
   {#if selectedItemId}
     {@const selectedItem = items.find(i => i.id === selectedItemId)}
     {#if selectedItem?.position}
@@ -618,6 +620,15 @@
           title="Rotate right"
         >
           <RotateCw size={16} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          class="text-red-600 hover:text-red-700 hover:bg-red-50"
+          onclick={() => onItemUnplace(selectedItemId)}
+          title="Remove from plan"
+        >
+          <MapPinOff size={16} />
         </Button>
       </div>
     {/if}
