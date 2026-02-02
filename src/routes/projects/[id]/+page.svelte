@@ -206,6 +206,11 @@
 				if (imported) {
 					setProject(imported);
 					await saveLocalProject(imported);
+
+					// Save thumbnail if present
+					if (thumbnail) {
+						await saveThumbnail(imported.id, thumbnail);
+					}
 				} else {
 					alert('Invalid project file');
 				}
