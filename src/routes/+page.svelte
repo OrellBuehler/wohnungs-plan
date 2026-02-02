@@ -94,7 +94,10 @@
 <div class="min-h-screen bg-slate-50 flex flex-col">
 	<!-- Header -->
 	<header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
-		<h1 class="text-xl font-semibold text-slate-800">Wohnungs-Plan</h1>
+		<a href="/" class="flex items-center gap-2">
+			<img src="/icon.svg" alt="Floorplanner" class="size-8" />
+			<h1 class="text-xl font-semibold text-slate-800">Floorplanner</h1>
+		</a>
 		<div>
 			{#if authenticated}
 				<UserMenu />

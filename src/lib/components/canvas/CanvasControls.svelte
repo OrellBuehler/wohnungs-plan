@@ -11,6 +11,7 @@
     gridSize: number;
     onChangeFloorplan: () => void;
     onGridSizeChange: (size: number) => void;
+    onRecalibrate: () => void;
   }
 
   let {
@@ -19,6 +20,7 @@
     gridSize,
     onChangeFloorplan,
     onGridSizeChange,
+    onRecalibrate,
   }: Props = $props();
 
   function handleGridSizeInput(e: Event) {
@@ -57,6 +59,15 @@
   </Label>
 
   <div class="flex-1"></div>
+
+  <Button
+    variant="ghost"
+    size="sm"
+    class="text-slate-500 hover:text-slate-700"
+    onclick={onRecalibrate}
+  >
+    Recalibrate
+  </Button>
 
   <Button
     variant="ghost"

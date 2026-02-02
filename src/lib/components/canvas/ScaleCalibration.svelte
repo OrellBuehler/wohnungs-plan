@@ -8,11 +8,12 @@
 
   interface Props {
     imageData: string;
+    initialReferenceLength?: number;
     onCalibrate: (scale: number, referenceLength: number) => void;
     onCancel: () => void;
   }
 
-  let { imageData, onCalibrate, onCancel }: Props = $props();
+  let { imageData, initialReferenceLength, onCalibrate, onCancel }: Props = $props();
 
   let containerEl: HTMLDivElement;
   let stageRef: { node: Konva.Stage } | undefined = $state();
@@ -24,7 +25,7 @@
 
   let point1 = $state<{ x: number; y: number } | null>(null);
   let point2 = $state<{ x: number; y: number } | null>(null);
-  let referenceLength = $state(100);
+  let referenceLength = $state(initialReferenceLength ?? 100);
 
   // Zoom and pan state
   let zoom = $state(1);

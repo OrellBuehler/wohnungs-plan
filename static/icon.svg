@@ -22,9 +22,6 @@
     </filter>
   </defs>
 
-  <!-- white canvas -->
-  <rect width="1024" height="1024" fill="#FFFFFF"/>
-
   <!-- glass tile -->
   <g filter="url(#shadow)">
     <rect x="160" y="160" width="704" height="704" rx="160" fill="url(#bg)"/>

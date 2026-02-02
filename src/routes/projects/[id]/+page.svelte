@@ -7,7 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Menu, ArrowLeft, Share2 } from 'lucide-svelte';
+	import { Menu, Share2 } from 'lucide-svelte';
 	import LoginButton from '$lib/components/auth/LoginButton.svelte';
 	import UserMenu from '$lib/components/auth/UserMenu.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
@@ -68,6 +68,7 @@
 
 	// Calibration state
 	let pendingImageData = $state<string | null>(null);
+	let isRecalibrating = $state(false);
 
 	// Exchange rate state
 	let exchangeRates = $state<ExchangeRates | null>(null);
@@ -207,7 +208,16 @@
 	}
 
 	function handleCalibrate(scale: number, referenceLength: number) {
-		if (pendingImageData) {
+		if (isRecalibrating && project?.floorplan) {
+			// Update existing floorplan with new scale
+			setFloorplan({
+				imageData: project.floorplan.imageData,
+				scale,
+				referenceLength
+			});
+			isRecalibrating = false;
+		} else if (pendingImageData) {
+			// New floorplan upload
 			setFloorplan({
 				imageData: pendingImageData,
 				scale,
@@ -219,6 +229,11 @@
 
 	function handleCancelCalibration() {
 		pendingImageData = null;
+		isRecalibrating = false;
+	}
+
+	function handleRecalibrate() {
+		isRecalibrating = true;
 	}
 
 	function handleChangeFloorplan() {
@@ -307,10 +322,9 @@
 {#if project}
 	<header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
 		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="sm" onclick={() => goto('/')}>
-				<ArrowLeft size={16} class="mr-1" />
-				Projects
-			</Button>
+			<a href="/" class="flex items-center">
+				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
+			</a>
 			<span class="text-slate-300">|</span>
 			{#if isEditingName}
 				<Input
@@ -368,6 +382,13 @@
 						onCalibrate={handleCalibrate}
 						onCancel={handleCancelCalibration}
 					/>
+				{:else if isRecalibrating && project.floorplan}
+					<ScaleCalibration
+						imageData={project.floorplan.imageData}
+						initialReferenceLength={project.floorplan.referenceLength}
+						onCalibrate={handleCalibrate}
+						onCancel={handleCancelCalibration}
+					/>
 				{:else if !project.floorplan}
 					<FloorplanUpload onUpload={handleFloorplanUpload} />
 				{:else}
@@ -387,13 +408,14 @@
 				{/if}
 			</div>
 
-			{#if project.floorplan && !pendingImageData}
+			{#if project.floorplan && !pendingImageData && !isRecalibrating}
 				<CanvasControls
 					bind:showGrid
 					bind:snapToGrid
 					{gridSize}
 					onChangeFloorplan={handleChangeFloorplan}
 					onGridSizeChange={handleGridSizeChange}
+					onRecalibrate={handleRecalibrate}
 				/>
 			{/if}
 		</div>
