@@ -135,6 +135,122 @@ export function getRotatedBoundingBox(
   return { minX, minY, maxX, maxY };
 }
 
+export interface BoundingBox {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
+/**
+ * Calculate minimum edge-to-edge distance between two bounding boxes
+ * Returns the shortest distance and the two closest points
+ */
+export function getMinEdgeDistance(
+  boxA: BoundingBox,
+  boxB: BoundingBox
+): { distance: number; pointA: { x: number; y: number }; pointB: { x: number; y: number } } {
+  // Get all edges of both boxes
+  const edgesA = [
+    // Top edge
+    { start: { x: boxA.minX, y: boxA.minY }, end: { x: boxA.maxX, y: boxA.minY } },
+    // Right edge
+    { start: { x: boxA.maxX, y: boxA.minY }, end: { x: boxA.maxX, y: boxA.maxY } },
+    // Bottom edge
+    { start: { x: boxA.maxX, y: boxA.maxY }, end: { x: boxA.minX, y: boxA.maxY } },
+    // Left edge
+    { start: { x: boxA.minX, y: boxA.maxY }, end: { x: boxA.minX, y: boxA.minY } },
+  ];
+
+  const edgesB = [
+    { start: { x: boxB.minX, y: boxB.minY }, end: { x: boxB.maxX, y: boxB.minY } },
+    { start: { x: boxB.maxX, y: boxB.minY }, end: { x: boxB.maxX, y: boxB.maxY } },
+    { start: { x: boxB.maxX, y: boxB.maxY }, end: { x: boxB.minX, y: boxB.maxY } },
+    { start: { x: boxB.minX, y: boxB.maxY }, end: { x: boxB.minX, y: boxB.minY } },
+  ];
+
+  let minDistance = Infinity;
+  let closestPointA = { x: 0, y: 0 };
+  let closestPointB = { x: 0, y: 0 };
+
+  // Check distance from each edge of A to each edge of B
+  for (const edgeA of edgesA) {
+    for (const edgeB of edgesB) {
+      // Check both endpoints of edgeA to edgeB
+      const d1 = pointToSegmentDistance(edgeA.start, edgeB.start, edgeB.end);
+      if (d1.distance < minDistance) {
+        minDistance = d1.distance;
+        closestPointA = edgeA.start;
+        closestPointB = d1.closestPoint;
+      }
+
+      const d2 = pointToSegmentDistance(edgeA.end, edgeB.start, edgeB.end);
+      if (d2.distance < minDistance) {
+        minDistance = d2.distance;
+        closestPointA = edgeA.end;
+        closestPointB = d2.closestPoint;
+      }
+
+      // Check both endpoints of edgeB to edgeA
+      const d3 = pointToSegmentDistance(edgeB.start, edgeA.start, edgeA.end);
+      if (d3.distance < minDistance) {
+        minDistance = d3.distance;
+        closestPointA = d3.closestPoint;
+        closestPointB = edgeB.start;
+      }
+
+      const d4 = pointToSegmentDistance(edgeB.end, edgeA.start, edgeA.end);
+      if (d4.distance < minDistance) {
+        minDistance = d4.distance;
+        closestPointA = d4.closestPoint;
+        closestPointB = edgeB.end;
+      }
+    }
+  }
+
+  return {
+    distance: minDistance,
+    pointA: closestPointA,
+    pointB: closestPointB,
+  };
+}
+
+/**
+ * Calculate distance from a point to a line segment
+ */
+function pointToSegmentDistance(
+  point: { x: number; y: number },
+  segStart: { x: number; y: number },
+  segEnd: { x: number; y: number }
+): { distance: number; closestPoint: { x: number; y: number } } {
+  const dx = segEnd.x - segStart.x;
+  const dy = segEnd.y - segStart.y;
+  const lengthSquared = dx * dx + dy * dy;
+
+  if (lengthSquared === 0) {
+    // Segment is a point
+    const dist = Math.sqrt(
+      (point.x - segStart.x) ** 2 + (point.y - segStart.y) ** 2
+    );
+    return { distance: dist, closestPoint: segStart };
+  }
+
+  // Find projection of point onto line (parameterized 0-1)
+  let t = ((point.x - segStart.x) * dx + (point.y - segStart.y) * dy) / lengthSquared;
+  t = Math.max(0, Math.min(1, t)); // Clamp to segment
+
+  const closestPoint = {
+    x: segStart.x + t * dx,
+    y: segStart.y + t * dy,
+  };
+
+  const distance = Math.sqrt(
+    (point.x - closestPoint.x) ** 2 + (point.y - closestPoint.y) ** 2
+  );
+
+  return { distance, closestPoint };
+}
+
 export function itemToRect(item: Item, scale: number): Rect | null {
   if (!item.position) return null;
   return {
