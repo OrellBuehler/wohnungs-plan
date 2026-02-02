@@ -209,7 +209,11 @@
 
 					// Save thumbnail if present
 					if (thumbnail) {
-						await saveThumbnail(imported.id, thumbnail);
+						try {
+							await saveThumbnail(imported.id, thumbnail);
+						} catch (error) {
+							console.error('Failed to save thumbnail:', error);
+						}
 					}
 				} else {
 					alert('Invalid project file');
