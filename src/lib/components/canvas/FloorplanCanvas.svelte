@@ -695,10 +695,11 @@
 
           <!-- Distance label with background -->
           <Group x={midX} y={midY} listening={false}>
+            {@const labelWidth = Math.max(50, labelText.length * 7)}
             <Rect
-              x={-30}
+              x={-labelWidth / 2}
               y={-10}
-              width={60}
+              width={labelWidth}
               height={20}
               fill="white"
               cornerRadius={4}
@@ -707,9 +708,9 @@
               shadowOpacity={0.2}
             />
             <Text
-              x={-30}
+              x={-labelWidth / 2}
               y={-10}
-              width={60}
+              width={labelWidth}
               height={20}
               text={labelText}
               fontSize={11}
