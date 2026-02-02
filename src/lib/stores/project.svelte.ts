@@ -165,6 +165,18 @@ async function uploadFloorplan(projectId: string, floorplan: Floorplan): Promise
 	if (!response.ok) {
 		throw new Error('Failed to upload floorplan');
 	}
+
+	// Update scale after uploading
+	if (floorplan.scale && floorplan.referenceLength) {
+		await fetch(`/api/projects/${projectId}/floorplan`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				scale: floorplan.scale,
+				referenceLength: floorplan.referenceLength
+			})
+		});
+	}
 }
 
 function parseDataUrl(dataUrl: string): { data: Blob; mimeType: string } {
