@@ -80,6 +80,9 @@
 	let editNameValue = $state('');
 	let nameInputEl = $state<HTMLInputElement | null>(null);
 
+	// Mobile detection state
+	let isMobile = $state(false);
+
 	// Reactive project data
 	const project = $derived(getProject());
 	const items = $derived(getItems());
@@ -141,6 +144,16 @@
 		} else {
 			goto('/');
 		}
+	});
+
+	onMount(() => {
+		// Mobile detection
+		const updateMobile = () => {
+			isMobile = window.innerWidth < 768; // md breakpoint
+		};
+		updateMobile();
+		window.addEventListener('resize', updateMobile);
+		return () => window.removeEventListener('resize', updateMobile);
 	});
 
 	// Header actions - Project name editing
