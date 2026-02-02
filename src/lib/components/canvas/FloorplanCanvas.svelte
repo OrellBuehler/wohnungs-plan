@@ -55,6 +55,7 @@
   // Alignment guides state
   let alignmentGuides = $state<{ type: 'h' | 'v'; pos: number }[]>([]);
   let draggingItemId = $state<string | null>(null);
+  let dragPosition = $state<{ x: number; y: number } | null>(null);
 
   // Context menu state
   let contextMenuOpen = $state(false);
@@ -157,6 +158,7 @@
     const natural = displayToNatural(displayX, displayY);
     onItemMove(itemId, natural.x, natural.y);
     draggingItemId = null;
+    dragPosition = null;
     alignmentGuides = [];
   }
 
@@ -168,6 +170,9 @@
     const node = e.target;
     const dragX = node.x();
     const dragY = node.y();
+
+    // Track current drag position for distance indicators
+    dragPosition = { x: dragX, y: dragY };
 
     const draggedItem = items.find(i => i.id === itemId);
     if (!draggedItem) return;
@@ -436,7 +441,10 @@
     if (!activeItem?.position) return [];
 
     // Convert active item to display coordinates
-    const activeDisplayPos = naturalToDisplay(activeItem.position.x, activeItem.position.y);
+    // Use live drag position if dragging, otherwise use stored position
+    const activeDisplayPos = draggingItemId && dragPosition
+      ? dragPosition
+      : naturalToDisplay(activeItem.position.x, activeItem.position.y);
     const activeWidthPx = cmToPixels(activeItem.width);
     const activeHeightPx = cmToPixels(activeItem.height);
     const activeBox = getRotatedBoundingBox(
