@@ -9,6 +9,7 @@
     showGrid: boolean;
     snapToGrid: boolean;
     gridSize: number;
+    scale: number;
     onChangeFloorplan: () => void;
     onGridSizeChange: (size: number) => void;
     onRecalibrate: () => void;
@@ -18,6 +19,7 @@
     showGrid = $bindable(),
     snapToGrid = $bindable(),
     gridSize,
+    scale,
     onChangeFloorplan,
     onGridSizeChange,
     onRecalibrate,
@@ -59,6 +61,10 @@
   </Label>
 
   <div class="flex-1"></div>
+
+  <span class="text-xs text-slate-400 font-mono">
+    {scale.toFixed(2)} px/cm
+  </span>
 
   <Button
     variant="ghost"

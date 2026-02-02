@@ -410,6 +410,7 @@
 					bind:showGrid
 					bind:snapToGrid
 					{gridSize}
+					scale={project.floorplan.scale}
 					onChangeFloorplan={handleChangeFloorplan}
 					onGridSizeChange={handleGridSizeChange}
 					onRecalibrate={handleRecalibrate}
