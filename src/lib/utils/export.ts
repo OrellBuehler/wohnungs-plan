@@ -1,12 +1,16 @@
 import type { Project } from '$lib/types';
 import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 
-export function exportProjectToJSON(project: Project): string {
-  return JSON.stringify(project, null, 2);
+export function exportProjectToJSON(project: Project, thumbnail?: string | null): string {
+  const exportData = {
+    ...project,
+    thumbnail: thumbnail ?? null
+  };
+  return JSON.stringify(exportData, null, 2);
 }
 
-export function downloadProject(project: Project) {
-  const json = exportProjectToJSON(project);
+export function downloadProject(project: Project, thumbnail?: string | null) {
+  const json = exportProjectToJSON(project, thumbnail);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
