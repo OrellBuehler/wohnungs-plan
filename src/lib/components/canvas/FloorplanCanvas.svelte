@@ -56,6 +56,11 @@
   let alignmentGuides = $state<{ type: 'h' | 'v'; pos: number }[]>([]);
   let draggingItemId = $state<string | null>(null);
 
+  // Context menu state
+  let contextMenuOpen = $state(false);
+  let contextMenuItemId = $state<string | null>(null);
+  let contextMenuPosition = $state({ x: 0, y: 0 });
+
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.1;
@@ -229,6 +234,44 @@
       onItemRotate(itemId, newRotation);
     }
   }
+
+  function handleItemContextMenu(itemId: string, e: { evt: MouseEvent }) {
+    e.evt.preventDefault();
+    contextMenuItemId = itemId;
+    contextMenuPosition = { x: e.evt.clientX, y: e.evt.clientY };
+    contextMenuOpen = true;
+    onItemSelect(itemId);
+  }
+
+  function handleContextMenuAction(action: 'rotate-cw' | 'rotate-ccw' | 'unplace') {
+    if (!contextMenuItemId) return;
+
+    switch (action) {
+      case 'rotate-cw':
+        handleRotate(contextMenuItemId, 'cw');
+        break;
+      case 'rotate-ccw':
+        handleRotate(contextMenuItemId, 'ccw');
+        break;
+      case 'unplace':
+        onItemUnplace(contextMenuItemId);
+        break;
+    }
+    contextMenuOpen = false;
+  }
+
+  // Close context menu on Escape
+  $effect(() => {
+    if (contextMenuOpen) {
+      function handleKeydown(e: KeyboardEvent) {
+        if (e.key === 'Escape') {
+          contextMenuOpen = false;
+        }
+      }
+      document.addEventListener('keydown', handleKeydown);
+      return () => document.removeEventListener('keydown', handleKeydown);
+    }
+  });
 
   // Zoom functions
   function handleWheel(e: WheelEvent) {
@@ -458,6 +501,7 @@
           rotation={item.rotation}
           draggable
           onpointerclick={() => onItemSelect(item.id)}
+          oncontextmenu={(e) => handleItemContextMenu(item.id, e)}
           ondragstart={() => handleDragStart(item.id)}
           ondragmove={(e) => handleDragMove(item.id, e)}
           ondragend={(e) => handleDragEnd(item.id, e)}
@@ -595,45 +639,6 @@
     </Button>
   </div>
 
-  <!-- Controls for selected item -->
-  {#if selectedItemId}
-    {@const selectedItem = items.find(i => i.id === selectedItemId)}
-    {#if selectedItem?.position}
-      <div
-        class="absolute flex gap-1 bg-white rounded shadow-lg p-1"
-        style="left: {(selectedItem.position.x * zoom) + panX}px; top: {(selectedItem.position.y * zoom) + panY - 40}px;"
-      >
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          class="text-slate-600"
-          onclick={() => handleRotate(selectedItemId, 'ccw')}
-          title="Rotate left"
-        >
-          <RotateCcw size={16} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          class="text-slate-600"
-          onclick={() => handleRotate(selectedItemId, 'cw')}
-          title="Rotate right"
-        >
-          <RotateCw size={16} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          class="text-red-600 hover:text-red-700 hover:bg-red-50"
-          onclick={() => onItemUnplace(selectedItemId)}
-          title="Remove from plan"
-        >
-          <MapPinOff size={16} />
-        </Button>
-      </div>
-    {/if}
-  {/if}
-
   <!-- Scale bar -->
   {#if floorplan?.scale}
     {@const scaleBarWidth = 100 * effectiveScale * zoom}
@@ -643,6 +648,52 @@
         style="width: {Math.max(20, Math.min(200, scaleBarWidth))}px;"
       ></div>
       <span class="text-xs text-slate-600 font-mono">100 cm</span>
+    </div>
+  {/if}
+
+  <!-- Item context menu -->
+  {#if contextMenuOpen}
+    <!-- Backdrop to close menu on click outside -->
+    <button
+      type="button"
+      class="fixed inset-0 z-40"
+      onclick={() => contextMenuOpen = false}
+      oncontextmenu={(e) => { e.preventDefault(); contextMenuOpen = false; }}
+      aria-label="Close menu"
+    ></button>
+    <div
+      class="fixed z-50 min-w-[160px] rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+      style="left: {contextMenuPosition.x}px; top: {contextMenuPosition.y}px;"
+      role="menu"
+    >
+      <button
+        type="button"
+        class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+        onclick={() => handleContextMenuAction('rotate-ccw')}
+        role="menuitem"
+      >
+        <RotateCcw class="mr-2 size-4" />
+        Rotate Left
+      </button>
+      <button
+        type="button"
+        class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+        onclick={() => handleContextMenuAction('rotate-cw')}
+        role="menuitem"
+      >
+        <RotateCw class="mr-2 size-4" />
+        Rotate Right
+      </button>
+      <div class="-mx-1 my-1 h-px bg-muted"></div>
+      <button
+        type="button"
+        class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-red-600 hover:bg-red-50 hover:text-red-600"
+        onclick={() => handleContextMenuAction('unplace')}
+        role="menuitem"
+      >
+        <MapPinOff class="mr-2 size-4" />
+        Remove from Plan
+      </button>
     </div>
   {/if}
 </div>
