@@ -2,7 +2,7 @@
   import { Stage, Layer, Image as KonvaImage, Rect, Line, Text, Group } from 'svelte-konva';
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
-  import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox } from '$lib/utils/geometry';
+  import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox, getMinEdgeDistance, type BoundingBox } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
   import { Plus, Minus, RotateCcw, RotateCw, Lock, Unlock, RefreshCw, MapPinOff } from 'lucide-svelte';
 
@@ -65,6 +65,11 @@
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.1;
   const ALIGNMENT_THRESHOLD = 5; // pixels
+
+  // Distance indicator constants
+  const MAX_DISTANCE_CM = 400; // 4 meters
+  const MAX_NEIGHBORS = 2;
+  const END_CAP_LENGTH = 8; // pixels
 
   // Update viewport center for item placement (in natural image coordinates)
   $effect(() => {
@@ -419,6 +424,60 @@
   // Overlap detection
   const overlappingIds = $derived.by(() => {
     return getOverlappingItems(items, effectiveScale);
+  });
+
+  // Distance indicators - show distances to 2 nearest items within 4m
+  const distanceIndicators = $derived.by(() => {
+    // Get the active item (selected or being dragged)
+    const activeItemId = draggingItemId ?? selectedItemId;
+    if (!activeItemId || !floorplan?.scale) return [];
+
+    const activeItem = items.find(i => i.id === activeItemId);
+    if (!activeItem?.position) return [];
+
+    // Convert active item to display coordinates
+    const activeDisplayPos = naturalToDisplay(activeItem.position.x, activeItem.position.y);
+    const activeWidthPx = cmToPixels(activeItem.width);
+    const activeHeightPx = cmToPixels(activeItem.height);
+    const activeBox = getRotatedBoundingBox(
+      activeDisplayPos.x,
+      activeDisplayPos.y,
+      activeWidthPx,
+      activeHeightPx,
+      activeItem.rotation
+    );
+
+    // Calculate distances to all other placed items
+    const distances = placedItems
+      .filter(item => item.id !== activeItemId)
+      .map(item => {
+        const itemDisplayPos = naturalToDisplay(item.position!.x, item.position!.y);
+        const itemWidthPx = cmToPixels(item.width);
+        const itemHeightPx = cmToPixels(item.height);
+        const itemBox = getRotatedBoundingBox(
+          itemDisplayPos.x,
+          itemDisplayPos.y,
+          itemWidthPx,
+          itemHeightPx,
+          item.rotation
+        );
+
+        const { distance, pointA, pointB } = getMinEdgeDistance(activeBox, itemBox);
+        const distanceCm = distance / effectiveScale;
+
+        return {
+          item,
+          distance,
+          distanceCm,
+          pointA,
+          pointB,
+        };
+      })
+      .filter(d => d.distanceCm <= MAX_DISTANCE_CM)
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, MAX_NEIGHBORS);
+
+    return distances;
   });
 
   // Thumbnail generation - debounced after changes
