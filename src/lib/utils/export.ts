@@ -22,9 +22,17 @@ export function downloadProject(project: Project, thumbnail?: string | null) {
   URL.revokeObjectURL(url);
 }
 
-export function importProjectFromJSON(json: string): Project | null {
+export function importProjectFromJSON(json: string): {
+  project: Project | null;
+  thumbnail: string | null;
+} {
   try {
     const data = JSON.parse(json);
+
+    // Extract thumbnail before validation
+    const thumbnail = data.thumbnail ?? null;
+    delete data.thumbnail;  // Remove from project data
+
     // Basic validation
     if (!data.id || !data.name || !Array.isArray(data.items)) {
       throw new Error('Invalid project format');
@@ -47,9 +55,10 @@ export function importProjectFromJSON(json: string): Project | null {
       shape: item.shape ?? 'rectangle',
       priceCurrency: item.priceCurrency ?? data.currency ?? DEFAULT_CURRENCY,
     }));
-    return data as Project;
+
+    return { project: data as Project, thumbnail };
   } catch {
-    return null;
+    return { project: null, thumbnail: null };
   }
 }
 

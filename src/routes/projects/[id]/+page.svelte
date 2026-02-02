@@ -202,7 +202,7 @@
 			const file = input.files?.[0];
 			if (file) {
 				const json = await readFileAsJSON(file);
-				const imported = importProjectFromJSON(json);
+				const { project: imported, thumbnail } = importProjectFromJSON(json);
 				if (imported) {
 					setProject(imported);
 					await saveLocalProject(imported);
