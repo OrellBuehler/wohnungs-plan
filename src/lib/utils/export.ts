@@ -57,3 +57,19 @@ export async function readFileAsJSON(file: File): Promise<string> {
     reader.readAsText(file);
   });
 }
+
+export async function fetchServerThumbnail(projectId: string): Promise<string | null> {
+  try {
+    const response = await fetch(`/api/images/thumbnails/${projectId}.png`);
+    if (!response.ok) return null;
+
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
