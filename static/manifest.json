@@ -4,8 +4,17 @@
   "description": "Create and share floor plans for your apartment",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#f1f5f9",
   "theme_color": "#4E74FF",
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "New Project",
+      "url": "/",
+      "description": "Create a new floor plan"
+    }
+  ],
   "icons": [
     {
       "src": "/icon.svg",
