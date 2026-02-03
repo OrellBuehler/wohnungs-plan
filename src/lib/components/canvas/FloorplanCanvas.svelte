@@ -388,6 +388,66 @@
     }
   }
 
+  function handlePointerMove(e: PointerEvent) {
+    if (e.pointerType === 'mouse') return;
+
+    const stage = stageRef?.node;
+    if (!stage) return;
+
+    // Update pointer position
+    const currentPointer = pointers.get(e.pointerId);
+    if (!currentPointer) return;
+
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Handle pinch zoom with 2 fingers
+    if (pointers.size === 2 && isPinching) {
+      e.preventDefault();
+
+      const [p1, p2] = Array.from(pointers.values());
+      const distance = Math.sqrt(
+        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
+      );
+      const center = {
+        x: (p1.x + p2.x) / 2,
+        y: (p1.y + p2.y) / 2
+      };
+
+      if (lastPinchDistance > 0 && lastPinchCenter) {
+        // Calculate zoom change
+        const scale = distance / lastPinchDistance;
+        const oldZoom = zoom;
+        const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * scale));
+
+        // Zoom toward pinch center
+        const pinchPointTo = {
+          x: (lastPinchCenter.x - panX) / oldZoom,
+          y: (lastPinchCenter.y - panY) / oldZoom,
+        };
+
+        zoom = newZoom;
+        panX = center.x - pinchPointTo.x * newZoom;
+        panY = center.y - pinchPointTo.y * newZoom;
+      }
+
+      lastPinchDistance = distance;
+      lastPinchCenter = center;
+    } else if (pointers.size === 1 && !isPinching && !readonly) {
+      // Single finger pan (only if not dragging an item)
+      const isDraggingItem = draggingItemId !== null;
+      if (!isDraggingItem) {
+        const currentPoint = Array.from(pointers.values())[0];
+        if (lastPanPoint) {
+          const dx = currentPoint.x - lastPanPoint.x;
+          const dy = currentPoint.y - lastPanPoint.y;
+          panX += dx;
+          panY += dy;
+        }
+        lastPanPoint = currentPoint;
+      }
+    }
+  }
+
   // Pan functions
   function handleMouseDown(e: { evt: MouseEvent; target: Konva.Node }) {
     // Only pan if clicking on stage background or image (not on furniture items)
