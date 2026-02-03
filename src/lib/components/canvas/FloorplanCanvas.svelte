@@ -80,6 +80,11 @@
   const MAX_NEIGHBORS = 2;
   const END_CAP_LENGTH = 8; // pixels
 
+  // Responsive font sizes - smaller on mobile (readonly mode)
+  const itemNameFontSize = $derived(readonly ? 9 : 12);
+  const itemDimensionsFontSize = $derived(readonly ? 7 : 10);
+  const distanceLabelFontSize = $derived(readonly ? 8 : 11);
+
   // Update viewport center for item placement (in natural image coordinates)
   $effect(() => {
     const displayCenterX = (stageWidth / 2 - panX) / zoom;
@@ -754,7 +759,7 @@
             x={0}
             y={itemHeightPx / 2 - 12}
             text={item.name}
-            fontSize={12}
+            fontSize={itemNameFontSize}
             fontFamily="system-ui, sans-serif"
             fontStyle="bold"
             fill="#1e293b"
@@ -766,7 +771,7 @@
             x={0}
             y={itemHeightPx / 2 + 2}
             text={`${item.width} × ${item.height} cm`}
-            fontSize={10}
+            fontSize={itemDimensionsFontSize}
             fontFamily="system-ui, sans-serif"
             fill="#475569"
             align="center"
@@ -842,7 +847,7 @@
               width={labelWidth}
               height={20}
               text={labelText}
-              fontSize={11}
+              fontSize={distanceLabelFontSize}
               fontFamily="system-ui, sans-serif"
               fontStyle="bold"
               fill="#3B82F6"
