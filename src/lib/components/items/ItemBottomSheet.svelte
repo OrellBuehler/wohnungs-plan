@@ -71,8 +71,12 @@
 			</div>
 
 			<Sheet.Footer class="gap-2">
-				<Button variant="outline" onclick={onClose}>Close</Button>
-				<Button onclick={() => onEdit(item.id)}>Edit Item</Button>
+				<Button variant="outline" size="lg" onclick={onClose} class="min-h-[44px]">
+					Close
+				</Button>
+				<Button size="lg" onclick={() => onEdit(item.id)} class="min-h-[44px]">
+					Edit Item
+				</Button>
 			</Sheet.Footer>
 		{/if}
 	</Sheet.Content>
