@@ -14,12 +14,24 @@ RUN bun install --frozen-lockfile
 FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
+# Accept build arguments for version tracking
+ARG GIT_HASH=unknown
+ARG BUILD_TIMESTAMP=unknown
+
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Set environment variables for Vite (will be embedded in build)
+ENV VITE_GIT_HASH=${GIT_HASH}
+ENV VITE_BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
+
 # Build the application
 RUN bun --bun run build
+
+# Write version info to file for container inspection
+RUN echo "GIT_HASH=${GIT_HASH}" > /app/version.txt && \
+    echo "BUILD_TIMESTAMP=${BUILD_TIMESTAMP}" >> /app/version.txt
 
 # Production stage - minimal runtime
 FROM oven/bun:1-alpine AS runner
@@ -38,6 +50,9 @@ COPY --from=builder --chown=sveltekit:nodejs /app/package.json ./
 
 # Copy database migrations
 COPY --from=builder --chown=sveltekit:nodejs /app/drizzle ./drizzle
+
+# Copy version info
+COPY --from=builder --chown=sveltekit:nodejs /app/version.txt ./
 
 # Switch to non-root user
 USER sveltekit

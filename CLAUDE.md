@@ -35,6 +35,14 @@ bun db:studio    # Open Drizzle Studio
 - Canvas controls hidden on mobile
 - ItemForm hides position fields when `hidePositionFields={true}`
 
+## Version Tracking
+
+- Git hash and build timestamp embedded in HTML comment during Docker build
+- View in browser: View Source → `<head>` → `<!-- version: abc1234 | built: 2026-02-03T10:30:00Z -->`
+- View in container: `docker exec <container> cat /app/version.txt`
+- Build with version: `docker build --build-arg GIT_HASH=$(git rev-parse --short HEAD) --build-arg BUILD_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ") .`
+- Development mode shows "dev" for both values
+
 ## SvelteKit Navigation
 
 - Avoid `history.pushState()` and `history.replaceState()` as they conflict with SvelteKit's router
