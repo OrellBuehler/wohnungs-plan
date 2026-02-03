@@ -410,7 +410,7 @@
 {/if}
 
 {#if project}
-	<header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 flex-shrink-0 gap-2" style="padding-top: env(safe-area-inset-top);">
+	<header class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0 gap-2" style="padding-top: max(0.75rem, env(safe-area-inset-top));">
 		<div class="flex items-center gap-2 min-w-0 flex-1">
 			<a href="/" class="flex items-center flex-shrink-0">
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
