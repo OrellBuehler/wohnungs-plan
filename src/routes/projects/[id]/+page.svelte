@@ -306,7 +306,12 @@
 	function handleDeleteItem(id: string) {
 		if (confirm('Delete this item?')) {
 			deleteItem(id);
-			if (selectedItemId === id) selectedItemId = null;
+			if (selectedItemId === id) {
+				selectedItemId = null;
+				if (showItemBottomSheet) {
+					showItemBottomSheet = false;
+				}
+			}
 		}
 	}
 
