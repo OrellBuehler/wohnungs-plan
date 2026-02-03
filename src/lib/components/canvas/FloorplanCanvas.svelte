@@ -54,6 +54,12 @@
   let lastPanPoint = $state<{ x: number; y: number } | null>(null);
   let zoomLocked = $state(false);
 
+  // Touch gesture state
+  let pointers = $state(new Map<number, { x: number; y: number }>());
+  let lastPinchDistance = $state(0);
+  let lastPinchCenter = $state<{ x: number; y: number } | null>(null);
+  let isPinching = $state(false);
+
   // Alignment guides state
   let alignmentGuides = $state<{ type: 'h' | 'v'; pos: number }[]>([]);
   let draggingItemId = $state<string | null>(null);
@@ -64,8 +70,8 @@
   let contextMenuItemId = $state<string | null>(null);
   let contextMenuPosition = $state({ x: 0, y: 0 });
 
-  const MIN_ZOOM = 0.25;
-  const MAX_ZOOM = 4;
+  const MIN_ZOOM = 0.5;
+  const MAX_ZOOM = 5;
   const ZOOM_STEP = 0.1;
   const ALIGNMENT_THRESHOLD = 5; // pixels
 
