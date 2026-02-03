@@ -469,8 +469,9 @@
 						{gridSize}
 						{showGrid}
 						{snapToGrid}
+						readonly={isMobile}
 						bind:viewportCenter={canvasViewportCenter}
-						onItemSelect={handleItemSelect}
+						onItemSelect={isMobile ? handleItemTap : handleItemSelect}
 						onItemMove={handleItemMove}
 						onItemRotate={handleItemRotate}
 						onItemUnplace={handleUnplaceItem}
@@ -501,6 +502,7 @@
 				{totalCost}
 				{displayCurrency}
 				{isLoadingRates}
+				readonly={isMobile}
 				onItemSelect={handleItemSelect}
 				onItemEdit={handleEditItem}
 				onItemDelete={handleDeleteItem}
@@ -519,6 +521,7 @@
 		bind:open={showItemForm}
 		item={editingItem}
 		defaultCurrency={displayCurrency}
+		hidePositionFields={isMobile}
 		onSave={handleSaveItem}
 		onClose={() => (showItemForm = false)}
 	/>
