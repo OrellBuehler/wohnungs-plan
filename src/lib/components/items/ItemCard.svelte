@@ -118,7 +118,7 @@
         <Button size="sm" variant="outline" onclick={withStopPropagation(onEdit)}>
           <Pencil size={14} class="mr-1" /> Edit
         </Button>
-        {#if item.position}
+        {#if item.position && !readonly}
           <Button size="sm" variant="outline" onclick={withStopPropagation(onUnplace)}>
             <MapPinOff size={14} class="mr-1" /> Unplace
           </Button>
@@ -127,9 +127,11 @@
             <MapPin size={14} class="mr-1" /> Place
           </Button>
         {/if}
-        <Button size="sm" variant="outline" onclick={withStopPropagation(onDuplicate)}>
-          <Copy size={14} class="mr-1" /> Duplicate
-        </Button>
+        {#if !readonly}
+          <Button size="sm" variant="outline" onclick={withStopPropagation(onDuplicate)}>
+            <Copy size={14} class="mr-1" /> Duplicate
+          </Button>
+        {/if}
         <Button size="sm" variant="destructive" onclick={withStopPropagation(onDelete)}>
           <Trash2 size={14} class="mr-1" /> Delete
         </Button>
