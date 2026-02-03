@@ -80,10 +80,30 @@
   const MAX_NEIGHBORS = 2;
   const END_CAP_LENGTH = 8; // pixels
 
-  // Responsive font sizes - smaller on mobile (readonly mode)
-  const itemNameFontSize = $derived(readonly ? 9 : 12);
-  const itemDimensionsFontSize = $derived(readonly ? 7 : 10);
-  const distanceLabelFontSize = $derived(readonly ? 8 : 11);
+  // Responsive font sizes - scale with viewport and zoom
+  // Base sizes in rem (relative to root font size, typically 16px)
+  // These scale with user's browser font size preferences for accessibility
+  const BASE_ITEM_NAME_REM = 0.75; // ~12px at default browser settings
+  const BASE_ITEM_DIMENSIONS_REM = 0.625; // ~10px
+  const BASE_DISTANCE_LABEL_REM = 0.6875; // ~11px
+  const MOBILE_SCALE_FACTOR = 0.75; // 25% smaller on mobile
+
+  // Convert rem to pixels at runtime (respects user's browser font size)
+  const remToPx = (rem: number) => {
+    if (typeof window === 'undefined') return rem * 16; // SSR fallback
+    return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
+  };
+
+  // Font sizes that scale with zoom level and respect browser font preferences
+  const itemNameFontSize = $derived(
+    remToPx(BASE_ITEM_NAME_REM) * (readonly ? MOBILE_SCALE_FACTOR : 1) * zoom
+  );
+  const itemDimensionsFontSize = $derived(
+    remToPx(BASE_ITEM_DIMENSIONS_REM) * (readonly ? MOBILE_SCALE_FACTOR : 1) * zoom
+  );
+  const distanceLabelFontSize = $derived(
+    remToPx(BASE_DISTANCE_LABEL_REM) * (readonly ? MOBILE_SCALE_FACTOR : 1) * zoom
+  );
 
   // Update viewport center for item placement (in natural image coordinates)
   $effect(() => {
