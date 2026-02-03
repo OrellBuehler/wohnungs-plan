@@ -87,3 +87,20 @@ export async function fetchServerThumbnail(projectId: string): Promise<string | 
     return null;
   }
 }
+
+export async function fetchServerFloorplan(imagePath: string): Promise<string | null> {
+  try {
+    const response = await fetch(imagePath);
+    if (!response.ok) return null;
+
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}

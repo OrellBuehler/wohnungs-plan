@@ -33,7 +33,7 @@
 		loadProjectById
 	} from '$lib/stores/project.svelte';
 	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
-	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail } from '$lib/utils/export';
+	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
@@ -212,8 +212,23 @@
 			thumbnail = await fetchServerThumbnail(project.id);
 		}
 
+		// For cloud projects, fetch floorplan image and convert to base64
+		let exportProject = project;
+		if (!project.isLocal && project.floorplan?.imageData?.startsWith('/api/')) {
+			const floorplanData = await fetchServerFloorplan(project.floorplan.imageData);
+			if (floorplanData) {
+				exportProject = {
+					...project,
+					floorplan: {
+						...project.floorplan,
+						imageData: floorplanData
+					}
+				};
+			}
+		}
+
 		// Export with thumbnail
-		downloadProject(project, thumbnail);
+		downloadProject(exportProject, thumbnail);
 	}
 
 	async function handleImport() {
