@@ -480,7 +480,7 @@
 				{/if}
 			</div>
 
-			{#if project.floorplan && !pendingImageData && !isRecalibrating}
+			{#if project.floorplan && !pendingImageData && !isRecalibrating && !isMobile}
 				<CanvasControls
 					bind:showGrid
 					bind:snapToGrid
