@@ -32,7 +32,7 @@
 </svelte:head>
 
 <Tooltip.Provider>
-	<div class="h-screen bg-slate-100 flex flex-col overflow-hidden">
+	<div class="h-screen bg-slate-100 flex flex-col overflow-hidden" style="height: 100dvh;">
 		{@render children()}
 	</div>
 </Tooltip.Provider>
