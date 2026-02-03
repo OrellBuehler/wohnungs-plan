@@ -395,7 +395,7 @@
 {/if}
 
 {#if project}
-	<header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
+	<header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 flex-shrink-0" style="padding-top: env(safe-area-inset-top);">
 		<div class="flex items-center gap-2">
 			<a href="/" class="flex items-center">
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
