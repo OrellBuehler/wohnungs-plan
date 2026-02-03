@@ -645,6 +645,11 @@
   bind:this={containerEl}
   class="w-full h-full bg-canvas-bg relative"
   onwheel={handleWheel}
+  onpointerdown={handlePointerDown}
+  onpointermove={handlePointerMove}
+  onpointerup={handlePointerUp}
+  onpointercancel={handlePointerUp}
+  style="touch-action: none;"
 >
   <Stage
     bind:this={stageRef}
