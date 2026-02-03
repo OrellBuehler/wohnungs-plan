@@ -358,6 +358,36 @@
     panY = 0;
   }
 
+  function handlePointerDown(e: PointerEvent) {
+    // Don't interfere with item dragging on desktop
+    if (e.pointerType === 'mouse') return;
+
+    const stage = stageRef?.node;
+    if (!stage) return;
+
+    const point = { x: e.clientX, y: e.clientY };
+    pointers.set(e.pointerId, point);
+
+    // If we now have 2 pointers, start pinch
+    if (pointers.size === 2) {
+      isPinching = true;
+      isPanning = false;
+
+      const [p1, p2] = Array.from(pointers.values());
+      const distance = Math.sqrt(
+        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
+      );
+      lastPinchDistance = distance;
+      lastPinchCenter = {
+        x: (p1.x + p2.x) / 2,
+        y: (p1.y + p2.y) / 2
+      };
+    } else if (pointers.size === 1 && !readonly) {
+      // Single touch - could be pan or item interaction
+      // Let Konva handle item dragging
+    }
+  }
+
   // Pan functions
   function handleMouseDown(e: { evt: MouseEvent; target: Konva.Node }) {
     // Only pan if clicking on stage background or image (not on furniture items)
