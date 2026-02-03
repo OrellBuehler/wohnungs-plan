@@ -8,6 +8,13 @@
       "when": 1769992301721,
       "tag": "0000_sharp_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770161001693,
+      "tag": "0001_flawless_firebrand",
+      "breakpoints": true
     }
   ]
 }
