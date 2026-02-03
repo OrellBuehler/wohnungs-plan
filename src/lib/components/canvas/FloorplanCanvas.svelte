@@ -448,6 +448,24 @@
     }
   }
 
+  function handlePointerUp(e: PointerEvent) {
+    if (e.pointerType === 'mouse') return;
+
+    pointers.delete(e.pointerId);
+
+    // Reset pinch state if we no longer have 2 fingers
+    if (pointers.size < 2) {
+      isPinching = false;
+      lastPinchDistance = 0;
+      lastPinchCenter = null;
+    }
+
+    // Reset pan state if no fingers
+    if (pointers.size === 0) {
+      lastPanPoint = null;
+    }
+  }
+
   // Pan functions
   function handleMouseDown(e: { evt: MouseEvent; target: Konva.Node }) {
     // Only pan if clicking on stage background or image (not on furniture items)
