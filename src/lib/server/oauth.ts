@@ -333,7 +333,7 @@ export async function consumeAuthorizationCode(
 	const pkceValid = verifyPKCE(
 		codeVerifier,
 		authCode.codeChallenge,
-		authCode.codeChallengeMethod
+		authCode.codeChallengeMethod as 'plain' | 'S256'
 	);
 
 	if (!pkceValid) {
@@ -347,4 +347,83 @@ export async function consumeAuthorizationCode(
 		.where(eq(oauthAuthorizationCodes.code, code));
 
 	return authCode.userId;
+}
+
+/**
+ * Create an access token for a user/client pair
+ * @param userId User ID
+ * @param clientId Client ID
+ * @returns Access token (plaintext)
+ */
+export async function createAccessToken(userId: string, clientId: string): Promise<string> {
+	const db = getDB();
+
+	// Generate access token
+	const token = generateToken(32);
+	const accessTokenHash = hashToken(token);
+
+	// Calculate expiration time
+	const expiresAt = new Date(Date.now() + ACCESS_TOKEN_LIFETIME_MS);
+
+	await db.insert(oauthTokens).values({
+		accessTokenHash,
+		clientId,
+		userId,
+		expiresAt
+	});
+
+	return token;
+}
+
+/**
+ * Validate an access token and return associated data
+ * @param token Access token (plaintext)
+ * @returns Object with userId and clientId if valid, undefined otherwise
+ */
+export async function validateAccessToken(
+	token: string
+): Promise<{ userId: string; clientId: string } | undefined> {
+	const db = getDB();
+
+	// Get all non-expired tokens
+	const now = new Date();
+	const tokens = await db.query.oauthTokens.findMany({
+		where: gt(oauthTokens.expiresAt, now)
+	});
+
+	// Find matching token by comparing hash
+	for (const tokenRecord of tokens) {
+		if (verifyToken(token, tokenRecord.accessTokenHash)) {
+			return {
+				userId: tokenRecord.userId,
+				clientId: tokenRecord.clientId
+			};
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * Revoke all access tokens for a client
+ * @param clientId Client ID
+ */
+export async function revokeClientTokens(clientId: string): Promise<void> {
+	const db = getDB();
+	await db.delete(oauthTokens).where(eq(oauthTokens.clientId, clientId));
+}
+
+/**
+ * Clean up expired OAuth data (tokens and authorization codes)
+ * Should be run periodically (e.g., daily cron job)
+ */
+export async function cleanupExpiredOAuthData(): Promise<void> {
+	const db = getDB();
+	const now = new Date();
+
+	// Delete expired tokens
+	await db.delete(oauthTokens).where(lt(oauthTokens.expiresAt, now));
+
+	// Delete expired authorization codes
+	await db.delete(oauthAuthorizationCodes).where(lt(oauthAuthorizationCodes.expiresAt, now));
 }
