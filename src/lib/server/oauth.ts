@@ -1,7 +1,19 @@
 import { randomBytes, createHash } from 'crypto';
 import { compareSync, hashSync } from 'bcrypt';
 import { eq, and, gt, lt } from 'drizzle-orm';
-import { getDB, oauthClients, oauthTokens, type OAuthClient, type NewOAuthClient } from './db';
+import {
+	getDB,
+	oauthClients,
+	oauthTokens,
+	oauthAuthorizations,
+	oauthAuthorizationCodes,
+	type OAuthClient,
+	type NewOAuthClient,
+	type OAuthAuthorization,
+	type NewOAuthAuthorization,
+	type OAuthAuthorizationCode,
+	type NewOAuthAuthorizationCode
+} from './db';
 
 // Constants
 export const SALT_ROUNDS = 10;
@@ -180,4 +192,159 @@ export async function regenerateClientSecret(
 		client,
 		secret: clientSecret
 	};
+}
+
+/**
+ * Check if user has authorized a client
+ * @param userId User ID
+ * @param clientId Client ID
+ * @returns True if authorization exists
+ */
+export async function hasAuthorization(userId: string, clientId: string): Promise<boolean> {
+	const db = getDB();
+	const authorization = await db.query.oauthAuthorizations.findFirst({
+		where: and(
+			eq(oauthAuthorizations.userId, userId),
+			eq(oauthAuthorizations.clientId, clientId)
+		)
+	});
+	return !!authorization;
+}
+
+/**
+ * Create an authorization record for a user/client pair
+ * @param userId User ID
+ * @param clientId Client ID
+ * @returns Created authorization record
+ */
+export async function createAuthorization(
+	userId: string,
+	clientId: string
+): Promise<OAuthAuthorization> {
+	const db = getDB();
+
+	// Check if authorization already exists
+	const existing = await db.query.oauthAuthorizations.findFirst({
+		where: and(
+			eq(oauthAuthorizations.userId, userId),
+			eq(oauthAuthorizations.clientId, clientId)
+		)
+	});
+
+	if (existing) {
+		return existing;
+	}
+
+	// Create new authorization
+	const newAuth: NewOAuthAuthorization = {
+		userId,
+		clientId
+	};
+
+	const [authorization] = await db.insert(oauthAuthorizations).values(newAuth).returning();
+	return authorization;
+}
+
+/**
+ * Create an authorization code for PKCE flow
+ * @param userId User ID
+ * @param clientId Client ID
+ * @param redirectUri Redirect URI
+ * @param codeChallenge PKCE code challenge
+ * @param codeChallengeMethod PKCE code challenge method ('S256' or 'plain')
+ * @returns Authorization code (plaintext)
+ */
+export async function createAuthorizationCode(
+	userId: string,
+	clientId: string,
+	redirectUri: string,
+	codeChallenge: string,
+	codeChallengeMethod: 'S256' | 'plain'
+): Promise<string> {
+	const db = getDB();
+
+	// Generate authorization code
+	const code = generateToken(32);
+
+	// Calculate expiration time
+	const expiresAt = new Date(Date.now() + AUTH_CODE_LIFETIME_MS);
+
+	const newCode: NewOAuthAuthorizationCode = {
+		code,
+		clientId,
+		userId,
+		redirectUri,
+		codeChallenge,
+		codeChallengeMethod,
+		expiresAt
+	};
+
+	await db.insert(oauthAuthorizationCodes).values(newCode);
+
+	return code;
+}
+
+/**
+ * Consume an authorization code (one-time use with PKCE verification)
+ * @param code Authorization code
+ * @param clientId Client ID
+ * @param redirectUri Redirect URI
+ * @param codeVerifier PKCE code verifier
+ * @returns User ID if code is valid, undefined otherwise
+ */
+export async function consumeAuthorizationCode(
+	code: string,
+	clientId: string,
+	redirectUri: string,
+	codeVerifier: string
+): Promise<string | undefined> {
+	const db = getDB();
+
+	// Find the code
+	const authCode = await db.query.oauthAuthorizationCodes.findFirst({
+		where: eq(oauthAuthorizationCodes.code, code)
+	});
+
+	if (!authCode) {
+		return undefined;
+	}
+
+	// Verify code hasn't been used
+	if (authCode.usedAt) {
+		return undefined;
+	}
+
+	// Verify code hasn't expired
+	if (authCode.expiresAt < new Date()) {
+		return undefined;
+	}
+
+	// Verify client ID matches
+	if (authCode.clientId !== clientId) {
+		return undefined;
+	}
+
+	// Verify redirect URI matches
+	if (authCode.redirectUri !== redirectUri) {
+		return undefined;
+	}
+
+	// Verify PKCE code challenge
+	const pkceValid = verifyPKCE(
+		codeVerifier,
+		authCode.codeChallenge,
+		authCode.codeChallengeMethod
+	);
+
+	if (!pkceValid) {
+		return undefined;
+	}
+
+	// Mark code as used
+	await db
+		.update(oauthAuthorizationCodes)
+		.set({ usedAt: new Date() })
+		.where(eq(oauthAuthorizationCodes.code, code));
+
+	return authCode.userId;
 }
