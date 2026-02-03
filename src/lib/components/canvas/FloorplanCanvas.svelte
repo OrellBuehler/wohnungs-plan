@@ -80,6 +80,31 @@
   const MAX_NEIGHBORS = 2;
   const END_CAP_LENGTH = 8; // pixels
 
+  // Responsive font sizes - scale with viewport and zoom
+  // Base sizes in rem (relative to root font size, typically 16px)
+  // These scale with user's browser font size preferences for accessibility
+  const BASE_ITEM_NAME_REM = 0.75; // ~12px at default browser settings
+  const BASE_ITEM_DIMENSIONS_REM = 0.625; // ~10px
+  const BASE_DISTANCE_LABEL_REM = 0.6875; // ~11px
+  const MOBILE_SCALE_FACTOR = 0.75; // 25% smaller on mobile
+
+  // Convert rem to pixels at runtime (respects user's browser font size)
+  const remToPx = (rem: number) => {
+    if (typeof window === 'undefined') return rem * 16; // SSR fallback
+    return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
+  };
+
+  // Font sizes that scale with zoom level and respect browser font preferences
+  const itemNameFontSize = $derived(
+    remToPx(BASE_ITEM_NAME_REM) * (readonly ? MOBILE_SCALE_FACTOR : 1) * zoom
+  );
+  const itemDimensionsFontSize = $derived(
+    remToPx(BASE_ITEM_DIMENSIONS_REM) * (readonly ? MOBILE_SCALE_FACTOR : 1) * zoom
+  );
+  const distanceLabelFontSize = $derived(
+    remToPx(BASE_DISTANCE_LABEL_REM) * (readonly ? MOBILE_SCALE_FACTOR : 1) * zoom
+  );
+
   // Update viewport center for item placement (in natural image coordinates)
   $effect(() => {
     const displayCenterX = (stageWidth / 2 - panX) / zoom;
@@ -754,7 +779,7 @@
             x={0}
             y={itemHeightPx / 2 - 12}
             text={item.name}
-            fontSize={12}
+            fontSize={itemNameFontSize}
             fontFamily="system-ui, sans-serif"
             fontStyle="bold"
             fill="#1e293b"
@@ -766,7 +791,7 @@
             x={0}
             y={itemHeightPx / 2 + 2}
             text={`${item.width} × ${item.height} cm`}
-            fontSize={10}
+            fontSize={itemDimensionsFontSize}
             fontFamily="system-ui, sans-serif"
             fill="#475569"
             align="center"
@@ -842,7 +867,7 @@
               width={labelWidth}
               height={20}
               text={labelText}
-              fontSize={11}
+              fontSize={distanceLabelFontSize}
               fontFamily="system-ui, sans-serif"
               fontStyle="bold"
               fill="#3B82F6"

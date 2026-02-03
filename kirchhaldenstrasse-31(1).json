@@ -1,0 +1,137 @@
+{
+  "id": "c0e0210c-c68a-407a-9d57-7aaa3b9e707d",
+  "name": "Kirchhaldenstrasse 31",
+  "createdAt": "2026-02-02T00:51:44.136Z",
+  "updatedAt": "2026-02-03T00:30:50.833Z",
+  "floorplan": {
+    "imageData": "/api/images/floorplans/c0e0210c-c68a-407a-9d57-7aaa3b9e707d/415aa175-191a-4011-9825-d4b96ce0fd24.png",
+    "scale": 0.8677130937576294,
+    "referenceLength": 400
+  },
+  "items": [
+    {
+      "id": "667b053a-f473-40e7-af7c-aba1a030d4dc",
+      "name": "Pult Orell",
+      "width": 80,
+      "height": 160,
+      "color": "#22C55E",
+      "price": null,
+      "priceCurrency": "EUR",
+      "productUrl": null,
+      "position": {
+        "x": 574.5595703125,
+        "y": 924.019287109375
+      },
+      "rotation": 0,
+      "shape": "rectangle",
+      "cutoutCorner": null
+    },
+    {
+      "id": "629fa577-683b-40fa-a2f6-af0e03469689",
+      "name": "Pult Andri",
+      "width": 80,
+      "height": 160,
+      "color": "#3B82F6",
+      "price": null,
+      "priceCurrency": "EUR",
+      "productUrl": null,
+      "position": {
+        "x": 763.4474487304688,
+        "y": 924.019287109375
+      },
+      "rotation": 0,
+      "shape": "rectangle",
+      "cutoutCorner": null
+    },
+    {
+      "id": "48b8979a-a3d0-4a45-8a9d-99891cc5fffc",
+      "name": "Bett Orell",
+      "width": 190,
+      "height": 230,
+      "color": "#22C55E",
+      "price": null,
+      "priceCurrency": "EUR",
+      "productUrl": null,
+      "position": {
+        "x": 1105.48779296875,
+        "y": 347.1453552246094
+      },
+      "rotation": 0,
+      "shape": "rectangle",
+      "cutoutCorner": null
+    },
+    {
+      "id": "a36385f6-7e15-42f9-a787-e4555bd0503c",
+      "name": "Rogue OLY Platform",
+      "width": 183,
+      "height": 244,
+      "color": "#EF4444",
+      "price": 453,
+      "priceCurrency": "EUR",
+      "productUrl": "https://www.roguefitness.com/eu/de/rogue-oly-platform-eu",
+      "position": {
+        "x": 314.2005310058594,
+        "y": 45.945709228515625
+      },
+      "rotation": 90,
+      "shape": "rectangle",
+      "cutoutCorner": null
+    },
+    {
+      "id": "0d89b3f6-47b1-417c-ac51-9c99281b340f",
+      "name": "Ecksofa Delia",
+      "width": 190,
+      "height": 272,
+      "color": "#A855F7",
+      "price": 1599,
+      "priceCurrency": "CHF",
+      "productUrl": "https://www.pfister.ch/de/produkt/188616/lomoco-ecksofa-delia?utm_campaign=dynamic-remarketing-2024&utm_content=carousel&utm_id=6539690067687_v2_s03_e370_i20260131&utm_medium=paid_social&utm_source=facebook&utm_term=6539690067687&sfnsn=wa",
+      "position": {
+        "x": 48.736427320490336,
+        "y": 816.8126094570929
+      },
+      "rotation": 0,
+      "shape": "l-shape",
+      "cutoutWidth": 70,
+      "cutoutHeight": 140,
+      "cutoutCorner": "top-right"
+    },
+    {
+      "id": "0b4fef20-e3d1-4c57-ad93-dacb03bde422",
+      "name": "Bett Andri",
+      "width": 190,
+      "height": 210,
+      "color": "#3B82F6",
+      "price": null,
+      "priceCurrency": "EUR",
+      "productUrl": null,
+      "position": {
+        "x": 1100.3826619964975,
+        "y": 852.5481611208406
+      },
+      "rotation": 90,
+      "shape": "rectangle",
+      "cutoutCorner": null
+    },
+    {
+      "name": "Esstisch",
+      "width": 100,
+      "height": 160,
+      "color": "#A855F7",
+      "price": null,
+      "priceCurrency": "CHF",
+      "productUrl": null,
+      "position": {
+        "x": 273.35989492119086,
+        "y": 469.6672504378284
+      },
+      "rotation": 0,
+      "shape": "rectangle",
+      "id": "f29db961-1df0-437d-a591-1eac2f8b9530"
+    }
+  ],
+  "currency": "CHF",
+  "gridSize": 5,
+  "isLocal": false,
+  "thumbnail": null
+}

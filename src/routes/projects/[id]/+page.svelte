@@ -33,7 +33,7 @@
 		loadProjectById
 	} from '$lib/stores/project.svelte';
 	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
-	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail } from '$lib/utils/export';
+	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
@@ -212,8 +212,23 @@
 			thumbnail = await fetchServerThumbnail(project.id);
 		}
 
+		// For cloud projects, fetch floorplan image and convert to base64
+		let exportProject = project;
+		if (!project.isLocal && project.floorplan?.imageData?.startsWith('/api/')) {
+			const floorplanData = await fetchServerFloorplan(project.floorplan.imageData);
+			if (floorplanData) {
+				exportProject = {
+					...project,
+					floorplan: {
+						...project.floorplan,
+						imageData: floorplanData
+					}
+				};
+			}
+		}
+
 		// Export with thumbnail
-		downloadProject(project, thumbnail);
+		downloadProject(exportProject, thumbnail);
 	}
 
 	async function handleImport() {
@@ -395,36 +410,36 @@
 {/if}
 
 {#if project}
-	<header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 flex-shrink-0" style="padding-top: env(safe-area-inset-top);">
-		<div class="flex items-center gap-2">
-			<a href="/" class="flex items-center">
+	<header class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0 gap-2" style="padding-top: max(0.75rem, env(safe-area-inset-top));">
+		<div class="flex items-center gap-2 min-w-0 flex-1">
+			<a href="/" class="flex items-center flex-shrink-0">
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			</a>
-			<span class="text-slate-300">|</span>
+			<span class="text-slate-300 flex-shrink-0">|</span>
 			{#if isEditingName}
 				<Input
 					bind:ref={nameInputEl}
 					bind:value={editNameValue}
 					onblur={commitNameEdit}
 					onkeydown={handleNameKeydown}
-					class="w-auto max-w-64 text-lg font-semibold"
+					class="w-auto max-w-64 text-lg font-semibold min-w-0"
 				/>
 			{:else}
 				<Button
 					variant="ghost"
 					onclick={startEditingName}
-					class="text-lg font-semibold text-slate-800 hover:text-slate-600"
+					class="text-lg font-semibold text-slate-800 hover:text-slate-600 min-w-0 justify-start px-2"
 				>
-					{project.name}
+					<span class="truncate">{project.name}</span>
 				</Button>
 			{/if}
 		</div>
 
-		<div class="flex items-center gap-2">
+		<div class="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
 			{#if !isLocalProject}
 				<Button variant="outline" size="sm" onclick={() => (showShareDialog = true)}>
-					<Share2 size={16} class="mr-1" />
-					Share
+					<Share2 size={16} class="md:mr-1" />
+					<span class="hidden md:inline">Share</span>
 				</Button>
 			{/if}
 			{#if authed}
@@ -436,7 +451,8 @@
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
 						<Button {...props} variant="outline" size="sm">
-							<Menu size={16} class="mr-1" /> Menu
+							<Menu size={16} class="md:mr-1" />
+							<span class="hidden md:inline">Menu</span>
 						</Button>
 					{/snippet}
 				</DropdownMenu.Trigger>
