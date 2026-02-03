@@ -35,6 +35,21 @@ bun db:studio    # Open Drizzle Studio
 - Canvas controls hidden on mobile
 - ItemForm hides position fields when `hidePositionFields={true}`
 
+## PWA (Progressive Web App)
+
+- App installable via "Add to Home Screen" on iOS/Android
+- Works offline for local projects (service worker caching)
+- Browser zoom disabled - use pinch-to-zoom on canvas instead
+- Fixed header (top) and bottom tabs (mobile) with safe area insets
+- Layout uses `100dvh` to handle mobile browser chrome
+
+### Service Worker
+
+- Built with @vite-pwa/sveltekit and Workbox
+- Cache-first for app shell (HTML, CSS, JS, fonts, icons)
+- Network-first for API routes
+- Cache-first for images with 30-day expiration
+
 ## Version Tracking
 
 - Git hash and build timestamp embedded in HTML comment during Docker build
