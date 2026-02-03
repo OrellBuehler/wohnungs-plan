@@ -290,14 +290,20 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 }
 
 export async function loadProjectById(id: string): Promise<Project | null> {
-	if (!useRemote()) {
-		const local = await loadLocalProject(id);
-		if (local) {
-			return { ...local, isLocal: true };
-		}
-		return null;
+	// Always check local storage first
+	const local = await loadLocalProject(id);
+
+	// If project exists locally and is marked as local-only, return it without API call
+	if (local?.isLocal) {
+		return local;
 	}
 
+	// If not authenticated or offline, return local version if available
+	if (!useRemote()) {
+		return local ? { ...local, isLocal: true } : null;
+	}
+
+	// Project is either not in IndexedDB or is a cloud project - fetch from API
 	try {
 		const response = await fetch(`/api/projects/${id}`);
 		if (!response.ok) throw new Error('Failed to load project');
@@ -308,11 +314,8 @@ export async function loadProjectById(id: string): Promise<Project | null> {
 		return project;
 	} catch (error) {
 		console.error('Failed to load remote project:', error);
-		const local = await loadLocalProject(id);
-		if (local) {
-			return { ...local, isLocal: true };
-		}
-		return null;
+		// Fallback to local version if API fails
+		return local ? { ...local, isLocal: true } : null;
 	}
 }
 
