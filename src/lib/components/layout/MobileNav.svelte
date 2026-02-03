@@ -9,7 +9,7 @@
   let { activeTab, onTabChange }: Props = $props();
 </script>
 
-<nav class="h-14 bg-white border-t border-slate-200 flex md:hidden">
+<nav class="h-14 bg-white border-t border-slate-200 flex md:hidden flex-shrink-0" style="padding-bottom: env(safe-area-inset-bottom);">
   <Button
     variant="ghost"
     class="flex-1 flex items-center justify-center gap-2 rounded-none h-full {activeTab === 'plan'
