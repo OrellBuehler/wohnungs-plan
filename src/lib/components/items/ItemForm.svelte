@@ -15,9 +15,10 @@
     defaultCurrency: CurrencyCode;
     onSave: (item: Omit<Item, 'id'>) => void;
     onClose: () => void;
+    hidePositionFields?: boolean;
   }
 
-  let { open = $bindable(), item, defaultCurrency, onSave, onClose }: Props = $props();
+  let { open = $bindable(), item, defaultCurrency, onSave, onClose, hidePositionFields = false }: Props = $props();
 
   let name = $state('');
   let width = $state(100);
