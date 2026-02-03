@@ -7,6 +7,7 @@ import {
 	real,
 	primaryKey,
 	index,
+	uniqueIndex,
 	check
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
@@ -180,7 +181,8 @@ export const oauthAuthorizations = pgTable(
 	},
 	(table) => [
 		index('idx_oauth_authorizations_user_id').on(table.userId),
-		index('idx_oauth_authorizations_client_id').on(table.clientId)
+		index('idx_oauth_authorizations_client_id').on(table.clientId),
+		uniqueIndex('idx_oauth_authorizations_user_client').on(table.userId, table.clientId)
 	]
 );
 
@@ -204,7 +206,8 @@ export const oauthTokens = pgTable(
 	(table) => [
 		index('idx_oauth_tokens_client_id').on(table.clientId),
 		index('idx_oauth_tokens_user_id').on(table.userId),
-		index('idx_oauth_tokens_expires_at').on(table.expiresAt)
+		index('idx_oauth_tokens_expires_at').on(table.expiresAt),
+		index('idx_oauth_tokens_access_token_hash').on(table.accessTokenHash)
 	]
 );
 
@@ -223,6 +226,7 @@ export const oauthAuthorizationCodes = pgTable(
 		codeChallenge: text('code_challenge').notNull(),
 		codeChallengeMethod: text('code_challenge_method').notNull(),
 		expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+		usedAt: timestamp('used_at', { withTimezone: true }),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 	},
 	(table) => [
