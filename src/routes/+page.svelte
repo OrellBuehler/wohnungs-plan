@@ -91,14 +91,14 @@
 	}
 </script>
 
-<div class="min-h-screen bg-slate-50 flex flex-col">
+<div class="h-screen bg-slate-50 flex flex-col overflow-hidden">
 	<!-- Header -->
-	<header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
+	<header class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0" style="padding-top: max(0.75rem, env(safe-area-inset-top));">
 		<a href="/" class="flex items-center gap-2">
 			<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			<h1 class="text-xl font-semibold text-slate-800">Floorplanner</h1>
 		</a>
-		<div>
+		<div class="flex-shrink-0">
 			{#if authenticated}
 				<UserMenu />
 			{:else}
@@ -108,7 +108,8 @@
 	</header>
 
 	<!-- Main -->
-	<main class="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full">
+	<main class="flex-1 overflow-y-auto min-h-0">
+		<div class="p-4 md:p-8 max-w-6xl mx-auto w-full" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
 		<!-- Title + New button -->
 		<div class="flex items-center justify-between mb-6">
 			<h2 class="text-2xl font-bold text-slate-800">My Projects</h2>
@@ -175,6 +176,7 @@
 				<LoginButton />
 			</div>
 		{/if}
+		</div>
 	</main>
 </div>
 
