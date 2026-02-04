@@ -4,7 +4,8 @@ import {
 	verifyOAuthClient,
 	consumeAuthorizationCode,
 	createAccessToken,
-	ACCESS_TOKEN_LIFETIME_MS
+	ACCESS_TOKEN_LIFETIME_MS,
+	isValidCodeVerifier
 } from '$lib/server/oauth';
 
 /**
@@ -61,6 +62,18 @@ export const POST: RequestHandler = async ({ request }) => {
 			{
 				error: 'unsupported_grant_type',
 				error_description: 'Only "authorization_code" grant type is supported'
+			},
+			{ status: 400 }
+		);
+	}
+
+	// Validate code_verifier format per RFC 7636
+	if (!isValidCodeVerifier(codeVerifier)) {
+		return json(
+			{
+				error: 'invalid_request',
+				error_description:
+					'Invalid code_verifier. Must be 43-128 characters, unreserved characters only (RFC 7636)'
 			},
 			{ status: 400 }
 		);

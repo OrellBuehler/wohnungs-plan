@@ -76,6 +76,30 @@ export function verifyPKCE(codeVerifier: string, codeChallenge: string): boolean
 	return hash === codeChallenge;
 }
 
+// RFC 7636: code_verifier uses unreserved characters [A-Za-z0-9-._~]
+const CODE_VERIFIER_REGEX = /^[A-Za-z0-9\-._~]{43,128}$/;
+
+// RFC 7636: code_challenge for S256 is BASE64URL without padding (43 chars for SHA-256)
+const CODE_CHALLENGE_S256_REGEX = /^[A-Za-z0-9\-_]{43}$/;
+
+/**
+ * Validate PKCE code_verifier format per RFC 7636
+ * @param codeVerifier The code verifier to validate
+ * @returns True if format is valid
+ */
+export function isValidCodeVerifier(codeVerifier: string): boolean {
+	return CODE_VERIFIER_REGEX.test(codeVerifier);
+}
+
+/**
+ * Validate PKCE code_challenge format for S256 per RFC 7636
+ * @param codeChallenge The code challenge to validate
+ * @returns True if format is valid
+ */
+export function isValidCodeChallengeS256(codeChallenge: string): boolean {
+	return CODE_CHALLENGE_S256_REGEX.test(codeChallenge);
+}
+
 /**
  * Get existing OAuth client for user, or create a new one
  * @param userId User ID to get/create client for
@@ -287,12 +311,21 @@ export async function createAuthorization(
 }
 
 /**
+ * Hash an authorization code for secure storage
+ * @param code Authorization code (plaintext)
+ * @returns SHA-256 hash of the code (hex-encoded)
+ */
+function hashAuthorizationCode(code: string): string {
+	return createHash('sha256').update(code).digest('hex');
+}
+
+/**
  * Create an authorization code for PKCE flow
  * @param userId User ID
  * @param clientId Client ID
  * @param redirectUri Redirect URI
  * @param codeChallenge PKCE code challenge
- * @returns Authorization code (plaintext)
+ * @returns Authorization code (plaintext) - caller should pass this to client
  */
 export async function createAuthorizationCode(
 	userId: string,
@@ -305,11 +338,14 @@ export async function createAuthorizationCode(
 	// Generate authorization code
 	const code = generateToken(32);
 
+	// Hash the code for secure storage (never store plaintext)
+	const codeHash = hashAuthorizationCode(code);
+
 	// Calculate expiration time
 	const expiresAt = new Date(Date.now() + AUTH_CODE_LIFETIME_MS);
 
 	const newCode: NewOAuthAuthorizationCode = {
-		code,
+		code: codeHash, // Store hash, not plaintext
 		clientId,
 		userId,
 		redirectUri,
@@ -320,12 +356,13 @@ export async function createAuthorizationCode(
 
 	await db.insert(oauthAuthorizationCodes).values(newCode);
 
+	// Return plaintext code to be sent to client
 	return code;
 }
 
 /**
  * Consume an authorization code (one-time use with PKCE verification)
- * @param code Authorization code
+ * @param code Authorization code (plaintext from client)
  * @param clientId Client ID
  * @param redirectUri Redirect URI
  * @param codeVerifier PKCE code verifier
@@ -339,9 +376,12 @@ export async function consumeAuthorizationCode(
 ): Promise<string | undefined> {
 	const db = getDB();
 
-	// Find the code
+	// Hash the code to look up in database (codes are stored as hashes)
+	const codeHash = hashAuthorizationCode(code);
+
+	// Find the code by its hash
 	const authCode = await db.query.oauthAuthorizationCodes.findFirst({
-		where: eq(oauthAuthorizationCodes.code, code)
+		where: eq(oauthAuthorizationCodes.code, codeHash)
 	});
 
 	if (!authCode) {
@@ -375,13 +415,23 @@ export async function consumeAuthorizationCode(
 		return undefined;
 	}
 
-	// Mark code as used
+	// Mark code as used (use hash for lookup)
 	await db
 		.update(oauthAuthorizationCodes)
 		.set({ usedAt: new Date() })
-		.where(eq(oauthAuthorizationCodes.code, code));
+		.where(eq(oauthAuthorizationCodes.code, codeHash));
 
 	return authCode.userId;
+}
+
+/**
+ * Hash an access token for storage and lookup
+ * Uses SHA-256 for fast O(1) lookup via database index
+ * @param token Access token (plaintext)
+ * @returns SHA-256 hash of the token (hex-encoded)
+ */
+function hashAccessToken(token: string): string {
+	return createHash('sha256').update(token).digest('hex');
 }
 
 /**
@@ -395,7 +445,8 @@ export async function createAccessToken(userId: string, clientId: string): Promi
 
 	// Generate access token
 	const token = generateToken(32);
-	const accessTokenHash = hashToken(token);
+	// Use SHA-256 for fast lookup (indexed in database)
+	const accessTokenHash = hashAccessToken(token);
 
 	// Calculate expiration time
 	const expiresAt = new Date(Date.now() + ACCESS_TOKEN_LIFETIME_MS);
@@ -412,6 +463,7 @@ export async function createAccessToken(userId: string, clientId: string): Promi
 
 /**
  * Validate an access token and return associated data
+ * Uses O(1) hash lookup via indexed column
  * @param token Access token (plaintext)
  * @returns Object with userId and clientId if valid, undefined otherwise
  */
@@ -420,23 +472,26 @@ export async function validateAccessToken(
 ): Promise<{ userId: string; clientId: string } | undefined> {
 	const db = getDB();
 
-	// Get all non-expired tokens
+	// Hash the token for lookup (tokens stored as SHA-256 hashes)
+	const tokenHash = hashAccessToken(token);
 	const now = new Date();
-	const tokens = await db.query.oauthTokens.findMany({
-		where: gt(oauthTokens.expiresAt, now)
+
+	// Direct O(1) lookup by hash using indexed column
+	const tokenRecord = await db.query.oauthTokens.findFirst({
+		where: and(
+			eq(oauthTokens.accessTokenHash, tokenHash),
+			gt(oauthTokens.expiresAt, now)
+		)
 	});
 
-	// Find matching token by comparing hash
-	for (const tokenRecord of tokens) {
-		if (verifyToken(token, tokenRecord.accessTokenHash)) {
-			return {
-				userId: tokenRecord.userId,
-				clientId: tokenRecord.clientId
-			};
-		}
+	if (!tokenRecord) {
+		return undefined;
 	}
 
-	return undefined;
+	return {
+		userId: tokenRecord.userId,
+		clientId: tokenRecord.clientId
+	};
 }
 
 /**

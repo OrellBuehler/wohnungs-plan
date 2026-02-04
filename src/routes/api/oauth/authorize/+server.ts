@@ -5,7 +5,8 @@ import {
 	getOAuthClient,
 	hasAuthorization,
 	createAuthorizationCode,
-	validateRedirectUri
+	validateRedirectUri,
+	isValidCodeChallengeS256
 } from '$lib/server/oauth';
 
 /**
@@ -68,6 +69,14 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 		return new Response('Invalid code_challenge_method. Must be "S256"', {
 			status: 400
 		});
+	}
+
+	// Validate code_challenge format per RFC 7636
+	if (!isValidCodeChallengeS256(codeChallenge)) {
+		return new Response(
+			'Invalid code_challenge. Must be 43 characters, base64url-encoded (RFC 7636)',
+			{ status: 400 }
+		);
 	}
 
 	// Validate redirect_uri format
