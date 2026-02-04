@@ -4,14 +4,15 @@ import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
 import {
 	getOAuthClient,
 	hasAuthorization,
-	createAuthorizationCode
+	createAuthorizationCode,
+	validateRedirectUri
 } from '$lib/server/oauth';
 
 /**
- * Validate redirect URI according to OAuth 2.0 spec
+ * Validate redirect URI format according to OAuth 2.0 spec
  * Must be HTTPS or localhost (for development)
  */
-function validateRedirectUri(uri: string): boolean {
+function isValidRedirectUriFormat(uri: string): boolean {
 	try {
 		const url = new URL(uri);
 		// Allow HTTPS or localhost (http://localhost or http://127.0.0.1)
@@ -70,7 +71,7 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 	}
 
 	// Validate redirect_uri format
-	if (!validateRedirectUri(redirectUri)) {
+	if (!isValidRedirectUriFormat(redirectUri)) {
 		return new Response(
 			'Invalid redirect_uri. Must be HTTPS or localhost (http://localhost, http://127.0.0.1)',
 			{ status: 400 }
@@ -81,6 +82,14 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 	const client = await getOAuthClient(clientId);
 	if (!client) {
 		return new Response('Invalid client_id', { status: 400 });
+	}
+
+	// Validate redirect_uri is registered for this client
+	if (!validateRedirectUri(client, redirectUri)) {
+		return new Response(
+			'Invalid redirect_uri. The URI is not registered for this client.',
+			{ status: 400 }
+		);
 	}
 
 	// Check if user is authenticated

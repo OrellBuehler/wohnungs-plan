@@ -158,6 +158,7 @@ export const oauthClients = pgTable(
 			.references(() => users.id, { onDelete: 'cascade' }),
 		clientId: text('client_id').unique().notNull(),
 		clientSecretHash: text('client_secret_hash').notNull(),
+		allowedRedirectUris: text('allowed_redirect_uris').array().notNull().default(sql`ARRAY[]::text[]`),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 	},
 	(table) => [

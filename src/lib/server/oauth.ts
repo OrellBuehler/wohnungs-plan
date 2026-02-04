@@ -195,6 +195,56 @@ export async function regenerateClientSecret(
 }
 
 /**
+ * Add an allowed redirect URI to a client
+ * @param clientId Client ID
+ * @param redirectUri Redirect URI to add
+ * @returns Updated client
+ */
+export async function addAllowedRedirectUri(
+	clientId: string,
+	redirectUri: string
+): Promise<OAuthClient> {
+	const db = getDB();
+
+	const client = await getOAuthClient(clientId);
+	if (!client) {
+		throw new Error('OAuth client not found');
+	}
+
+	// Normalize the URI (remove trailing slash)
+	const normalizedUri = redirectUri.replace(/\/$/, '');
+
+	// Check if already in list
+	if (client.allowedRedirectUris.includes(normalizedUri)) {
+		return client;
+	}
+
+	const [updated] = await db
+		.update(oauthClients)
+		.set({
+			allowedRedirectUris: [...client.allowedRedirectUris, normalizedUri]
+		})
+		.where(eq(oauthClients.clientId, clientId))
+		.returning();
+
+	return updated;
+}
+
+/**
+ * Validate that a redirect URI is allowed for a client
+ * @param client OAuth client
+ * @param redirectUri Redirect URI to validate
+ * @returns True if redirect URI is allowed
+ */
+export function validateRedirectUri(client: OAuthClient, redirectUri: string): boolean {
+	// Normalize the URI (remove trailing slash)
+	const normalizedUri = redirectUri.replace(/\/$/, '');
+
+	// Exact match required per OAuth 2.0 spec
+	return client.allowedRedirectUris.includes(normalizedUri);
+}
+
+/**
  * Check if user has authorized a client
  * @param userId User ID
  * @param clientId Client ID

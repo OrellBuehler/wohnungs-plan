@@ -11,6 +11,9 @@
 	// Track which field was just copied
 	let copiedField: 'clientId' | 'clientSecret' | 'serverUrl' | null = $state(null);
 
+	// Track new redirect URI input
+	let newRedirectUri = $state('');
+
 	// Get the active client secret (from form action result or initial load)
 	let activeClientSecret = $derived(form?.clientSecret || data.clientSecret);
 
@@ -167,6 +170,59 @@
 						</form>
 					</div>
 				</div>
+			</Card.Content>
+		</Card.Root>
+
+		<!-- Allowed Redirect URIs Card -->
+		<Card.Root>
+			<Card.Header>
+				<Card.Title>Allowed Redirect URIs</Card.Title>
+				<Card.Description>
+					Register the callback URLs that your MCP clients use. The OAuth authorization flow will only redirect to these URIs.
+				</Card.Description>
+			</Card.Header>
+
+			<Card.Content class="space-y-4">
+				<!-- Add New Redirect URI -->
+				<form method="POST" action="?/addRedirectUri" use:enhance class="flex gap-2">
+					<Input
+						type="url"
+						name="redirectUri"
+						placeholder="https://your-app.com/callback"
+						bind:value={newRedirectUri}
+						class="flex-1"
+					/>
+					<Button type="submit" variant="outline" disabled={!newRedirectUri}>
+						Add
+					</Button>
+				</form>
+
+				<!-- List of Registered URIs -->
+				{#if data.allowedRedirectUris && data.allowedRedirectUris.length > 0}
+					<div class="space-y-2">
+						<Label>Registered URIs</Label>
+						<ul class="space-y-2">
+							{#each data.allowedRedirectUris as uri}
+								<li class="flex items-center justify-between rounded-md border bg-slate-50 px-3 py-2">
+									<code class="text-sm font-mono truncate flex-1">{uri}</code>
+									<form method="POST" action="?/removeRedirectUri" use:enhance class="ml-2">
+										<input type="hidden" name="redirectUri" value={uri} />
+										<Button type="submit" variant="ghost" size="sm" class="text-red-600 hover:text-red-700 hover:bg-red-50">
+											Remove
+										</Button>
+									</form>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{:else}
+					<div class="rounded-md bg-amber-50 border border-amber-200 p-4">
+						<p class="text-sm text-amber-700">
+							No redirect URIs registered. You must add at least one redirect URI before using OAuth.
+							For Claude.ai, add your callback URL (e.g., https://claude.ai/oauth/callback).
+						</p>
+					</div>
+				{/if}
 			</Card.Content>
 		</Card.Root>
 
