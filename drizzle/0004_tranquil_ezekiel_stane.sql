@@ -1,0 +1,2 @@
+ALTER TABLE "oauth_authorization_codes" DROP CONSTRAINT "oauth_codes_method_check";--> statement-breakpoint
+ALTER TABLE "oauth_authorization_codes" ADD CONSTRAINT "oauth_codes_method_check" CHECK (code_challenge_method = 'S256');

@@ -63,9 +63,9 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 		return new Response('Invalid response_type. Must be "code"', { status: 400 });
 	}
 
-	// Validate code_challenge_method
-	if (codeChallengeMethod !== 'S256' && codeChallengeMethod !== 'plain') {
-		return new Response('Invalid code_challenge_method. Must be "S256" or "plain"', {
+	// Validate code_challenge_method - only S256 is allowed for security
+	if (codeChallengeMethod !== 'S256') {
+		return new Response('Invalid code_challenge_method. Must be "S256"', {
 			status: 400
 		});
 	}
@@ -130,8 +130,7 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 		userId,
 		clientId,
 		redirectUri,
-		codeChallenge,
-		codeChallengeMethod as 'S256' | 'plain'
+		codeChallenge
 	);
 
 	// Build redirect URL with authorization code

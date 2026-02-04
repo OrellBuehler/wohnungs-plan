@@ -65,21 +65,12 @@ export function verifyToken(token: string, hash: string): boolean {
 }
 
 /**
- * Verify PKCE code challenge
+ * Verify PKCE code challenge (S256 only for security)
  * @param codeVerifier The code verifier sent by the client
  * @param codeChallenge The code challenge stored during authorization
- * @param method The challenge method ('plain' or 'S256')
  * @returns True if verification succeeds
  */
-export function verifyPKCE(
-	codeVerifier: string,
-	codeChallenge: string,
-	method: 'plain' | 'S256'
-): boolean {
-	if (method === 'plain') {
-		return codeVerifier === codeChallenge;
-	}
-
+export function verifyPKCE(codeVerifier: string, codeChallenge: string): boolean {
 	// S256: BASE64URL(SHA256(ASCII(code_verifier)))
 	const hash = createHash('sha256').update(codeVerifier).digest('base64url');
 	return hash === codeChallenge;
@@ -301,15 +292,13 @@ export async function createAuthorization(
  * @param clientId Client ID
  * @param redirectUri Redirect URI
  * @param codeChallenge PKCE code challenge
- * @param codeChallengeMethod PKCE code challenge method ('S256' or 'plain')
  * @returns Authorization code (plaintext)
  */
 export async function createAuthorizationCode(
 	userId: string,
 	clientId: string,
 	redirectUri: string,
-	codeChallenge: string,
-	codeChallengeMethod: 'S256' | 'plain'
+	codeChallenge: string
 ): Promise<string> {
 	const db = getDB();
 
@@ -325,7 +314,7 @@ export async function createAuthorizationCode(
 		userId,
 		redirectUri,
 		codeChallenge,
-		codeChallengeMethod,
+		codeChallengeMethod: 'S256', // Only S256 is allowed for security
 		expiresAt
 	};
 
@@ -379,12 +368,8 @@ export async function consumeAuthorizationCode(
 		return undefined;
 	}
 
-	// Verify PKCE code challenge
-	const pkceValid = verifyPKCE(
-		codeVerifier,
-		authCode.codeChallenge,
-		authCode.codeChallengeMethod as 'plain' | 'S256'
-	);
+	// Verify PKCE code challenge (S256 only)
+	const pkceValid = verifyPKCE(codeVerifier, authCode.codeChallenge);
 
 	if (!pkceValid) {
 		return undefined;

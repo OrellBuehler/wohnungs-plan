@@ -233,7 +233,7 @@ export const oauthAuthorizationCodes = pgTable(
 	(table) => [
 		index('idx_oauth_codes_client_id').on(table.clientId),
 		index('idx_oauth_codes_expires_at').on(table.expiresAt),
-		check('oauth_codes_method_check', sql`code_challenge_method IN ('S256', 'plain')`)
+		check('oauth_codes_method_check', sql`code_challenge_method = 'S256'`)
 	]
 );
 

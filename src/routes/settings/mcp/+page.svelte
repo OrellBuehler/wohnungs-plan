@@ -77,7 +77,7 @@
 						<Button
 							variant="outline"
 							size="sm"
-							onclick={() => copyToClipboard(data.serverUrl, 'serverUrl')}
+							onclick={() => data.serverUrl && copyToClipboard(data.serverUrl, 'serverUrl')}
 						>
 							{copiedField === 'serverUrl' ? 'Copied!' : 'Copy'}
 						</Button>
@@ -98,7 +98,7 @@
 						<Button
 							variant="outline"
 							size="sm"
-							onclick={() => copyToClipboard(data.clientId, 'clientId')}
+							onclick={() => data.clientId && copyToClipboard(data.clientId, 'clientId')}
 						>
 							{copiedField === 'clientId' ? 'Copied!' : 'Copy'}
 						</Button>

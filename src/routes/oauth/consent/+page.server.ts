@@ -106,8 +106,7 @@ export const actions = {
 				userId,
 				clientId,
 				redirectUri,
-				codeChallenge,
-				codeChallengeMethod as 'S256' | 'plain'
+				codeChallenge
 			);
 
 			// Build redirect URL with authorization code
