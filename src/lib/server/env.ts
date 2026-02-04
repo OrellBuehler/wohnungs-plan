@@ -18,5 +18,6 @@ export const config = {
 	uploads: {
 		dir: env.UPLOAD_DIR ?? './uploads',
 		maxImageSize: Number.parseInt(env.MAX_IMAGE_SIZE_BYTES ?? '5242880', 10)
-	}
+	},
+	publicUrl: env.PUBLIC_URL ?? ''
 };
