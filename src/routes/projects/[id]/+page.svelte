@@ -361,6 +361,32 @@
 		selectedItemId = null;
 	}
 
+	function handleItemBottomSheetRotate(id: string, direction: 'cw' | 'ccw') {
+		const item = items.find(i => i.id === id);
+		if (item) {
+			const delta = direction === 'cw' ? 90 : -90;
+			handleItemRotate(id, (item.rotation + delta + 360) % 360);
+		}
+	}
+
+	function handleItemBottomSheetDelete(id: string) {
+		handleDeleteItem(id);
+	}
+
+	function handleItemBottomSheetDuplicate(id: string) {
+		handleDuplicateItem(id);
+		showItemBottomSheet = false;
+	}
+
+	function handleItemBottomSheetPlace(id: string) {
+		handlePlaceItem(id);
+		showItemBottomSheet = false;
+	}
+
+	function handleItemBottomSheetUnplace(id: string) {
+		handleUnplaceItem(id);
+	}
+
 	// Canvas actions
 	function handleItemSelect(id: string | null) {
 		selectedItemId = id;
@@ -558,6 +584,11 @@
 		item={items.find((i) => i.id === selectedItemId) ?? null}
 		onEdit={handleItemBottomSheetEdit}
 		onClose={handleItemBottomSheetClose}
+		onRotate={handleItemBottomSheetRotate}
+		onDelete={handleItemBottomSheetDelete}
+		onDuplicate={handleItemBottomSheetDuplicate}
+		onPlace={handleItemBottomSheetPlace}
+		onUnplace={handleItemBottomSheetUnplace}
 	/>
 {:else}
 	<!-- Loading skeleton -->
