@@ -23,13 +23,13 @@
 </script>
 
 <Sheet.Root bind:open>
-	<Sheet.Content side="bottom" class="h-[40vh]">
+	<Sheet.Content side="bottom" class="max-h-[60vh]">
 		{#if item}
 			<Sheet.Header>
 				<Sheet.Title class="text-xl font-bold">{item.name}</Sheet.Title>
 			</Sheet.Header>
 
-			<div class="py-4 space-y-4">
+			<div class="py-4 space-y-4 overflow-y-auto flex-1">
 				<!-- Price -->
 				<div>
 					<p class="text-sm text-slate-500">Price</p>
