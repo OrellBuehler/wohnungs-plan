@@ -13,7 +13,7 @@
     gridSize: number;
     showGrid: boolean;
     snapToGrid: boolean;
-    readonly?: boolean;
+    mobileMode?: boolean;
     viewportCenter?: { x: number; y: number };
     onItemSelect: (id: string | null) => void;
     onItemMove: (id: string, x: number, y: number) => void;
@@ -29,7 +29,7 @@
     gridSize = 50,
     showGrid = true,
     snapToGrid = true,
-    readonly = false,
+    mobileMode = false,
     viewportCenter = $bindable({ x: 100, y: 100 }),
     onItemSelect,
     onItemMove,
@@ -59,6 +59,14 @@
   let lastPinchDistance = $state(0);
   let lastPinchCenter = $state<{ x: number; y: number } | null>(null);
   let isPinching = $state(false);
+
+  // Long-press state for mobile item dragging
+  let longPressTimer = $state<ReturnType<typeof setTimeout> | null>(null);
+  let longPressItemId = $state<string | null>(null);
+  let isLongPressDragging = $state(false);
+  let longPressStartPoint = $state<{ x: number; y: number } | null>(null);
+  const LONG_PRESS_DURATION = 300; // ms
+  const LONG_PRESS_MOVE_THRESHOLD = 10; // px - cancel if finger moves too much
 
   // Alignment guides state
   let alignmentGuides = $state<{ type: 'h' | 'v'; pos: number }[]>([]);
@@ -96,13 +104,13 @@
 
   // Font sizes that scale with zoom level and respect browser font preferences
   const itemNameFontSize = $derived(
-    remToPx(BASE_ITEM_NAME_REM) * (readonly ? MOBILE_SCALE_FACTOR : 1) * zoom
+    remToPx(BASE_ITEM_NAME_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) * zoom
   );
   const itemDimensionsFontSize = $derived(
-    remToPx(BASE_ITEM_DIMENSIONS_REM) * (readonly ? MOBILE_SCALE_FACTOR : 1) * zoom
+    remToPx(BASE_ITEM_DIMENSIONS_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) * zoom
   );
   const distanceLabelFontSize = $derived(
-    remToPx(BASE_DISTANCE_LABEL_REM) * (readonly ? MOBILE_SCALE_FACTOR : 1) * zoom
+    remToPx(BASE_DISTANCE_LABEL_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) * zoom
   );
 
   // Update viewport center for item placement (in natural image coordinates)
@@ -397,6 +405,7 @@
     if (pointers.size === 2) {
       isPinching = true;
       isPanning = false;
+      cancelLongPress();
 
       const [p1, p2] = Array.from(pointers.values());
       const distance = Math.sqrt(
@@ -407,9 +416,32 @@
         x: (p1.x + p2.x) / 2,
         y: (p1.y + p2.y) / 2
       };
-    } else if (pointers.size === 1 && !readonly) {
-      // Single touch - could be pan or item interaction
-      // Let Konva handle item dragging
+    } else if (pointers.size === 1 && mobileMode) {
+      // Check if touch landed on an item - start long-press timer
+      const stageNode = stageRef?.node;
+      if (stageNode) {
+        const pos = stageNode.getPointerPosition();
+        if (pos) {
+          const shape = stageNode.getIntersection(pos);
+          if (shape) {
+            // Walk up to find the Group (item container)
+            let node: Konva.Node | null = shape;
+            while (node && node.getClassName() !== 'Group') {
+              node = node.parent;
+            }
+            if (node && node.getClassName() === 'Group') {
+              // Find which item this group belongs to
+              const itemId = placedItems.find(item => {
+                const displayPos = naturalToDisplay(item.position!.x, item.position!.y);
+                return Math.abs(node!.x() - displayPos.x) < 1 && Math.abs(node!.y() - displayPos.y) < 1;
+              })?.id;
+              if (itemId) {
+                startLongPressTimer(itemId, point.x, point.y);
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -457,18 +489,46 @@
 
       lastPinchDistance = distance;
       lastPinchCenter = center;
-    } else if (pointers.size === 1 && !isPinching && !readonly) {
-      // Single finger pan (only if not dragging an item)
-      const isDraggingItem = draggingItemId !== null;
-      if (!isDraggingItem) {
+    } else if (pointers.size === 1 && !isPinching) {
+      // Check if long-press should be cancelled (finger moved too far before triggering)
+      if (longPressStartPoint && !isLongPressDragging) {
         const currentPoint = Array.from(pointers.values())[0];
-        if (lastPanPoint) {
-          const dx = currentPoint.x - lastPanPoint.x;
-          const dy = currentPoint.y - lastPanPoint.y;
-          panX += dx;
-          panY += dy;
+        const dx = currentPoint.x - longPressStartPoint.x;
+        const dy = currentPoint.y - longPressStartPoint.y;
+        if (Math.sqrt(dx * dx + dy * dy) > LONG_PRESS_MOVE_THRESHOLD) {
+          cancelLongPress();
         }
-        lastPanPoint = currentPoint;
+      }
+
+      if (isLongPressDragging && longPressItemId) {
+        // Move item with finger
+        const point = Array.from(pointers.values())[0];
+        const rect = containerEl.getBoundingClientRect();
+        const canvasX = (point.x - rect.left - panX) / zoom;
+        const canvasY = (point.y - rect.top - panY) / zoom;
+        // Center item on finger
+        const item = items.find(i => i.id === longPressItemId);
+        if (item) {
+          const itemW = cmToPixels(item.width);
+          const itemH = cmToPixels(item.height);
+          const displayX = snapValue(canvasX - itemW / 2);
+          const displayY = snapValue(canvasY - itemH / 2);
+          const natural = displayToNatural(displayX, displayY);
+          onItemMove(longPressItemId, natural.x, natural.y);
+        }
+      } else if (!mobileMode || !longPressStartPoint) {
+        // Pan (only when not in long-press detection on mobile)
+        const isDraggingItem = draggingItemId !== null;
+        if (!isDraggingItem) {
+          const currentPoint = Array.from(pointers.values())[0];
+          if (lastPanPoint) {
+            const dx = currentPoint.x - lastPanPoint.x;
+            const dy = currentPoint.y - lastPanPoint.y;
+            panX += dx;
+            panY += dy;
+          }
+          lastPanPoint = currentPoint;
+        }
       }
     }
   }
@@ -477,6 +537,12 @@
     if (e.pointerType === 'mouse') return;
 
     pointers.delete(e.pointerId);
+
+    // End long-press drag
+    if (isLongPressDragging) {
+      endLongPressDrag();
+    }
+    cancelLongPress();
 
     // Reset pinch state if we no longer have 2 fingers
     if (pointers.size < 2) {
@@ -489,6 +555,31 @@
     if (pointers.size === 0) {
       lastPanPoint = null;
     }
+  }
+
+  function startLongPressTimer(itemId: string, x: number, y: number) {
+    cancelLongPress();
+    longPressStartPoint = { x, y };
+    longPressTimer = setTimeout(() => {
+      longPressItemId = itemId;
+      isLongPressDragging = true;
+      // Haptic feedback if available
+      if (navigator.vibrate) navigator.vibrate(50);
+    }, LONG_PRESS_DURATION);
+  }
+
+  function cancelLongPress() {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    longPressStartPoint = null;
+  }
+
+  function endLongPressDrag() {
+    isLongPressDragging = false;
+    longPressItemId = null;
+    cancelLongPress();
   }
 
   // Pan functions
@@ -737,12 +828,12 @@
           x={displayPos.x}
           y={displayPos.y}
           rotation={item.rotation}
-          draggable={!readonly}
+          draggable={!mobileMode}
           onpointerclick={() => onItemSelect(item.id)}
-          oncontextmenu={readonly ? undefined : (e) => handleItemContextMenu(item.id, e)}
-          ondragstart={readonly ? undefined : () => handleDragStart(item.id)}
-          ondragmove={readonly ? undefined : (e) => handleDragMove(item.id, e)}
-          ondragend={readonly ? undefined : (e) => handleDragEnd(item.id, e)}
+          oncontextmenu={mobileMode ? undefined : (e) => handleItemContextMenu(item.id, e)}
+          ondragstart={mobileMode ? undefined : () => handleDragStart(item.id)}
+          ondragmove={mobileMode ? undefined : (e) => handleDragMove(item.id, e)}
+          ondragend={mobileMode ? undefined : (e) => handleDragEnd(item.id, e)}
         >
           {#if item.shape === 'l-shape'}
             <Line
@@ -755,8 +846,8 @@
               shadowOpacity={0.3}
               shadowOffsetX={4}
               shadowOffsetY={4}
-              stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
-              strokeWidth={2}
+              stroke={longPressItemId === item.id ? '#3B82F6' : (selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent'))}
+              strokeWidth={longPressItemId === item.id ? 3 : 2}
             />
           {:else}
             <Rect
@@ -769,8 +860,8 @@
               shadowOpacity={0.3}
               shadowOffsetX={4}
               shadowOffsetY={4}
-              stroke={selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent')}
-              strokeWidth={2}
+              stroke={longPressItemId === item.id ? '#3B82F6' : (selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent'))}
+              strokeWidth={longPressItemId === item.id ? 3 : 2}
               cornerRadius={2}
             />
           {/if}

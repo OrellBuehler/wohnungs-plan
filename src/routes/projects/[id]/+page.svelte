@@ -528,7 +528,7 @@
 						{gridSize}
 						{showGrid}
 						{snapToGrid}
-						readonly={isMobile}
+						mobileMode={isMobile}
 						bind:viewportCenter={canvasViewportCenter}
 						onItemSelect={isMobile ? handleItemTap : handleItemSelect}
 						onItemMove={handleItemMove}
