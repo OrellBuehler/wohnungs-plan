@@ -85,6 +85,20 @@
 	// Mobile detection state
 	let isMobile = $state(false);
 
+	// Pull-to-refresh state
+	let isRefreshing = $state(false);
+
+	async function refreshProject() {
+		if (isRefreshing || isLocalProject || !projectId) return;
+		isRefreshing = true;
+		try {
+			const loaded = await loadProjectById(projectId);
+			if (loaded) setProject(loaded);
+		} finally {
+			isRefreshing = false;
+		}
+	}
+
 	// Swipe detection for tab switching
 	let swipeStartX = $state(0);
 	let swipeStartY = $state(0);
@@ -513,6 +527,12 @@
 				<DropdownMenu.Content>
 					<DropdownMenu.Item onclick={handleExport}>Export JSON</DropdownMenu.Item>
 					<DropdownMenu.Item onclick={handleImport}>Import JSON</DropdownMenu.Item>
+					{#if !isLocalProject}
+						<DropdownMenu.Separator />
+						<DropdownMenu.Item onclick={refreshProject}>
+							{isRefreshing ? 'Refreshing...' : 'Refresh'}
+						</DropdownMenu.Item>
+					{/if}
 					{#if project.floorplan && isMobile}
 						<DropdownMenu.Separator />
 						<DropdownMenu.Item onclick={handleRecalibrate}>Recalibrate Scale</DropdownMenu.Item>
@@ -585,6 +605,15 @@
 			ontouchstart={handleSwipeStart}
 			ontouchend={handleSwipeEnd}
 		>
+			{#if isRefreshing}
+				<div class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-slate-500">
+					<svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+					</svg>
+					Refreshing...
+				</div>
+			{/if}
 			<ItemList
 				{items}
 				{selectedItemId}
