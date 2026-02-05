@@ -560,7 +560,24 @@
 		onClose={handleItemBottomSheetClose}
 	/>
 {:else}
-	<div class="flex-1 flex items-center justify-center">
-		<p class="text-slate-500">Loading...</p>
+	<!-- Loading skeleton -->
+	<div class="flex flex-col h-full">
+		<!-- Header skeleton -->
+		<header class="min-h-14 bg-white border-b border-slate-200 flex items-center px-4 py-3 gap-2">
+			<div class="w-8 h-8 rounded bg-slate-200 animate-pulse"></div>
+			<div class="w-px h-6 bg-slate-200"></div>
+			<div class="h-6 w-40 rounded bg-slate-200 animate-pulse"></div>
+			<div class="flex-1"></div>
+			<div class="h-8 w-20 rounded bg-slate-200 animate-pulse"></div>
+		</header>
+		<!-- Canvas skeleton -->
+		<main class="flex-1 flex flex-col md:flex-row overflow-hidden">
+			<div class="flex-1 m-2 md:m-4 rounded-lg bg-slate-200 animate-pulse"></div>
+			<aside class="hidden md:flex w-80 flex-col bg-white border-l border-slate-200 p-4 gap-3">
+				{#each Array(4) as _}
+					<div class="h-20 rounded bg-slate-200 animate-pulse"></div>
+				{/each}
+			</aside>
+		</main>
 	</div>
 {/if}
