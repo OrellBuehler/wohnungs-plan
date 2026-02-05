@@ -85,6 +85,34 @@
 	// Mobile detection state
 	let isMobile = $state(false);
 
+	// Swipe detection for tab switching
+	let swipeStartX = $state(0);
+	let swipeStartY = $state(0);
+	const SWIPE_THRESHOLD = 80; // px minimum swipe distance
+	const SWIPE_MAX_Y = 50; // px max vertical movement (prevent diagonal swipes)
+
+	function handleSwipeStart(e: TouchEvent) {
+		if (!isMobile) return;
+		const touch = e.touches[0];
+		swipeStartX = touch.clientX;
+		swipeStartY = touch.clientY;
+	}
+
+	function handleSwipeEnd(e: TouchEvent) {
+		if (!isMobile) return;
+		const touch = e.changedTouches[0];
+		const dx = touch.clientX - swipeStartX;
+		const dy = Math.abs(touch.clientY - swipeStartY);
+
+		if (dy > SWIPE_MAX_Y) return; // Too much vertical movement
+
+		if (dx < -SWIPE_THRESHOLD && activeTab === 'plan') {
+			activeTab = 'items';
+		} else if (dx > SWIPE_THRESHOLD && activeTab === 'items') {
+			activeTab = 'plan';
+		}
+	}
+
 	// Reactive project data
 	const project = $derived(getProject());
 	const items = $derived(getItems());
@@ -554,6 +582,8 @@
 
 		<aside
 			class="w-full md:w-80 min-h-0 {activeTab === 'items' ? 'flex' : 'hidden'} md:flex flex-col bg-white border-l border-slate-200"
+			ontouchstart={handleSwipeStart}
+			ontouchend={handleSwipeEnd}
 		>
 			<ItemList
 				{items}
