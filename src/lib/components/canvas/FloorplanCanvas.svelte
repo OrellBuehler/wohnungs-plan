@@ -68,6 +68,15 @@
   const LONG_PRESS_DURATION = 300; // ms
   const LONG_PRESS_MOVE_THRESHOLD = 10; // px - cancel if finger moves too much
 
+  // Clean up long-press timer on component unmount
+  $effect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+    };
+  });
+
   // Alignment guides state
   let alignmentGuides = $state<{ type: 'h' | 'v'; pos: number }[]>([]);
   let draggingItemId = $state<string | null>(null);
@@ -430,12 +439,10 @@
               node = node.parent;
             }
             if (node && node.getClassName() === 'Group') {
-              // Find which item this group belongs to
-              const itemId = placedItems.find(item => {
-                const displayPos = naturalToDisplay(item.position!.x, item.position!.y);
-                return Math.abs(node!.x() - displayPos.x) < 1 && Math.abs(node!.y() - displayPos.y) < 1;
-              })?.id;
-              if (itemId) {
+              // Extract item ID from the Group's name attribute (set as "item-{id}")
+              const groupName = node.name();
+              if (groupName?.startsWith('item-')) {
+                const itemId = groupName.slice(5);
                 startLongPressTimer(itemId, point.x, point.y);
               }
             }
@@ -513,6 +520,8 @@
           const itemH = cmToPixels(item.height);
           const displayX = snapValue(canvasX - itemW / 2);
           const displayY = snapValue(canvasY - itemH / 2);
+          // Update drag position for distance indicators
+          dragPosition = { x: displayX, y: displayY };
           const natural = displayToNatural(displayX, displayY);
           onItemMove(longPressItemId, natural.x, natural.y);
         }
@@ -563,6 +572,7 @@
     longPressTimer = setTimeout(() => {
       longPressItemId = itemId;
       isLongPressDragging = true;
+      draggingItemId = itemId; // Enable distance indicators during drag
       // Haptic feedback if available
       if (navigator.vibrate) navigator.vibrate(50);
     }, LONG_PRESS_DURATION);
@@ -579,6 +589,9 @@
   function endLongPressDrag() {
     isLongPressDragging = false;
     longPressItemId = null;
+    draggingItemId = null;
+    dragPosition = null;
+    alignmentGuides = [];
     cancelLongPress();
   }
 
@@ -829,6 +842,7 @@
           y={displayPos.y}
           rotation={item.rotation}
           draggable={!mobileMode}
+          config={{ name: `item-${item.id}` }}
           onpointerclick={() => onItemSelect(item.id)}
           oncontextmenu={mobileMode ? undefined : (e) => handleItemContextMenu(item.id, e)}
           ondragstart={mobileMode ? undefined : () => handleDragStart(item.id)}
