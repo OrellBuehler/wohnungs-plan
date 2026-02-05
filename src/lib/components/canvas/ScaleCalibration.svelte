@@ -36,6 +36,14 @@
   let mouseDownPoint = $state<{ x: number; y: number } | null>(null);
   let hasDragged = $state(false);
 
+  // Touch gesture state
+  let pointers = $state(new Map<number, { x: number; y: number }>());
+  let lastPinchDistance = $state(0);
+  let lastPinchCenter = $state<{ x: number; y: number } | null>(null);
+  let isPinching = $state(false);
+  let touchStartPoint = $state<{ x: number; y: number } | null>(null);
+  let touchHasDragged = $state(false);
+
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 8;
   const ZOOM_STEP = 0.1;
@@ -244,6 +252,93 @@
     e.preventDefault();
   }
 
+  function handlePointerDown(e: PointerEvent) {
+    if (e.pointerType === 'mouse') return;
+
+    const point = { x: e.clientX, y: e.clientY };
+    pointers.set(e.pointerId, point);
+
+    if (pointers.size === 2) {
+      isPinching = true;
+      touchHasDragged = true; // Prevent point placement during pinch
+      const [p1, p2] = Array.from(pointers.values());
+      lastPinchDistance = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+      lastPinchCenter = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+    } else if (pointers.size === 1) {
+      touchStartPoint = point;
+      touchHasDragged = false;
+    }
+  }
+
+  function handlePointerMove(e: PointerEvent) {
+    if (e.pointerType === 'mouse') return;
+
+    const currentPointer = pointers.get(e.pointerId);
+    if (!currentPointer) return;
+
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointers.size === 2 && isPinching) {
+      e.preventDefault();
+      const [p1, p2] = Array.from(pointers.values());
+      const distance = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+      const center = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+
+      if (lastPinchDistance > 0 && lastPinchCenter) {
+        const scale = distance / lastPinchDistance;
+        const oldZoom = zoom;
+        const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * scale));
+        const pinchPointTo = {
+          x: (lastPinchCenter.x - panX) / oldZoom,
+          y: (lastPinchCenter.y - panY) / oldZoom,
+        };
+        zoom = newZoom;
+        panX = center.x - pinchPointTo.x * newZoom;
+        panY = center.y - pinchPointTo.y * newZoom;
+      }
+
+      lastPinchDistance = distance;
+      lastPinchCenter = center;
+    } else if (pointers.size === 1 && !isPinching) {
+      // Single finger - check for drag
+      if (touchStartPoint) {
+        const dx = Math.abs(e.clientX - touchStartPoint.x);
+        const dy = Math.abs(e.clientY - touchStartPoint.y);
+        if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+          touchHasDragged = true;
+        }
+      }
+      // Pan with single finger
+      if (touchHasDragged) {
+        const prev = currentPointer;
+        panX += e.clientX - prev.x;
+        panY += e.clientY - prev.y;
+      }
+    }
+  }
+
+  function handlePointerUp(e: PointerEvent) {
+    if (e.pointerType === 'mouse') return;
+
+    pointers.delete(e.pointerId);
+
+    if (pointers.size < 2) {
+      isPinching = false;
+      lastPinchDistance = 0;
+      lastPinchCenter = null;
+    }
+
+    // If single finger and didn't drag, place a point
+    if (pointers.size === 0 && !touchHasDragged && !isPinching) {
+      placePoint();
+    }
+
+    if (pointers.size === 0) {
+      touchStartPoint = null;
+      touchHasDragged = false;
+    }
+  }
+
   function handleConfirm() {
     if (scale > 0) {
       onCalibrate(scale, referenceLength);
@@ -255,8 +350,9 @@
   <div class="p-4 bg-blue-600 text-white">
     <h2 class="font-semibold mb-1">Set Scale</h2>
     <p class="text-sm text-blue-100">
-      Click two points to draw a reference line, then enter its real-world length.
-      <strong>Scroll to zoom, drag to pan.</strong>
+      Tap two points to draw a reference line, then enter its real-world length.
+      <span class="hidden md:inline"><strong>Scroll to zoom, drag to pan.</strong></span>
+      <span class="md:hidden"><strong>Pinch to zoom, drag to pan.</strong></span>
     </p>
   </div>
 
@@ -265,6 +361,11 @@
     class="flex-1 bg-slate-900 relative cursor-crosshair"
     onwheel={handleWheel}
     oncontextmenu={handleContextMenu}
+    onpointerdown={handlePointerDown}
+    onpointermove={handlePointerMove}
+    onpointerup={handlePointerUp}
+    onpointercancel={handlePointerUp}
+    style="touch-action: none;"
     role="application"
   >
     <Stage
@@ -292,11 +393,11 @@
         {/if}
 
         {#if point1}
-          <Circle x={point1.x} y={point1.y} radius={8 / zoom} fill="#60A5FA" stroke="#fff" strokeWidth={2 / zoom} />
+          <Circle x={point1.x} y={point1.y} radius={12 / zoom} fill="#60A5FA" stroke="#fff" strokeWidth={2 / zoom} />
         {/if}
 
         {#if point2}
-          <Circle x={point2.x} y={point2.y} radius={8 / zoom} fill="#60A5FA" stroke="#fff" strokeWidth={2 / zoom} />
+          <Circle x={point2.x} y={point2.y} radius={12 / zoom} fill="#60A5FA" stroke="#fff" strokeWidth={2 / zoom} />
         {/if}
 
         {#if point1 && point2}
@@ -354,7 +455,7 @@
   </div>
 
   <div class="p-4 bg-white border-t border-slate-200">
-    <div class="flex items-end gap-4">
+    <div class="flex flex-col md:flex-row md:items-end gap-3 md:gap-4">
       <div class="flex-1">
         <Label for="length">Reference Length (cm)</Label>
         <Input
@@ -372,8 +473,10 @@
           Draw a reference line
         {/if}
       </div>
-      <Button variant="outline" onclick={onCancel}>Cancel</Button>
-      <Button onclick={handleConfirm} disabled={scale === 0}>Confirm Scale</Button>
+      <div class="flex gap-2">
+        <Button variant="outline" onclick={onCancel} class="flex-1 md:flex-initial min-h-[44px]">Cancel</Button>
+        <Button onclick={handleConfirm} disabled={scale === 0} class="flex-1 md:flex-initial min-h-[44px]">Confirm Scale</Button>
+      </div>
     </div>
   </div>
 </div>
