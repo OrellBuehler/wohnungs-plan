@@ -115,24 +115,24 @@
     {#if isSelected}
       <Separator class="my-3" />
       <div class="flex flex-wrap gap-2">
-        <Button size="sm" variant="outline" onclick={withStopPropagation(onEdit)}>
+        <Button size="sm" variant="outline" class="min-h-[44px]" onclick={withStopPropagation(onEdit)}>
           <Pencil size={14} class="mr-1" /> Edit
         </Button>
         {#if item.position && !readonly}
-          <Button size="sm" variant="outline" onclick={withStopPropagation(onUnplace)}>
+          <Button size="sm" variant="outline" class="min-h-[44px]" onclick={withStopPropagation(onUnplace)}>
             <MapPinOff size={14} class="mr-1" /> Unplace
           </Button>
         {:else if !readonly}
-          <Button size="sm" variant="outline" onclick={withStopPropagation(onPlace)}>
+          <Button size="sm" variant="outline" class="min-h-[44px]" onclick={withStopPropagation(onPlace)}>
             <MapPin size={14} class="mr-1" /> Place
           </Button>
         {/if}
         {#if !readonly}
-          <Button size="sm" variant="outline" onclick={withStopPropagation(onDuplicate)}>
+          <Button size="sm" variant="outline" class="min-h-[44px]" onclick={withStopPropagation(onDuplicate)}>
             <Copy size={14} class="mr-1" /> Duplicate
           </Button>
         {/if}
-        <Button size="sm" variant="destructive" onclick={withStopPropagation(onDelete)}>
+        <Button size="sm" variant="destructive" class="min-h-[44px]" onclick={withStopPropagation(onDelete)}>
           <Trash2 size={14} class="mr-1" /> Delete
         </Button>
       </div>
