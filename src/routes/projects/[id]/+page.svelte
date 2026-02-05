@@ -485,6 +485,18 @@
 				<DropdownMenu.Content>
 					<DropdownMenu.Item onclick={handleExport}>Export JSON</DropdownMenu.Item>
 					<DropdownMenu.Item onclick={handleImport}>Import JSON</DropdownMenu.Item>
+					{#if project.floorplan && isMobile}
+						<DropdownMenu.Separator />
+						<DropdownMenu.Item onclick={handleRecalibrate}>Recalibrate Scale</DropdownMenu.Item>
+						<DropdownMenu.Item onclick={handleChangeFloorplan}>Change Floorplan</DropdownMenu.Item>
+						<DropdownMenu.Separator />
+						<DropdownMenu.Item onclick={() => showGrid = !showGrid}>
+							{showGrid ? 'Hide Grid' : 'Show Grid'}
+						</DropdownMenu.Item>
+						<DropdownMenu.Item onclick={() => snapToGrid = !snapToGrid}>
+							{snapToGrid ? 'Disable Snap' : 'Enable Snap'}
+						</DropdownMenu.Item>
+					{/if}
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 		</div>
