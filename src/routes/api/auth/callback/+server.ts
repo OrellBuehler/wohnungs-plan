@@ -10,8 +10,12 @@ export const GET: RequestHandler = async ({ url, cookies, request }) => {
 	const state = url.searchParams.get('state');
 	const storedState = cookies.get('oauth_state');
 
-	// Clear the state cookie
+	// Get return URL if it was stored
+	const returnUrl = cookies.get('auth_return_url');
+
+	// Clear cookies
 	cookies.delete('oauth_state', { path: '/' });
+	cookies.delete('auth_return_url', { path: '/' });
 
 	// Validate state
 	if (!state || state !== storedState) {
@@ -45,10 +49,13 @@ export const GET: RequestHandler = async ({ url, cookies, request }) => {
 			secure: isSecureRequest(url, request.headers)
 		});
 
+		// Redirect to returnUrl if provided, otherwise to home
+		const redirectUrl = returnUrl || '/?login=success';
+
 		return new Response(null, {
 			status: 302,
 			headers: {
-				Location: '/?login=success',
+				Location: redirectUrl,
 				'Set-Cookie': cookie
 			}
 		});
