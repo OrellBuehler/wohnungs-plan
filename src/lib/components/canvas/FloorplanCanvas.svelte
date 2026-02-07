@@ -760,6 +760,7 @@
   });
   const gridVisible = $derived(shouldRenderGrid(showGrid, isInteractionActive));
   const itemShadowStyle = $derived(getItemShadowStyle(isInteractionActive));
+  const itemShadowsEnabled = $derived(itemShadowStyle.opacity > 0);
   const itemLayerListening = $derived.by(() =>
     shouldEnableItemLayerListening({
       isInteractionActive,
@@ -962,6 +963,9 @@
         {@const itemDimensions = itemDimensionsPxById.get(item.id)}
         {@const itemWidthPx = itemDimensions?.widthPx ?? item.width * effectiveScale}
         {@const itemHeightPx = itemDimensions?.heightPx ?? item.height * effectiveScale}
+        {@const showStroke = longPressItemId === item.id || selectedItemId === item.id || isOverlapping}
+        {@const strokeColor = longPressItemId === item.id ? '#3B82F6' : (selectedItemId === item.id ? '#60A5FA' : '#DC2626')}
+        {@const strokeWidth = longPressItemId === item.id ? 3 : 2}
         {@const displayPos = resolveItemDisplayPosition({
           itemId: item.id,
           naturalX: item.position!.x,
@@ -979,7 +983,7 @@
           x={displayPos.x}
           y={displayPos.y}
           rotation={item.rotation}
-          draggable={!mobileMode}
+          draggable={!mobileMode && itemLayerListening}
           config={{ name: `item-${item.id}` }}
           onpointerclick={() => onItemSelect(item.id)}
           oncontextmenu={mobileMode ? undefined : (e) => handleItemContextMenu(item.id, e)}
@@ -998,8 +1002,11 @@
               shadowOpacity={itemShadowStyle.opacity}
               shadowOffsetX={itemShadowStyle.offsetX}
               shadowOffsetY={itemShadowStyle.offsetY}
-              stroke={longPressItemId === item.id ? '#3B82F6' : (selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent'))}
-              strokeWidth={longPressItemId === item.id ? 3 : 2}
+              shadowEnabled={itemShadowsEnabled}
+              perfectDrawEnabled={false}
+              stroke={strokeColor}
+              strokeEnabled={showStroke}
+              strokeWidth={strokeWidth}
             />
           {:else}
             <Rect
@@ -1012,8 +1019,11 @@
               shadowOpacity={itemShadowStyle.opacity}
               shadowOffsetX={itemShadowStyle.offsetX}
               shadowOffsetY={itemShadowStyle.offsetY}
-              stroke={longPressItemId === item.id ? '#3B82F6' : (selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent'))}
-              strokeWidth={longPressItemId === item.id ? 3 : 2}
+              shadowEnabled={itemShadowsEnabled}
+              perfectDrawEnabled={false}
+              stroke={strokeColor}
+              strokeEnabled={showStroke}
+              strokeWidth={strokeWidth}
               cornerRadius={2}
             />
           {/if}
