@@ -24,5 +24,8 @@ uploads/
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# Exported project files
+kirchhaldenstrasse-*.json
+
 # Local git worktrees
 .worktrees/
