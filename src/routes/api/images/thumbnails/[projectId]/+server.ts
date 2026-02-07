@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { getFloorplanPath } from '$lib/server/floorplans';
 import { getProjectFloorplan, getProjectRole } from '$lib/server/projects';
+import { getShareLinkByToken, isShareLinkValid } from '$lib/server/share-links';
 
 function getThumbnailPath(projectId: string): string {
 	return join(config.uploads.dir, 'thumbnails', `${projectId}.png`);
@@ -49,8 +50,7 @@ async function readFloorplanFallback(projectId: string): Promise<ImageResponseDa
 			buffer,
 			contentType: floorplan.mimeType,
 			contentLength: fileStat.size,
-			cacheControl: 'private, max-age=0, must-revalidate',
-			vary: 'Cookie'
+			cacheControl: 'public, max-age=60'
 		};
 	} catch {
 		return null;
@@ -72,7 +72,7 @@ async function readDefaultOgImage(): Promise<ImageResponseData | null> {
 	}
 }
 
-export const GET: RequestHandler = async ({ params, request, locals }) => {
+export const GET: RequestHandler = async ({ params, request, locals, url }) => {
 	// Validate projectId format (UUID)
 	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 	if (!uuidRegex.test(params.projectId)) {
@@ -81,9 +81,26 @@ export const GET: RequestHandler = async ({ params, request, locals }) => {
 
 	let imageData = await readThumbnailImage(params.projectId);
 
-	if (!imageData && locals.user) {
-		const role = await getProjectRole(params.projectId, locals.user.id);
-		if (role) {
+	if (!imageData) {
+		// Try authenticated user first
+		let authorized = false;
+		if (locals.user) {
+			const role = await getProjectRole(params.projectId, locals.user.id);
+			if (role) authorized = true;
+		}
+
+		// Fall back to share token authorization
+		if (!authorized) {
+			const token = url.searchParams.get('token');
+			if (token) {
+				const link = await getShareLinkByToken(token);
+				if (link && isShareLinkValid(link) && link.projectId === params.projectId && !link.passwordHash) {
+					authorized = true;
+				}
+			}
+		}
+
+		if (authorized) {
 			imageData = await readFloorplanFallback(params.projectId);
 		}
 	}

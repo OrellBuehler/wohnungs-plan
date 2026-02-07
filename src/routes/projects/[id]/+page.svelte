@@ -29,6 +29,7 @@
 		getItems,
 		getBranches,
 		getActiveBranch,
+		getDefaultBranchId,
 		setActiveBranch as setProjectActiveBranch,
 		createProjectBranch,
 		renameProjectBranch,
@@ -164,7 +165,7 @@
 	const items = $derived(getItems());
 	const branches = $derived(getBranches());
 	const activeBranch = $derived(getActiveBranch());
-	const defaultBranchId = $derived(branches[0]?.id ?? null);
+	const defaultBranchId = $derived(getDefaultBranchId());
 	const displayCurrency = $derived(getCurrency());
 	const gridSize = $derived(getGridSize());
 

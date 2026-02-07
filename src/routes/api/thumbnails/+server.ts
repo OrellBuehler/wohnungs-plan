@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { config } from '$lib/server/env';
 import { getProjectById, getProjectRole } from '$lib/server/projects';
 import { ensureMainBranch, getDefaultBranch } from '$lib/server/branches';
+import { checkRateLimit } from '$lib/server/rate-limit';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -20,6 +21,10 @@ const pngDataUrlRegex = /^data:image\/png;base64,[a-z0-9+/=\s]+$/i;
 export const POST: RequestHandler = async ({ locals, request }) => {
 	if (!locals.user) {
 		throw error(401, 'Authentication required');
+	}
+
+	if (!checkRateLimit(`thumbnail:${locals.user.id}`)) {
+		throw error(429, 'Too many thumbnail uploads. Try again later.');
 	}
 
 	try {

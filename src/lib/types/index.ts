@@ -41,6 +41,7 @@ export interface Project {
   items: Item[];
   branches?: ProjectBranch[];
   activeBranchId?: string | null;
+  defaultBranchId?: string | null;
   currency: CurrencyCode;
   gridSize: number;          // Grid size in pixels
   isLocal?: boolean;         // true if stored only in IndexedDB

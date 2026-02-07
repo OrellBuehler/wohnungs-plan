@@ -165,7 +165,8 @@ function mapApiProject(
 	items: ApiItem[],
 	floorplan: ApiFloorplan | null,
 	branches: ApiBranch[] = [],
-	activeBranchId?: string
+	activeBranchId?: string,
+	defaultBranchId?: string
 ): Project {
 	return ensureProjectBranches({
 		id: project.id,
@@ -182,6 +183,7 @@ function mapApiProject(
 		items: items.map(mapApiItem),
 		branches: branches.map(mapApiBranch),
 		activeBranchId: activeBranchId ?? null,
+		defaultBranchId: defaultBranchId ?? null,
 		currency: project.currency as CurrencyCode,
 		gridSize: project.gridSize
 	});
@@ -273,6 +275,10 @@ export function setProject(project: Project | null) {
 
 export function getBranches(): ProjectBranch[] {
 	return currentProject?.branches ?? [];
+}
+
+export function getDefaultBranchId(): string | null {
+	return currentProject?.defaultBranchId ?? currentProject?.branches?.[0]?.id ?? null;
 }
 
 export function getActiveBranch(): ProjectBranch | null {
@@ -410,7 +416,8 @@ export async function loadProjectById(id: string, branchId?: string): Promise<Pr
 			data.items ?? [],
 			data.floorplan ?? null,
 			data.branches ?? [],
-			data.activeBranchId
+			data.activeBranchId,
+			data.defaultBranchId
 		);
 		project.isLocal = false;
 		await saveLocalProject(project);

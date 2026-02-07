@@ -6,10 +6,9 @@ import {
 	verifyShareAuthCookie
 } from '$lib/server/share-links';
 import { getProjectById } from '$lib/server/projects';
+import { config } from '$lib/server/env';
 
-const BASE_URL = 'https://floorplanner.orellbuehler.ch';
-
-export const load: PageServerLoad = async ({ params, cookies }) => {
+export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const link = await getShareLinkByToken(params.token);
 	if (!link || !isShareLinkValid(link)) {
 		return { error: 'invalid' as const };
@@ -32,13 +31,15 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		}
 	}
 
+	const baseUrl = config.publicUrl || url.origin;
+
 	return {
 		token: params.token,
 		seo: {
 			title: `${project.name} - Shared Floorplan`,
 			description: 'View a shared floor plan',
-			image: `${BASE_URL}/api/images/thumbnails/${link.projectId}`,
-			url: `${BASE_URL}/share/${params.token}`
+			image: `${baseUrl}/api/images/thumbnails/${link.projectId}?token=${encodeURIComponent(params.token)}`,
+			url: `${baseUrl}/share/${params.token}`
 		}
 	};
 };
