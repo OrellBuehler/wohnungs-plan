@@ -10,7 +10,12 @@
     selectNearestByDistance,
     type BoundingBox
   } from '$lib/utils/geometry';
-  import { getItemShadowStyle, shouldRenderGrid, shouldRenderItemLabels } from '$lib/utils/canvas-performance';
+  import {
+    getItemShadowStyle,
+    resolveItemDisplayPosition,
+    shouldRenderGrid,
+    shouldRenderItemLabels
+  } from '$lib/utils/canvas-performance';
   import {
     applyCoalescedPanAndZoom,
     clampZoom,
@@ -545,8 +550,6 @@
           const displayY = snapValue(canvasY - itemH / 2);
           // Update drag position for distance indicators
           dragPosition = { x: displayX, y: displayY };
-          const natural = displayToNatural(displayX, displayY);
-          onItemMove(longPressItemId, natural.x, natural.y);
         }
       } else if (!mobileMode || !longPressStartPoint) {
         // Pan (only when not in long-press detection on mobile)
@@ -611,6 +614,10 @@
   }
 
   function endLongPressDrag() {
+    if (longPressItemId && dragPosition) {
+      const natural = displayToNatural(dragPosition.x, dragPosition.y);
+      onItemMove(longPressItemId, natural.x, natural.y);
+    }
     isLongPressDragging = false;
     longPressItemId = null;
     draggingItemId = null;
@@ -921,7 +928,14 @@
         {@const isOverlapping = overlappingIds.has(item.id)}
         {@const itemWidthPx = cmToPixels(item.width)}
         {@const itemHeightPx = cmToPixels(item.height)}
-        {@const displayPos = naturalToDisplay(item.position!.x, item.position!.y)}
+        {@const displayPos = resolveItemDisplayPosition({
+          itemId: item.id,
+          naturalX: item.position!.x,
+          naturalY: item.position!.y,
+          draggingItemId,
+          dragPosition,
+          naturalToDisplay
+        })}
         {@const renderLabels = shouldRenderItemLabels({
           isInteractionActive,
           isSelected: selectedItemId === item.id,

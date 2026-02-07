@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   getItemShadowStyle,
+  resolveItemDisplayPosition,
   shouldRenderGrid,
   shouldRenderItemLabels,
 } from '$lib/utils/canvas-performance';
@@ -69,5 +70,33 @@ describe('getItemShadowStyle', () => {
       offsetX: 4,
       offsetY: 4,
     });
+  });
+});
+
+describe('resolveItemDisplayPosition', () => {
+  it('uses drag position for the actively dragged item', () => {
+    const pos = resolveItemDisplayPosition({
+      itemId: 'a',
+      naturalX: 20,
+      naturalY: 30,
+      draggingItemId: 'a',
+      dragPosition: { x: 300, y: 400 },
+      naturalToDisplay: (x, y) => ({ x: x * 2, y: y * 2 }),
+    });
+
+    expect(pos).toEqual({ x: 300, y: 400 });
+  });
+
+  it('uses transformed natural position for non-dragged items', () => {
+    const pos = resolveItemDisplayPosition({
+      itemId: 'b',
+      naturalX: 20,
+      naturalY: 30,
+      draggingItemId: 'a',
+      dragPosition: { x: 300, y: 400 },
+      naturalToDisplay: (x, y) => ({ x: x * 2, y: y * 2 }),
+    });
+
+    expect(pos).toEqual({ x: 40, y: 60 });
   });
 });

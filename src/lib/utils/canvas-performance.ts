@@ -11,6 +11,15 @@ export interface ItemShadowStyle {
   offsetY: number;
 }
 
+export interface ResolveItemDisplayPositionInput {
+  itemId: string;
+  naturalX: number;
+  naturalY: number;
+  draggingItemId: string | null;
+  dragPosition: { x: number; y: number } | null;
+  naturalToDisplay: (naturalX: number, naturalY: number) => { x: number; y: number };
+}
+
 export function shouldRenderGrid(showGrid: boolean, isInteractionActive: boolean): boolean {
   return showGrid && !isInteractionActive;
 }
@@ -36,4 +45,14 @@ export function getItemShadowStyle(isInteractionActive: boolean): ItemShadowStyl
     offsetX: 4,
     offsetY: 4,
   };
+}
+
+export function resolveItemDisplayPosition(
+  input: ResolveItemDisplayPositionInput
+): { x: number; y: number } {
+  if (input.draggingItemId === input.itemId && input.dragPosition) {
+    return input.dragPosition;
+  }
+
+  return input.naturalToDisplay(input.naturalX, input.naturalY);
 }
