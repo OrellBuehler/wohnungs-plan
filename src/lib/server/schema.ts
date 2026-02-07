@@ -207,6 +207,30 @@ export const projectInvites = pgTable(
 	]
 );
 
+// Public share links (anonymous read-only access)
+export const shareLinks = pgTable(
+	'share_links',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		projectId: uuid('project_id')
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
+		token: text('token').unique().notNull(),
+		label: text('label'),
+		passwordHash: text('password_hash'),
+		expiresAt: timestamp('expires_at', { withTimezone: true }),
+		createdBy: uuid('created_by')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		revokedAt: timestamp('revoked_at', { withTimezone: true }),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_share_links_token').on(table.token),
+		index('idx_share_links_project_id').on(table.projectId)
+	]
+);
+
 // OAuth Clients - per-user or dynamically registered (RFC 7591)
 export const oauthClients = pgTable(
 	'oauth_clients',
@@ -314,6 +338,8 @@ export type ProjectMember = typeof projectMembers.$inferSelect;
 export type NewProjectMember = typeof projectMembers.$inferInsert;
 export type ProjectInvite = typeof projectInvites.$inferSelect;
 export type NewProjectInvite = typeof projectInvites.$inferInsert;
+export type ShareLink = typeof shareLinks.$inferSelect;
+export type NewShareLink = typeof shareLinks.$inferInsert;
 export type OAuthClient = typeof oauthClients.$inferSelect;
 export type NewOAuthClient = typeof oauthClients.$inferInsert;
 export type OAuthAuthorization = typeof oauthAuthorizations.$inferSelect;
