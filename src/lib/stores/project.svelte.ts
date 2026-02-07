@@ -474,8 +474,12 @@ export async function setActiveBranch(branchId: string): Promise<boolean> {
 		}
 
 		const data = await response.json();
-		currentProject.items = (data.items ?? []).map(mapApiItem);
-		currentProject.activeBranchId = branchId;
+		// Reassign entire object to guarantee Svelte 5 reactivity propagation
+		currentProject = {
+			...currentProject,
+			items: (data.items ?? []).map(mapApiItem),
+			activeBranchId: branchId
+		};
 		await saveLocalProject(currentProject);
 		return true;
 	} catch (error) {

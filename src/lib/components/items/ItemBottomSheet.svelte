@@ -59,17 +59,27 @@
 			<div class="py-3 space-y-3 overflow-y-auto flex-1">
 				<!-- Image gallery -->
 				{#if item.images && item.images.length > 0}
-					<div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-						{#each item.images as img, i (img.id)}
-							<button
-								type="button"
-								class="flex-shrink-0 w-20 h-20 rounded-lg border border-slate-200 overflow-hidden"
-								onclick={() => openImageViewer(i)}
-							>
-								<img src={img.thumbUrl} alt={img.originalName ?? 'Item image'} class="w-full h-full object-cover" />
-							</button>
-						{/each}
-					</div>
+					{#if item.images.length === 1}
+						<button
+							type="button"
+							class="w-full h-40 rounded-lg border border-slate-200 overflow-hidden"
+							onclick={() => openImageViewer(0)}
+						>
+							<img src={item.images[0].url} alt={item.images[0].originalName ?? 'Item image'} class="w-full h-full object-cover" />
+						</button>
+					{:else}
+						<div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory">
+							{#each item.images as img, i (img.id)}
+								<button
+									type="button"
+									class="flex-shrink-0 w-36 h-28 rounded-lg border border-slate-200 overflow-hidden snap-start"
+									onclick={() => openImageViewer(i)}
+								>
+									<img src={img.thumbUrl} alt={img.originalName ?? 'Item image'} class="w-full h-full object-cover" />
+								</button>
+							{/each}
+						</div>
+					{/if}
 				{/if}
 
 				<!-- Info grid -->

@@ -211,7 +211,7 @@
 			}
 			return true;
 		} finally {
-			if ((!didSyncUrl || !syncUrl) && pendingBranchUrlSyncId === branchId) {
+			if (pendingBranchUrlSyncId === branchId) {
 				pendingBranchUrlSyncId = null;
 			}
 			isBranchSwitching = false;
