@@ -76,24 +76,27 @@
   let zoom = $state(1);
   let panX = $state(0);
   let panY = $state(0);
-  let isPanning = $state(false);
-  let lastPanPoint = $state<{ x: number; y: number } | null>(null);
+  let isPanning = false;
+  let lastPanPoint: { x: number; y: number } | null = null;
   let zoomLocked = $state(false);
   let isInteractionActive = $state(false);
 
-  // Coalesced desktop interaction state (applied once per animation frame)
+  // Coalesced interaction state (applied once per animation frame)
   let pendingPanDeltaX = 0;
   let pendingPanDeltaY = 0;
   let pendingWheelSteps = 0;
   let pendingWheelAnchorX: number | null = null;
   let pendingWheelAnchorY: number | null = null;
+  let pendingPinchScale = 1;
+  let pendingPinchAnchorX: number | null = null;
+  let pendingPinchAnchorY: number | null = null;
   let interactionFrameId: number | null = null;
 
-  // Touch gesture state
-  let pointers = $state(new Map<number, { x: number; y: number }>());
-  let lastPinchDistance = $state(0);
-  let lastPinchCenter = $state<{ x: number; y: number } | null>(null);
-  let isPinching = $state(false);
+  // Touch gesture state (handler-only, not reactive)
+  let pointers = new Map<number, { x: number; y: number }>();
+  let lastPinchDistance = 0;
+  let lastPinchCenter: { x: number; y: number } | null = null;
+  let isPinching = false;
 
   // Long-press state for mobile item dragging
   let longPressTimer = $state<ReturnType<typeof setTimeout> | null>(null);
@@ -522,25 +525,14 @@
       };
 
       if (lastPinchDistance > 0 && lastPinchCenter) {
-        // Calculate zoom change
-        const scale = distance / lastPinchDistance;
-        const oldZoom = zoom;
-        const newZoom = clampZoom(zoom * scale, MIN_ZOOM, MAX_ZOOM);
-        const result = zoomTowardPoint({
-          anchorX: lastPinchCenter.x,
-          anchorY: lastPinchCenter.y,
-          oldZoom,
-          newZoom,
-          panX,
-          panY,
-        });
-        zoom = result.zoom;
-        panX = result.panX;
-        panY = result.panY;
+        pendingPinchScale *= distance / lastPinchDistance;
+        pendingPinchAnchorX = lastPinchCenter.x;
+        pendingPinchAnchorY = lastPinchCenter.y;
       }
 
       lastPinchDistance = distance;
       lastPinchCenter = center;
+      scheduleInteractionFrame();
     } else if (pointers.size === 1 && !isPinching) {
       // Check if long-press should be cancelled (finger moved too far before triggering)
       if (longPressStartPoint && !isLongPressDragging) {
@@ -575,12 +567,11 @@
           markInteractionActive();
           const currentPoint = Array.from(pointers.values())[0];
           if (lastPanPoint) {
-            const dx = currentPoint.x - lastPanPoint.x;
-            const dy = currentPoint.y - lastPanPoint.y;
-            panX += dx;
-            panY += dy;
+            pendingPanDeltaX += currentPoint.x - lastPanPoint.x;
+            pendingPanDeltaY += currentPoint.y - lastPanPoint.y;
           }
           lastPanPoint = currentPoint;
+          scheduleInteractionFrame();
         }
       }
     }
@@ -695,6 +686,8 @@
 
     interactionFrameId = requestAnimationFrame(() => {
       interactionFrameId = null;
+
+      // Apply coalesced pan + wheel zoom
       const next = applyCoalescedPanAndZoom({
         zoom,
         panX,
@@ -709,6 +702,21 @@
         maxZoom: MAX_ZOOM,
       });
 
+      // Apply coalesced pinch zoom
+      if (pendingPinchScale !== 1 && pendingPinchAnchorX !== null && pendingPinchAnchorY !== null) {
+        const pinched = zoomTowardPoint({
+          anchorX: pendingPinchAnchorX,
+          anchorY: pendingPinchAnchorY,
+          oldZoom: next.zoom,
+          newZoom: clampZoom(next.zoom * pendingPinchScale, MIN_ZOOM, MAX_ZOOM),
+          panX: next.panX,
+          panY: next.panY,
+        });
+        next.zoom = pinched.zoom;
+        next.panX = pinched.panX;
+        next.panY = pinched.panY;
+      }
+
       zoom = next.zoom;
       panX = next.panX;
       panY = next.panY;
@@ -718,6 +726,9 @@
       pendingWheelSteps = 0;
       pendingWheelAnchorX = null;
       pendingWheelAnchorY = null;
+      pendingPinchScale = 1;
+      pendingPinchAnchorX = null;
+      pendingPinchAnchorY = null;
     });
   }
 
