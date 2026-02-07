@@ -6,6 +6,7 @@
 	import type { CurrencyCode } from '$lib/utils/currency';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Menu, Share2, RefreshCw, GitBranchPlus, Pencil, Trash2 } from 'lucide-svelte';
 	import LoginButton from '$lib/components/auth/LoginButton.svelte';
@@ -78,6 +79,20 @@
 	let historyChanges = $state<ItemChange[]>([]);
 	let expandedHistoryGroups = $state<Set<string>>(new Set());
 	let selectedHistoryChangeIds = $state<Set<string>>(new Set());
+	let showConfirmDialog = $state(false);
+	let confirmDialogTitle = $state('');
+	let confirmDialogDescription = $state('');
+	let confirmDialogActionLabel = $state('Confirm');
+	let confirmDialogActionVariant = $state<'default' | 'destructive'>('default');
+	let confirmDialogAction = $state<(() => Promise<void> | void) | null>(null);
+	let isConfirmActionPending = $state(false);
+	let showBranchNameDialog = $state(false);
+	let branchDialogMode = $state<'create' | 'rename'>('create');
+	let branchDialogTargetId = $state<string | null>(null);
+	let branchDialogOriginalName = $state('');
+	let branchNameInputValue = $state('');
+	let branchNameInputEl = $state<HTMLInputElement | null>(null);
+	let isBranchDialogSubmitting = $state(false);
 
 	// Track if project is local-only (not synced to cloud)
 	let isLocalProject = $state(true);
@@ -164,45 +179,117 @@
 		});
 	}
 
-	async function handleCreateBranch() {
-		const branchName = prompt('New branch name');
-		if (!branchName?.trim()) return;
-
-		const created = await createProjectBranch(branchName, activeBranch?.id ?? null);
-		if (!created) return;
-
-		await setProjectActiveBranch(created.id);
-		const url = new URL($page.url);
-		url.searchParams.set('branch', created.id);
-		await goto(`${url.pathname}?${url.searchParams.toString()}`, {
-			replaceState: true,
-			keepFocus: true,
-			noScroll: true
-		});
+	function openConfirmDialog(options: {
+		title: string;
+		description: string;
+		actionLabel: string;
+		actionVariant?: 'default' | 'destructive';
+		action: () => Promise<void> | void;
+	}) {
+		confirmDialogTitle = options.title;
+		confirmDialogDescription = options.description;
+		confirmDialogActionLabel = options.actionLabel;
+		confirmDialogActionVariant = options.actionVariant ?? 'default';
+		confirmDialogAction = options.action;
+		showConfirmDialog = true;
 	}
 
-	async function handleRenameBranch() {
-		if (!activeBranch) return;
-		const nextName = prompt('Rename branch', activeBranch.name);
-		if (!nextName?.trim() || nextName.trim() === activeBranch.name) return;
-		await renameProjectBranch(activeBranch.id, nextName.trim());
+	function closeConfirmDialog() {
+		if (isConfirmActionPending) return;
+		showConfirmDialog = false;
+		confirmDialogAction = null;
 	}
 
-	async function handleDeleteBranch() {
+	async function handleConfirmDialogSubmit() {
+		if (!confirmDialogAction || isConfirmActionPending) return;
+		isConfirmActionPending = true;
+		try {
+			await confirmDialogAction();
+			showConfirmDialog = false;
+		} finally {
+			isConfirmActionPending = false;
+		}
+	}
+
+	function handleCreateBranch() {
+		branchDialogMode = 'create';
+		branchDialogTargetId = null;
+		branchDialogOriginalName = '';
+		branchNameInputValue = '';
+		showBranchNameDialog = true;
+	}
+
+	function handleRenameBranch() {
 		if (!activeBranch) return;
-		if (!confirm(`Delete branch "${activeBranch.name}"?`)) return;
+		branchDialogMode = 'rename';
+		branchDialogTargetId = activeBranch.id;
+		branchDialogOriginalName = activeBranch.name;
+		branchNameInputValue = activeBranch.name;
+		showBranchNameDialog = true;
+	}
 
-		const deleted = await deleteProjectBranch(activeBranch.id);
-		if (!deleted) return;
+	function closeBranchNameDialog() {
+		if (isBranchDialogSubmitting) return;
+		showBranchNameDialog = false;
+	}
 
-		const nextActive = getActiveBranch();
-		if (!nextActive) return;
-		const url = new URL($page.url);
-		url.searchParams.set('branch', nextActive.id);
-		await goto(`${url.pathname}?${url.searchParams.toString()}`, {
-			replaceState: true,
-			keepFocus: true,
-			noScroll: true
+	async function handleBranchDialogSubmit(event: Event) {
+		event.preventDefault();
+		if (isBranchDialogSubmitting) return;
+		const branchName = branchNameInputValue.trim();
+		if (!branchName) return;
+
+		isBranchDialogSubmitting = true;
+		try {
+			if (branchDialogMode === 'rename') {
+				if (!branchDialogTargetId || branchName === branchDialogOriginalName) {
+					showBranchNameDialog = false;
+					return;
+				}
+				await renameProjectBranch(branchDialogTargetId, branchName);
+				showBranchNameDialog = false;
+				return;
+			}
+
+			const created = await createProjectBranch(branchName, activeBranch?.id ?? null);
+			if (!created) return;
+
+			await setProjectActiveBranch(created.id);
+			const url = new URL($page.url);
+			url.searchParams.set('branch', created.id);
+			await goto(`${url.pathname}?${url.searchParams.toString()}`, {
+				replaceState: true,
+				keepFocus: true,
+				noScroll: true
+			});
+			showBranchNameDialog = false;
+		} finally {
+			isBranchDialogSubmitting = false;
+		}
+	}
+
+	function handleDeleteBranch() {
+		if (!activeBranch) return;
+		const branch = activeBranch;
+		openConfirmDialog({
+			title: 'Delete Branch',
+			description: `Delete branch "${branch.name}"?`,
+			actionLabel: 'Delete',
+			actionVariant: 'destructive',
+			action: async () => {
+				const deleted = await deleteProjectBranch(branch.id);
+				if (!deleted) return;
+
+				const nextActive = getActiveBranch();
+				if (!nextActive) return;
+				const url = new URL($page.url);
+				url.searchParams.set('branch', nextActive.id);
+				await goto(`${url.pathname}?${url.searchParams.toString()}`, {
+					replaceState: true,
+					keepFocus: true,
+					noScroll: true
+				});
+			}
 		});
 	}
 
@@ -317,20 +404,26 @@
 		await loadHistory();
 	}
 
-	async function handleRevertHistory() {
+	function handleRevertHistory() {
 		const changeIds = Array.from(selectedHistoryChangeIds);
 		if (changeIds.length === 0) return;
-		if (!confirm(`Revert ${changeIds.length} selected change(s)?`)) return;
-
-		isRevertingHistory = true;
-		try {
-			const reverted = await revertHistoryChanges(changeIds);
-			if (reverted) {
-				await loadHistory();
+		openConfirmDialog({
+			title: 'Revert Selected Changes',
+			description: `Revert ${changeIds.length} selected change(s)?`,
+			actionLabel: 'Revert',
+			actionVariant: 'destructive',
+			action: async () => {
+				isRevertingHistory = true;
+				try {
+					const reverted = await revertHistoryChanges(changeIds);
+					if (reverted) {
+						await loadHistory();
+					}
+				} finally {
+					isRevertingHistory = false;
+				}
 			}
-		} finally {
-			isRevertingHistory = false;
-		}
+		});
 	}
 
 	function handleGridSizeChange(newSize: number) {
@@ -453,6 +546,13 @@
 	});
 
 	$effect(() => {
+		if (showBranchNameDialog && branchNameInputEl) {
+			branchNameInputEl.focus();
+			branchNameInputEl.select();
+		}
+	});
+
+	$effect(() => {
 		// Close bottom sheet when switching tabs
 		if (activeTab && showItemBottomSheet) {
 			showItemBottomSheet = false;
@@ -490,9 +590,15 @@
 	}
 
 	function handleChangeFloorplan() {
-		if (confirm('Change floorplan? Item positions will be kept.')) {
-			clearFloorplan();
-		}
+		openConfirmDialog({
+			title: 'Change Floorplan',
+			description: 'Change floorplan? Item positions will be kept.',
+			actionLabel: 'Change',
+			actionVariant: 'destructive',
+			action: () => {
+				clearFloorplan();
+			}
+		});
 	}
 
 	// Item actions
@@ -518,15 +624,21 @@
 	}
 
 	function handleDeleteItem(id: string) {
-		if (confirm('Delete this item?')) {
-			deleteItem(id);
-			if (selectedItemId === id) {
-				selectedItemId = null;
-				if (showItemBottomSheet) {
-					showItemBottomSheet = false;
+		openConfirmDialog({
+			title: 'Delete Item',
+			description: 'Delete this item?',
+			actionLabel: 'Delete',
+			actionVariant: 'destructive',
+			action: () => {
+				deleteItem(id);
+				if (selectedItemId === id) {
+					selectedItemId = null;
+					if (showItemBottomSheet) {
+						showItemBottomSheet = false;
+					}
 				}
 			}
-		}
+		});
 	}
 
 	function handleDuplicateItem(id: string) {
@@ -933,6 +1045,52 @@
 		onPlace={handleItemBottomSheetPlace}
 		onUnplace={handleItemBottomSheetUnplace}
 	/>
+
+	<Dialog.Root bind:open={showBranchNameDialog} onOpenChange={(open) => !open && closeBranchNameDialog()}>
+		<Dialog.Content class="sm:max-w-md">
+			<Dialog.Header>
+				<Dialog.Title>{branchDialogMode === 'create' ? 'Create Branch' : 'Rename Branch'}</Dialog.Title>
+				<Dialog.Description>
+					{branchDialogMode === 'create'
+						? 'Enter a name for the new branch.'
+						: 'Update the selected branch name.'}
+				</Dialog.Description>
+			</Dialog.Header>
+			<form onsubmit={handleBranchDialogSubmit} class="space-y-4">
+				<Input
+					bind:ref={branchNameInputEl}
+					bind:value={branchNameInputValue}
+					placeholder="Branch name"
+				/>
+				<Dialog.Footer class="gap-2">
+					<Button type="button" variant="outline" onclick={closeBranchNameDialog}>Cancel</Button>
+					<Button type="submit" disabled={isBranchDialogSubmitting || !branchNameInputValue.trim()}>
+						{branchDialogMode === 'create' ? 'Create' : 'Save'}
+					</Button>
+				</Dialog.Footer>
+			</form>
+		</Dialog.Content>
+	</Dialog.Root>
+
+	<Dialog.Root bind:open={showConfirmDialog} onOpenChange={(open) => !open && closeConfirmDialog()}>
+		<Dialog.Content class="sm:max-w-md">
+			<Dialog.Header>
+				<Dialog.Title>{confirmDialogTitle}</Dialog.Title>
+				<Dialog.Description>{confirmDialogDescription}</Dialog.Description>
+			</Dialog.Header>
+			<Dialog.Footer class="gap-2">
+				<Button type="button" variant="outline" onclick={closeConfirmDialog}>Cancel</Button>
+				<Button
+					type="button"
+					variant={confirmDialogActionVariant}
+					onclick={handleConfirmDialogSubmit}
+					disabled={isConfirmActionPending}
+				>
+					{confirmDialogActionLabel}
+				</Button>
+			</Dialog.Footer>
+		</Dialog.Content>
+	</Dialog.Root>
 {:else}
 	<!-- Loading skeleton -->
 	<div class="flex flex-col h-full">

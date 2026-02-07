@@ -18,6 +18,9 @@
 	let members = $state<Member[]>([]);
 	let isLoading = $state(false);
 	let errorMessage = $state<string | null>(null);
+	let removeConfirmOpen = $state(false);
+	let memberToRemove = $state<Member | null>(null);
+	let isRemovingMember = $state(false);
 
 	const currentUserId = $derived(user?.id ?? null);
 	const currentUserRole = $derived.by(() => {
@@ -33,6 +36,8 @@
 	});
 
 	function handleClose() {
+		removeConfirmOpen = false;
+		memberToRemove = null;
 		open = false;
 		onClose();
 	}
@@ -80,13 +85,33 @@
 		}
 	}
 
-	async function handleRemove(userId: string) {
-		if (!confirm('Remove this member?')) return;
-		const response = await fetch(`/api/projects/${projectId}/members/${userId}`, {
-			method: 'DELETE'
-		});
-		if (response.ok) {
-			await loadMembers();
+	function handleRemove(userId: string) {
+		const member = members.find((candidate) => candidate.userId === userId);
+		if (!member) return;
+		memberToRemove = member;
+		removeConfirmOpen = true;
+	}
+
+	function closeRemoveConfirm() {
+		if (isRemovingMember) return;
+		removeConfirmOpen = false;
+		memberToRemove = null;
+	}
+
+	async function confirmRemoveMember() {
+		if (!memberToRemove || isRemovingMember) return;
+		isRemovingMember = true;
+		try {
+			const response = await fetch(`/api/projects/${projectId}/members/${memberToRemove.userId}`, {
+				method: 'DELETE'
+			});
+			if (response.ok) {
+				await loadMembers();
+			}
+			removeConfirmOpen = false;
+			memberToRemove = null;
+		} finally {
+			isRemovingMember = false;
 		}
 	}
 </script>
@@ -122,6 +147,27 @@
 
 		<Dialog.Footer>
 			<Button variant="outline" onclick={handleClose}>Close</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={removeConfirmOpen} onOpenChange={(open) => !open && closeRemoveConfirm()}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>Remove Member</Dialog.Title>
+			<Dialog.Description>
+				Remove
+				<strong>
+					{memberToRemove?.name ?? memberToRemove?.email ?? 'this member'}
+				</strong>
+				from this project?
+			</Dialog.Description>
+		</Dialog.Header>
+		<Dialog.Footer class="gap-2">
+			<Button variant="outline" onclick={closeRemoveConfirm}>Cancel</Button>
+			<Button variant="destructive" onclick={confirmRemoveMember} disabled={isRemovingMember}>
+				Remove
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

@@ -12,6 +12,8 @@
   }
 
   let { open = $bindable(), projects, onSelect, onDelete, onClose }: Props = $props();
+  let deleteConfirmOpen = $state(false);
+  let pendingDeleteProject = $state<ProjectMeta | null>(null);
 
   function formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString(undefined, {
@@ -24,8 +26,22 @@
   }
 
   function handleClose() {
+    deleteConfirmOpen = false;
+    pendingDeleteProject = null;
     open = false;
     onClose();
+  }
+
+  function requestDelete(project: ProjectMeta) {
+    pendingDeleteProject = project;
+    deleteConfirmOpen = true;
+  }
+
+  function confirmDelete() {
+    if (!pendingDeleteProject) return;
+    onDelete(pendingDeleteProject.id);
+    deleteConfirmOpen = false;
+    pendingDeleteProject = null;
   }
 </script>
 
@@ -56,11 +72,7 @@
                 size="sm"
                 variant="ghost"
                 class="text-red-600 hover:text-red-700 hover:bg-red-50"
-                onclick={() => {
-                  if (confirm(`Delete "${project.name}"?`)) {
-                    onDelete(project.id);
-                  }
-                }}
+                onclick={() => requestDelete(project)}
               >
                 Delete
               </Button>
@@ -72,6 +84,21 @@
 
     <Dialog.Footer>
       <Button variant="outline" onclick={handleClose}>Cancel</Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={deleteConfirmOpen}>
+  <Dialog.Content class="sm:max-w-md">
+    <Dialog.Header>
+      <Dialog.Title>Delete Project</Dialog.Title>
+      <Dialog.Description>
+        Delete "{pendingDeleteProject?.name}"?
+      </Dialog.Description>
+    </Dialog.Header>
+    <Dialog.Footer class="gap-2">
+      <Button variant="outline" onclick={() => (deleteConfirmOpen = false)}>Cancel</Button>
+      <Button variant="destructive" onclick={confirmDelete}>Delete</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

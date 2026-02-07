@@ -34,6 +34,7 @@
 	// Delete dialog state
 	let deleteDialogOpen = $state(false);
 	let deleteProject = $state<ProjectMeta | null>(null);
+	let invalidImportDialogOpen = $state(false);
 
 	// Derived
 	const authenticated = $derived(isAuthenticated());
@@ -149,7 +150,7 @@
 					}
 					await loadProjects();
 				} else {
-					alert('Invalid project file');
+					invalidImportDialogOpen = true;
 				}
 			}
 		};
@@ -278,6 +279,20 @@
 		<Dialog.Footer class="gap-2">
 			<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>Cancel</Button>
 			<Button variant="destructive" onclick={confirmDelete}>Delete</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={invalidImportDialogOpen}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>Invalid Import File</Dialog.Title>
+			<Dialog.Description>
+				The selected file is not a valid project export.
+			</Dialog.Description>
+		</Dialog.Header>
+		<Dialog.Footer>
+			<Button onclick={() => (invalidImportDialogOpen = false)}>OK</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

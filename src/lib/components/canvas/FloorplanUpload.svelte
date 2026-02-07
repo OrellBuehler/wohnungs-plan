@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button';
+  import * as Dialog from '$lib/components/ui/dialog';
 
   interface Props {
     onUpload: (imageData: string) => void;
@@ -8,6 +9,7 @@
   let { onUpload }: Props = $props();
   let isDragging = $state(false);
   let fileInput: HTMLInputElement;
+  let invalidFileDialogOpen = $state(false);
 
   function handleDrop(e: DragEvent) {
     e.preventDefault();
@@ -23,7 +25,7 @@
 
   function processFile(file: File) {
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      invalidFileDialogOpen = true;
       return;
     }
 
@@ -63,3 +65,15 @@
     <Button onclick={() => fileInput.click()}>Choose File</Button>
   </div>
 </div>
+
+<Dialog.Root bind:open={invalidFileDialogOpen}>
+  <Dialog.Content class="sm:max-w-md">
+    <Dialog.Header>
+      <Dialog.Title>Invalid File</Dialog.Title>
+      <Dialog.Description>Please upload an image file.</Dialog.Description>
+    </Dialog.Header>
+    <Dialog.Footer>
+      <Button onclick={() => (invalidFileDialogOpen = false)}>OK</Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>
