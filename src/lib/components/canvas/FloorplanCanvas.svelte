@@ -932,7 +932,7 @@
     onmouseup={handleMouseUp}
     onmouseleave={handleMouseUp}
   >
-    <Layer listening={false}>
+    <Layer listening={false} hitGraphEnabled={false}>
       <!-- Grid -->
       {#if gridVisible}
         <Shape
@@ -956,7 +956,7 @@
       {/if}
     </Layer>
 
-    <Layer listening={itemLayerListening}>
+    <Layer listening={itemLayerListening} hitGraphEnabled={itemLayerListening}>
       <!-- Furniture items -->
       {#each placedItems as item (item.id)}
         {@const isOverlapping = overlappingIds.has(item.id)}
@@ -1059,7 +1059,7 @@
 
     <!-- Distance indicators -->
     {#if distanceIndicators.length > 0}
-      <Layer listening={false}>
+      <Layer listening={false} hitGraphEnabled={false}>
         {#each distanceIndicators as indicator}
           {@const dx = indicator.pointB.x - indicator.pointA.x}
           {@const dy = indicator.pointB.y - indicator.pointA.y}
@@ -1139,7 +1139,7 @@
 
     <!-- Alignment guides -->
     {#if alignmentGuides.length > 0}
-      <Layer listening={false}>
+      <Layer listening={false} hitGraphEnabled={false}>
         {#each alignmentGuides as guide}
           {#if guide.type === 'v'}
             <Line
