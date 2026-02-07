@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import type { Item, ItemChange } from '$lib/types';
@@ -667,11 +667,16 @@
 		}
 	});
 
+	let prevTab = activeTab;
 	$effect(() => {
-		// Close bottom sheet when switching tabs
-		if (activeTab && showItemBottomSheet) {
-			showItemBottomSheet = false;
-		}
+		// Close bottom sheet when switching tabs (only react to tab changes)
+		const tab = activeTab;
+		untrack(() => {
+			if (tab !== prevTab) {
+				prevTab = tab;
+				showItemBottomSheet = false;
+			}
+		});
 	});
 
 	// Floorplan actions
