@@ -272,13 +272,13 @@
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
 			<Dialog.Title>Delete Project</Dialog.Title>
-			<Dialog.Description>
+			<Dialog.Description class="break-words">
 				Are you sure you want to delete "{deleteProject?.name}"? This action cannot be undone.
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>Cancel</Button>
-			<Button variant="destructive" onclick={confirmDelete}>Delete</Button>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteDialogOpen = false)}>Cancel</Button>
+			<Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}>Delete</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
@@ -292,7 +292,7 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
-			<Button onclick={() => (invalidImportDialogOpen = false)}>OK</Button>
+			<Button class="w-full sm:w-auto" onclick={() => (invalidImportDialogOpen = false)}>OK</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

@@ -92,13 +92,13 @@
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
       <Dialog.Title>Delete Project</Dialog.Title>
-      <Dialog.Description>
+      <Dialog.Description class="break-words">
         Delete "{pendingDeleteProject?.name}"?
       </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer class="gap-2">
-      <Button variant="outline" onclick={() => (deleteConfirmOpen = false)}>Cancel</Button>
-      <Button variant="destructive" onclick={confirmDelete}>Delete</Button>
+      <Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteConfirmOpen = false)}>Cancel</Button>
+      <Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}>Delete</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

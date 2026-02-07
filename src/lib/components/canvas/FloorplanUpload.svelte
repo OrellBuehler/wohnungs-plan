@@ -73,7 +73,7 @@
       <Dialog.Description>Please upload an image file.</Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer>
-      <Button onclick={() => (invalidFileDialogOpen = false)}>OK</Button>
+      <Button class="w-full sm:w-auto" onclick={() => (invalidFileDialogOpen = false)}>OK</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

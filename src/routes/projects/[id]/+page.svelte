@@ -1063,8 +1063,12 @@
 					placeholder="Branch name"
 				/>
 				<Dialog.Footer class="gap-2">
-					<Button type="button" variant="outline" onclick={closeBranchNameDialog}>Cancel</Button>
-					<Button type="submit" disabled={isBranchDialogSubmitting || !branchNameInputValue.trim()}>
+					<Button type="button" variant="outline" class="w-full sm:w-auto" onclick={closeBranchNameDialog}>Cancel</Button>
+					<Button
+						type="submit"
+						class="w-full sm:w-auto"
+						disabled={isBranchDialogSubmitting || !branchNameInputValue.trim()}
+					>
 						{branchDialogMode === 'create' ? 'Create' : 'Save'}
 					</Button>
 				</Dialog.Footer>
@@ -1076,12 +1080,13 @@
 		<Dialog.Content class="sm:max-w-md">
 			<Dialog.Header>
 				<Dialog.Title>{confirmDialogTitle}</Dialog.Title>
-				<Dialog.Description>{confirmDialogDescription}</Dialog.Description>
+				<Dialog.Description class="break-words">{confirmDialogDescription}</Dialog.Description>
 			</Dialog.Header>
 			<Dialog.Footer class="gap-2">
-				<Button type="button" variant="outline" onclick={closeConfirmDialog}>Cancel</Button>
+				<Button type="button" variant="outline" class="w-full sm:w-auto" onclick={closeConfirmDialog}>Cancel</Button>
 				<Button
 					type="button"
+					class="w-full sm:w-auto"
 					variant={confirmDialogActionVariant}
 					onclick={handleConfirmDialogSubmit}
 					disabled={isConfirmActionPending}

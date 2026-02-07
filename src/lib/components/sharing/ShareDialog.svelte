@@ -155,7 +155,7 @@
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
 			<Dialog.Title>Remove Member</Dialog.Title>
-			<Dialog.Description>
+			<Dialog.Description class="break-words">
 				Remove
 				<strong>
 					{memberToRemove?.name ?? memberToRemove?.email ?? 'this member'}
@@ -164,8 +164,13 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" onclick={closeRemoveConfirm}>Cancel</Button>
-			<Button variant="destructive" onclick={confirmRemoveMember} disabled={isRemovingMember}>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={closeRemoveConfirm}>Cancel</Button>
+			<Button
+				variant="destructive"
+				class="w-full sm:w-auto"
+				onclick={confirmRemoveMember}
+				disabled={isRemovingMember}
+			>
 				Remove
 			</Button>
 		</Dialog.Footer>
