@@ -90,7 +90,9 @@
   <div class="flex-shrink-0 p-4">
     <div class="flex items-center justify-between mb-3">
       <h2 class="font-semibold text-slate-800">Items ({items.length})</h2>
-      <Button size="sm" onclick={onAddItem}><Plus size={16} class="mr-1" /> Add</Button>
+      {#if !readonly}
+        <Button size="sm" onclick={onAddItem}><Plus size={16} class="mr-1" /> Add</Button>
+      {/if}
     </div>
 
     <div class="flex gap-2 text-sm">
