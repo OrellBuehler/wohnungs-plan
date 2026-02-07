@@ -33,6 +33,12 @@ RUN bun --bun run build
 RUN echo "GIT_HASH=${GIT_HASH}" > /app/version.txt && \
     echo "BUILD_TIMESTAMP=${BUILD_TIMESTAMP}" >> /app/version.txt
 
+# Production deps - install only production dependencies
+FROM oven/bun:1-alpine AS prod-deps
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
+
 # Production stage - minimal runtime
 FROM oven/bun:1-alpine AS runner
 WORKDIR /app
@@ -44,9 +50,10 @@ RUN addgroup --system --gid 1001 nodejs && \
 # Create uploads directory
 RUN mkdir -p /app/uploads && chown -R sveltekit:nodejs /app/uploads
 
-# Copy built application
+# Copy built application and production node_modules (for native modules like sharp)
 COPY --from=builder --chown=sveltekit:nodejs /app/build ./build
 COPY --from=builder --chown=sveltekit:nodejs /app/package.json ./
+COPY --from=prod-deps --chown=sveltekit:nodejs /app/node_modules ./node_modules
 
 # Copy database migrations
 COPY --from=builder --chown=sveltekit:nodejs /app/drizzle ./drizzle
