@@ -45,9 +45,9 @@
 		<p class="text-sm text-muted-foreground">No members yet.</p>
 	{:else}
 		{#each members as member (member.userId)}
-			<div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3">
-				<div class="flex items-center gap-3 min-w-0">
-					<div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+			<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-slate-200 p-3">
+				<div class="flex items-center gap-3 min-w-0 flex-1">
+					<div class="h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
 						{#if member.avatarUrl}
 							<img
 								src={member.avatarUrl}
@@ -58,7 +58,7 @@
 							{getInitials(member.name)}
 						{/if}
 					</div>
-					<div class="min-w-0">
+					<div class="min-w-0 flex-1">
 						<p class="text-sm font-medium truncate">
 							{member.name ?? member.email ?? 'Member'}
 							{#if currentUserId && member.userId === currentUserId}
@@ -71,14 +71,14 @@
 					</div>
 				</div>
 
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-2 flex-shrink-0">
 					{#if canManage}
 						<Select.Root
 							type="single"
 							value={member.role}
 							onValueChange={(v) => onRoleChange(member.userId, v as ProjectRole)}
 						>
-							<Select.Trigger class="h-8 min-w-[100px]">
+							<Select.Trigger class="h-8 w-full sm:w-auto sm:min-w-[100px]">
 								{roleOptions.find((o) => o.value === member.role)?.label ?? 'Role'}
 							</Select.Trigger>
 							<Select.Content>
@@ -95,7 +95,7 @@
 						<Button
 							variant="ghost"
 							size="icon-sm"
-							class="text-red-600 hover:text-red-700"
+							class="text-red-600 hover:text-red-700 flex-shrink-0"
 							onclick={() => onRemove(member.userId)}
 						>
 							<UserMinus class="h-4 w-4" />

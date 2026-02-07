@@ -92,7 +92,7 @@
 </script>
 
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleClose()}>
-	<Dialog.Content class="sm:max-w-xl">
+	<Dialog.Content class="max-w-[calc(100vw-2rem)] sm:max-w-xl">
 		<Dialog.Header>
 			<Dialog.Title>Share Project</Dialog.Title>
 			<Dialog.Description>

@@ -48,6 +48,7 @@
 <div class="space-y-3">
 	<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
 		<Input
+			class="w-full sm:flex-1"
 			placeholder="Invite by email"
 			value={email}
 			oninput={(e) => (email = (e.target as HTMLInputElement).value)}
@@ -58,7 +59,7 @@
 			value={role}
 			onValueChange={(v) => (role = v as ProjectRole)}
 		>
-			<Select.Trigger class="h-9 min-w-[110px]">
+			<Select.Trigger class="h-9 w-full sm:w-auto sm:min-w-[110px]">
 				{roleOptions.find((o) => o.value === role)?.label ?? 'Role'}
 			</Select.Trigger>
 			<Select.Content>
@@ -68,16 +69,16 @@
 			</Select.Content>
 		</Select.Root>
 
-		<Button onclick={handleInvite} disabled={isSubmitting || !email}>
+		<Button class="w-full sm:w-auto" onclick={handleInvite} disabled={isSubmitting || !email}>
 			<Send class="mr-2 h-4 w-4" />
 			Invite
 		</Button>
 	</div>
 
 	{#if inviteLink}
-		<div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs">
-			<span class="truncate">{inviteLink}</span>
-			<Button variant="ghost" size="icon-sm" onclick={copyInviteLink}>
+		<div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs overflow-hidden">
+			<span class="truncate flex-1 min-w-0">{inviteLink}</span>
+			<Button variant="ghost" size="icon-sm" class="flex-shrink-0" onclick={copyInviteLink}>
 				<Copy class="h-4 w-4" />
 			</Button>
 		</div>
