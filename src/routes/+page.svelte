@@ -177,7 +177,7 @@
 	<main class="flex-1 overflow-y-auto min-h-0">
 		<div class="p-4 md:p-8 max-w-6xl mx-auto w-full" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
 		<!-- Title + New button -->
-		<div class="flex items-center justify-between mb-6">
+		<div class="flex items-center justify-between flex-wrap gap-4 mb-6">
 			<h2 class="text-2xl font-bold text-slate-800">My Projects</h2>
 			<div class="flex items-center gap-2">
 				<Button variant="outline" onclick={handleImport}>

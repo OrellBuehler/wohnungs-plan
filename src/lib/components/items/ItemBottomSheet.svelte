@@ -29,7 +29,7 @@
 </script>
 
 <Sheet.Root bind:open>
-	<Sheet.Content side="bottom" class="max-h-[60vh]">
+	<Sheet.Content side="bottom" class="max-h-[60vh]" style="padding-bottom: env(safe-area-inset-bottom);">
 		{#if item}
 			<Sheet.Header>
 				<Sheet.Title class="text-xl font-bold">{item.name}</Sheet.Title>

@@ -101,9 +101,9 @@
   // Responsive font sizes - scale with viewport and zoom
   // Base sizes in rem (relative to root font size, typically 16px)
   // These scale with user's browser font size preferences for accessibility
-  const BASE_ITEM_NAME_REM = 0.75; // ~12px at default browser settings
-  const BASE_ITEM_DIMENSIONS_REM = 0.625; // ~10px
-  const BASE_DISTANCE_LABEL_REM = 0.6875; // ~11px
+  const BASE_ITEM_NAME_REM = 0.375; // ~6px at default browser settings
+  const BASE_ITEM_DIMENSIONS_REM = 0.3125; // ~5px
+  const BASE_DISTANCE_LABEL_REM = 0.34375; // ~5.5px
   const MOBILE_SCALE_FACTOR = 0.75; // 25% smaller on mobile
 
   // Convert rem to pixels at runtime (respects user's browser font size)
