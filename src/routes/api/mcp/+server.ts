@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { RequestHandler } from './$types';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -24,7 +24,9 @@ import {
 	saveItemImageFile,
 	generateThumbnail,
 	deleteItemImage,
-	getImagesByItems
+	getImagesByItems,
+	getItemImagePath,
+	getItemImageThumbPath
 } from '$lib/server/item-images';
 import { EXT_BY_MIME } from '$lib/server/image-utils';
 import { downloadImageFromUrl } from '$lib/server/url-download';
@@ -547,12 +549,20 @@ function createMcpServer(userId: string): McpServer {
 				// keep default
 			}
 
-			const image = await createItemImage(project_id, item_id, {
-				filename,
-				originalName,
-				mimeType: result.mimeType,
-				sizeBytes: result.sizeBytes
-			});
+			let image;
+			try {
+				image = await createItemImage(project_id, item_id, {
+					filename,
+					originalName,
+					mimeType: result.mimeType,
+					sizeBytes: result.sizeBytes
+				});
+			} catch (err) {
+				// Clean up orphaned files if DB insert fails
+				await unlink(getItemImagePath(project_id, item_id, filename)).catch(() => {});
+				await unlink(getItemImageThumbPath(project_id, item_id, filename)).catch(() => {});
+				throw err;
+			}
 
 			return asText({
 				id: image.id,

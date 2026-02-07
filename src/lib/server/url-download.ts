@@ -173,6 +173,7 @@ export async function downloadImageFromUrl(url: string): Promise<DownloadResult>
 				if (done) break;
 				totalBytes += value.byteLength;
 				if (totalBytes > maxSize) {
+					await reader.cancel();
 					throw new Error(`Image too large (exceeded ${maxSize} bytes).`);
 				}
 				chunks.push(value);
