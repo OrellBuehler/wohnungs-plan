@@ -2,6 +2,7 @@ import { eq, desc, asc, and, or, sql, inArray } from 'drizzle-orm';
 import { getDB, projects, projectMembers, items, floorplans, type Project, type Item, type Floorplan } from './db';
 import type { ProjectWithRole, ProjectRole } from './types';
 import type { ProjectMeta } from '$lib/types';
+import { copyFloorplan } from './floorplans';
 
 export async function getUserProjects(userId: string): Promise<ProjectWithRole[]> {
 	const db = getDB();
@@ -171,4 +172,58 @@ export async function getProjectFloorplan(projectId: string): Promise<Floorplan 
 		.orderBy(desc(floorplans.createdAt))
 		.limit(1);
 	return floorplan ?? null;
+}
+
+export async function duplicateProject(sourceProjectId: string, newOwnerId: string): Promise<Project> {
+	const db = getDB();
+
+	const source = await getProjectById(sourceProjectId);
+	if (!source) throw new Error('Source project not found');
+
+	// Create the new project
+	const [newProject] = await db
+		.insert(projects)
+		.values({
+			ownerId: newOwnerId,
+			name: `${source.name} (copy)`,
+			currency: source.currency,
+			gridSize: source.gridSize
+		})
+		.returning();
+
+	// Add owner as member
+	await db.insert(projectMembers).values({
+		projectId: newProject.id,
+		userId: newOwnerId,
+		role: 'owner'
+	});
+
+	// Copy all items with new UUIDs
+	const sourceItems = await getProjectItems(sourceProjectId);
+	if (sourceItems.length > 0) {
+		await db.insert(items).values(
+			sourceItems.map((item) => ({
+				projectId: newProject.id,
+				name: item.name,
+				width: item.width,
+				height: item.height,
+				x: item.x,
+				y: item.y,
+				rotation: item.rotation,
+				color: item.color,
+				price: item.price,
+				priceCurrency: item.priceCurrency,
+				productUrl: item.productUrl,
+				shape: item.shape,
+				cutoutWidth: item.cutoutWidth,
+				cutoutHeight: item.cutoutHeight,
+				cutoutCorner: item.cutoutCorner
+			}))
+		);
+	}
+
+	// Copy floorplan (file + DB record)
+	await copyFloorplan(sourceProjectId, newProject.id);
+
+	return newProject;
 }

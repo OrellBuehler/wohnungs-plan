@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { getDB, floorplans, projects, type Floorplan } from './db';
 import { config } from './env';
-import { mkdir, writeFile, unlink } from 'node:fs/promises';
+import { mkdir, writeFile, unlink, copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export async function createFloorplan(
@@ -97,4 +97,37 @@ async function deleteFloorplanFile(projectId: string, filename: string): Promise
 	} catch {
 		// File may not exist
 	}
+}
+
+export async function copyFloorplan(sourceProjectId: string, targetProjectId: string): Promise<Floorplan | null> {
+	const db = getDB();
+	const [source] = await db
+		.select()
+		.from(floorplans)
+		.where(eq(floorplans.projectId, sourceProjectId));
+
+	if (!source) return null;
+
+	// Copy file on disk
+	const srcPath = getFloorplanPath(sourceProjectId, source.filename);
+	const destDir = getFloorplanDir(targetProjectId);
+	await mkdir(destDir, { recursive: true });
+	const destPath = getFloorplanPath(targetProjectId, source.filename);
+	await copyFile(srcPath, destPath);
+
+	// Insert new floorplan record
+	const [floorplan] = await db
+		.insert(floorplans)
+		.values({
+			projectId: targetProjectId,
+			filename: source.filename,
+			originalName: source.originalName,
+			mimeType: source.mimeType,
+			sizeBytes: source.sizeBytes,
+			scale: source.scale,
+			referenceLength: source.referenceLength
+		})
+		.returning();
+
+	return floorplan;
 }

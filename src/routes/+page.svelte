@@ -15,7 +15,8 @@
 		createProject,
 		removeProject,
 		syncProjectToCloud,
-		loadProjectById
+		loadProjectById,
+		duplicateProject
 	} from '$lib/stores/project.svelte';
 	import { isAuthenticated, fetchUser } from '$lib/stores/auth.svelte';
 	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
@@ -119,6 +120,13 @@
 		}
 
 		downloadProject(exportProject, thumbnail);
+	}
+
+	async function handleDuplicate(id: string) {
+		const result = await duplicateProject(id);
+		if (result) {
+			await loadProjects();
+		}
 	}
 
 	async function handleImport() {
@@ -227,6 +235,7 @@
 						onShare={handleShare}
 						onSync={handleSync}
 						onExport={handleExport}
+						onDuplicate={handleDuplicate}
 					/>
 				{/each}
 			</div>

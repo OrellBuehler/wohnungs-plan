@@ -6,7 +6,9 @@ import {
 	getProject as loadLocalProject,
 	saveProject as saveLocalProject,
 	deleteProject as deleteLocalProject,
-	createNewProject
+	createNewProject,
+	getThumbnail,
+	saveThumbnail
 } from '$lib/db';
 import { isAuthenticated } from '$lib/stores/auth.svelte';
 import { isOnline, queueChange } from '$lib/stores/sync.svelte';
@@ -335,6 +337,66 @@ export async function removeProject(id: string): Promise<void> {
 	}
 
 	await deleteLocalProject(id);
+}
+
+export async function duplicateProject(id: string): Promise<ProjectMeta | null> {
+	// Check if it's a local project
+	const local = await loadLocalProject(id);
+	const isLocal = local?.isLocal === true || !useRemote();
+
+	if (isLocal && local) {
+		// Local project: deep-clone with new UUIDs
+		const now = new Date().toISOString();
+		const newId = crypto.randomUUID();
+		const clone: Project = {
+			...JSON.parse(JSON.stringify(local)),
+			id: newId,
+			name: `${local.name} (copy)`,
+			createdAt: now,
+			updatedAt: now,
+			isLocal: true,
+			items: local.items.map((item) => ({
+				...item,
+				id: crypto.randomUUID()
+			}))
+		};
+		await saveLocalProject(clone);
+
+		// Copy thumbnail if exists
+		const thumb = await getThumbnail(id);
+		if (thumb) {
+			await saveThumbnail(newId, thumb);
+		}
+
+		return {
+			id: newId,
+			name: clone.name,
+			createdAt: clone.createdAt,
+			updatedAt: clone.updatedAt,
+			isLocal: true,
+			floorplanUrl: null,
+			memberCount: 0
+		};
+	}
+
+	// Cloud project: call API
+	try {
+		const response = await fetch(`/api/projects/${id}/duplicate`, { method: 'POST' });
+		if (!response.ok) throw new Error('Failed to duplicate project');
+		const data = await response.json();
+		return {
+			id: data.project.id,
+			name: data.project.name,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+			isLocal: false,
+			floorplanUrl: null,
+			memberCount: 1
+		};
+	} catch (error) {
+		console.error('Failed to duplicate project:', error);
+		return null;
+	}
 }
 
 export function createProject(name?: string) {
