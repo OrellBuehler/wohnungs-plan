@@ -142,6 +142,10 @@ export interface BoundingBox {
   maxY: number;
 }
 
+const DEFAULT_SPATIAL_CELL_SIZE = 128;
+const MIN_SPATIAL_CELL_SIZE = 64;
+const MAX_SPATIAL_CELL_SIZE = 512;
+
 /**
  * Calculate minimum edge-to-edge distance between two bounding boxes
  * Returns the shortest distance and the two closest points
@@ -251,6 +255,68 @@ function pointToSegmentDistance(
   return { distance, closestPoint };
 }
 
+function chooseSpatialCellSize(boxes: BoundingBox[]): number {
+  if (boxes.length === 0) return DEFAULT_SPATIAL_CELL_SIZE;
+  let sumLongestSide = 0;
+  for (const box of boxes) {
+    const width = Math.max(0, box.maxX - box.minX);
+    const height = Math.max(0, box.maxY - box.minY);
+    sumLongestSide += Math.max(width, height);
+  }
+  const average = sumLongestSide / boxes.length;
+  return Math.max(MIN_SPATIAL_CELL_SIZE, Math.min(MAX_SPATIAL_CELL_SIZE, average));
+}
+
+export function collectPotentialOverlapPairs(
+  boxes: BoundingBox[],
+  cellSize = DEFAULT_SPATIAL_CELL_SIZE
+): Array<[number, number]> {
+  if (boxes.length < 2) return [];
+
+  const size = Number.isFinite(cellSize) && cellSize > 0 ? cellSize : DEFAULT_SPATIAL_CELL_SIZE;
+  const cellMap = new Map<string, number[]>();
+
+  for (let i = 0; i < boxes.length; i++) {
+    const box = boxes[i];
+    const minCellX = Math.floor(box.minX / size);
+    const maxCellX = Math.floor(box.maxX / size);
+    const minCellY = Math.floor(box.minY / size);
+    const maxCellY = Math.floor(box.maxY / size);
+
+    for (let cx = minCellX; cx <= maxCellX; cx++) {
+      for (let cy = minCellY; cy <= maxCellY; cy++) {
+        const key = `${cx}:${cy}`;
+        const bucket = cellMap.get(key);
+        if (bucket) {
+          bucket.push(i);
+        } else {
+          cellMap.set(key, [i]);
+        }
+      }
+    }
+  }
+
+  const seenPairs = new Set<string>();
+  const pairs: Array<[number, number]> = [];
+
+  for (const bucket of cellMap.values()) {
+    for (let a = 0; a < bucket.length; a++) {
+      for (let b = a + 1; b < bucket.length; b++) {
+        const ia = bucket[a];
+        const ib = bucket[b];
+        const low = ia < ib ? ia : ib;
+        const high = ia < ib ? ib : ia;
+        const key = `${low}:${high}`;
+        if (seenPairs.has(key)) continue;
+        seenPairs.add(key);
+        pairs.push([low, high]);
+      }
+    }
+  }
+
+  return pairs;
+}
+
 export function itemToRect(item: Item, scale: number): Rect | null {
   if (!item.position) return null;
   return {
@@ -283,16 +349,21 @@ export function rectsOverlap(a: Rect, b: Rect): boolean {
 export function getOverlappingItems(items: Item[], scale: number): Set<string> {
   const overlapping = new Set<string>();
   const placedItems = items.filter((item) => item.position !== null);
+  const rects = placedItems.map((item) => ({ item, rect: itemToRect(item, scale)! }));
+  const boxes = rects.map(({ rect }) =>
+    getRotatedBoundingBox(rect.x, rect.y, rect.width, rect.height, rect.rotation)
+  );
+  const candidatePairs = collectPotentialOverlapPairs(boxes, chooseSpatialCellSize(boxes));
 
-  const rects = placedItems
-    .map((item) => ({ item, rect: itemToRect(item, scale)! }));
+  for (const [i, j] of candidatePairs) {
+    const boxA = boxes[i];
+    const boxB = boxes[j];
+    const overlapX = Math.min(boxA.maxX, boxB.maxX) - Math.max(boxA.minX, boxB.minX);
+    const overlapY = Math.min(boxA.maxY, boxB.maxY) - Math.max(boxA.minY, boxB.minY);
 
-  for (let i = 0; i < rects.length; i++) {
-    for (let j = i + 1; j < rects.length; j++) {
-      if (rectsOverlap(rects[i].rect, rects[j].rect)) {
-        overlapping.add(rects[i].item.id);
-        overlapping.add(rects[j].item.id);
-      }
+    if (overlapX > OVERLAP_TOLERANCE && overlapY > OVERLAP_TOLERANCE) {
+      overlapping.add(rects[i].item.id);
+      overlapping.add(rects[j].item.id);
     }
   }
 
