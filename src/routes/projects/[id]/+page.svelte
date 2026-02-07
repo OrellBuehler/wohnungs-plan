@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import type { Item, ItemChange } from '$lib/types';
@@ -7,13 +7,13 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Menu, Share2, RefreshCw, GitBranchPlus, Pencil, Trash2 } from 'lucide-svelte';
-	import LoginButton from '$lib/components/auth/LoginButton.svelte';
-	import UserMenu from '$lib/components/auth/UserMenu.svelte';
+	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair } from 'lucide-svelte';
+	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
 	import { isAuthenticated } from '$lib/stores/auth.svelte';
+	import { registerProjectContext, clearProjectContext } from '$lib/stores/sidebar.svelte';
+	import type { ProjectActionGroup, BranchContext } from '$lib/stores/sidebar.svelte';
 	import type { PageData } from './$types';
 	import {
 		getProject,
@@ -536,6 +536,94 @@
 		return () => window.removeEventListener('resize', updateMobile);
 	});
 
+	onDestroy(() => {
+		clearProjectContext();
+	});
+
+	// Register project context for sidebar
+	$effect(() => {
+		if (!project) return;
+
+		const collaborationActions: ProjectActionGroup = {
+			title: 'Collaboration',
+			actions: [
+				...(!isLocalProject
+					? [
+							{
+								label: 'Share',
+								icon: Share2,
+								onclick: () => (showShareDialog = true)
+							},
+							{
+								label: 'History',
+								icon: History,
+								onclick: () => handleOpenHistory()
+							},
+							{
+								label: 'Refresh',
+								icon: RefreshCw,
+								onclick: () => refreshProject(),
+								disabled: isRefreshing
+							}
+						]
+					: [])
+			]
+		};
+
+		const canvasActions: ProjectActionGroup = {
+			title: 'Canvas',
+			actions: [
+				...(project.floorplan
+					? [
+							{
+								label: 'Recalibrate Scale',
+								icon: Crosshair,
+								onclick: () => handleRecalibrate()
+							},
+							{
+								label: 'Change Floorplan',
+								icon: Image,
+								onclick: () => handleChangeFloorplan()
+							},
+							{
+								label: showGrid ? 'Hide Grid' : 'Show Grid',
+								icon: Grid3x3,
+								onclick: () => (showGrid = !showGrid),
+								indicator: showGrid ? 'On' : 'Off'
+							},
+							{
+								label: snapToGrid ? 'Disable Snap' : 'Enable Snap',
+								icon: Magnet,
+								onclick: () => (snapToGrid = !snapToGrid),
+								indicator: snapToGrid ? 'On' : 'Off'
+							}
+						]
+					: [])
+			]
+		};
+
+		const actionGroups = [collaborationActions, canvasActions].filter(
+			(g) => g.actions.length > 0
+		);
+
+		const branch: BranchContext | undefined =
+			branches.length > 0
+				? {
+						branches: branches.map((b) => ({ id: b.id, name: b.name })),
+						activeBranchId: activeBranch?.id ?? null,
+						defaultBranchId,
+						isSwitching: isBranchSwitching,
+						onSelect: (branchId: string) => switchBranchWithTransition(branchId),
+						onCreate: handleCreateBranch,
+						onRename: handleRenameBranch,
+						onDelete: handleDeleteBranch,
+						canDelete: !!activeBranch && branches.length > 1 && !isBranchSwitching
+					}
+				: undefined;
+
+		registerProjectContext({ actionGroups, branch });
+	});
+
 	// Header actions - Project name editing
 	function startEditingName() {
 		if (project) {
@@ -794,17 +882,17 @@
 					class="w-auto max-w-64 text-lg font-semibold min-w-0"
 				/>
 			{:else}
-				<Button
-					variant="ghost"
-					onclick={startEditingName}
-					class="text-lg font-semibold text-slate-800 hover:text-slate-600 min-w-0 justify-start px-2"
+				<button
+					type="button"
+					onclick={isMobile ? undefined : startEditingName}
+					class="text-lg font-semibold text-slate-800 min-w-0 truncate {isMobile ? '' : 'hover:text-slate-600 cursor-pointer'}"
 				>
-					<span class="truncate">{project.name}</span>
-				</Button>
+					{project.name}
+				</button>
 			{/if}
 
 			{#if branches.length > 0}
-				<div class="flex items-center gap-1.5 min-w-0">
+				<div class="hidden md:flex items-center gap-1.5 min-w-0">
 					<select
 						class="h-8 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700 max-w-40"
 						value={activeBranch?.id ?? ''}
@@ -848,47 +936,19 @@
 
 		<div class="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
 			{#if !isLocalProject}
-				<Button variant="outline" size="sm" onclick={() => (showShareDialog = true)}>
-					<Share2 size={16} class="md:mr-1" />
-					<span class="hidden md:inline">Share</span>
+				<Button variant="outline" size="sm" class="hidden md:inline-flex" onclick={() => (showShareDialog = true)}>
+					<Share2 size={16} class="mr-1" />
+					Share
 				</Button>
-				<Button variant="outline" size="sm" onclick={handleOpenHistory}>
-					<span class="hidden md:inline">History</span>
-					<span class="md:hidden">Hist</span>
+				<Button variant="outline" size="sm" class="hidden md:inline-flex" onclick={handleOpenHistory}>
+					History
 				</Button>
-				<Button variant="outline" size="icon-sm" onclick={refreshProject} disabled={isRefreshing}>
+				<Button variant="outline" size="icon-sm" class="hidden md:inline-flex" onclick={refreshProject} disabled={isRefreshing}>
 					<RefreshCw size={16} class={isRefreshing ? 'animate-spin' : ''} />
 					<span class="sr-only">Refresh</span>
 				</Button>
 			{/if}
-			{#if authed}
-				<UserMenu />
-			{:else}
-				<LoginButton />
-			{/if}
-			{#if project.floorplan && isMobile}
-				<DropdownMenu.Root>
-					<DropdownMenu.Trigger>
-						{#snippet child({ props })}
-							<Button {...props} variant="outline" size="sm">
-								<Menu size={16} class="md:mr-1" />
-								<span class="hidden md:inline">Menu</span>
-							</Button>
-						{/snippet}
-					</DropdownMenu.Trigger>
-					<DropdownMenu.Content>
-						<DropdownMenu.Item onclick={handleRecalibrate}>Recalibrate Scale</DropdownMenu.Item>
-						<DropdownMenu.Item onclick={handleChangeFloorplan}>Change Floorplan</DropdownMenu.Item>
-						<DropdownMenu.Separator />
-						<DropdownMenu.Item onclick={() => showGrid = !showGrid}>
-							{showGrid ? 'Hide Grid' : 'Show Grid'}
-						</DropdownMenu.Item>
-						<DropdownMenu.Item onclick={() => snapToGrid = !snapToGrid}>
-							{snapToGrid ? 'Disable Snap' : 'Enable Snap'}
-						</DropdownMenu.Item>
-					</DropdownMenu.Content>
-				</DropdownMenu.Root>
-			{/if}
+			<SidebarTrigger />
 		</div>
 	</header>
 

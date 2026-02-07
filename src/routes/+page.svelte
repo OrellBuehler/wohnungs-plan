@@ -8,8 +8,7 @@
 	import House from 'lucide-svelte/icons/house';
 	import ProjectCard from '$lib/components/projects/ProjectCard.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
-	import LoginButton from '$lib/components/auth/LoginButton.svelte';
-	import UserMenu from '$lib/components/auth/UserMenu.svelte';
+	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import {
 		listProjects,
 		createProject,
@@ -18,7 +17,7 @@
 		loadProjectById,
 		duplicateProject
 	} from '$lib/stores/project.svelte';
-	import { isAuthenticated, fetchUser } from '$lib/stores/auth.svelte';
+	import { isAuthenticated, fetchUser, login } from '$lib/stores/auth.svelte';
 	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
 	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
 
@@ -166,11 +165,7 @@
 			<h1 class="text-xl font-semibold text-slate-800">Floorplanner</h1>
 		</a>
 		<div class="flex-shrink-0">
-			{#if authenticated}
-				<UserMenu />
-			{:else}
-				<LoginButton />
-			{/if}
+			<SidebarTrigger />
 		</div>
 	</header>
 
@@ -248,7 +243,7 @@
 				<p class="text-sm text-blue-800">
 					Sign in to sync and share your projects across devices
 				</p>
-				<LoginButton />
+				<Button variant="outline" onclick={login}>Sign in</Button>
 			</div>
 		{/if}
 		</div>

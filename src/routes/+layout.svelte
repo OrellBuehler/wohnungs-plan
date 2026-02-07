@@ -4,6 +4,7 @@
 	import { fetchUser } from '$lib/stores/auth.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import SEO from '$lib/components/SEO.svelte';
+	import AppSidebar from '$lib/components/layout/AppSidebar.svelte';
 
 	let { children } = $props();
 
@@ -35,4 +36,5 @@
 	<div class="h-screen bg-slate-100 flex flex-col overflow-hidden" style="height: 100dvh;">
 		{@render children()}
 	</div>
+	<AppSidebar />
 </Tooltip.Provider>
