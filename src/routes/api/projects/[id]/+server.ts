@@ -8,8 +8,9 @@ import {
 	updateProject,
 	deleteProject
 } from '$lib/server/projects';
+import { ensureMainBranch, getBranchById, getDefaultBranch, listProjectBranches } from '$lib/server/branches';
 
-export const GET: RequestHandler = async ({ locals, params }) => {
+export const GET: RequestHandler = async ({ locals, params, url }) => {
 	if (!locals.user) {
 		throw error(401, 'Authentication required');
 	}
@@ -24,12 +25,35 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 		throw error(404, 'Project not found');
 	}
 
-	const [items, floorplan] = await Promise.all([
-		getProjectItems(params.id),
-		getProjectFloorplan(params.id)
+	let defaultBranch = await getDefaultBranch(params.id);
+	if (!defaultBranch) {
+		defaultBranch = await ensureMainBranch(project.id, project.ownerId);
+	}
+
+	const requestedBranchId = url.searchParams.get('branch');
+	const activeBranch = requestedBranchId
+		? await getBranchById(params.id, requestedBranchId)
+		: defaultBranch;
+
+	if (!activeBranch) {
+		throw error(404, 'Branch not found');
+	}
+
+	const [items, floorplan, branches] = await Promise.all([
+		getProjectItems(params.id, activeBranch.id),
+		getProjectFloorplan(params.id),
+		listProjectBranches(params.id)
 	]);
 
-	return json({ project, items, floorplan, role });
+	return json({
+		project,
+		items,
+		floorplan,
+		role,
+		branches,
+		activeBranchId: activeBranch.id,
+		defaultBranchId: defaultBranch.id
+	});
 };
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
@@ -43,6 +67,10 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const body = await request.json();
+	if (body.gridSize !== undefined && role !== 'owner') {
+		throw error(403, 'Only project owner can change grid size');
+	}
+
 	const project = await updateProject(params.id, body);
 
 	return json({ project });

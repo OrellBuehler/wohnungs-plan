@@ -39,9 +39,35 @@ export interface Project {
   updatedAt: string;
   floorplan: Floorplan | null;
   items: Item[];
+  branches?: ProjectBranch[];
+  activeBranchId?: string | null;
   currency: CurrencyCode;
   gridSize: number;          // Grid size in pixels
   isLocal?: boolean;         // true if stored only in IndexedDB
+}
+
+export interface ProjectBranch {
+  id: string;
+  projectId: string;
+  name: string;
+  forkedFromId: string | null;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface ItemChange {
+  id: string;
+  projectId: string;
+  branchId: string;
+  itemId: string;
+  userId: string | null;
+  action: 'create' | 'update' | 'delete';
+  field: string | null;
+  oldValue: string | null;
+  newValue: string | null;
+  createdAt: string;
+  userName?: string | null;
+  userAvatarUrl?: string | null;
 }
 
 export interface ProjectMeta {

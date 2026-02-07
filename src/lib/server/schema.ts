@@ -1,5 +1,6 @@
 import {
 	pgTable,
+	type AnyPgColumn,
 	uuid,
 	text,
 	timestamp,
@@ -58,6 +59,30 @@ export const projects = pgTable(
 	(table) => [index('idx_projects_owner_id').on(table.ownerId)]
 );
 
+// Branches (project layout variants)
+export const branches = pgTable(
+	'branches',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		projectId: uuid('project_id')
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
+		name: text('name').notNull(),
+		forkedFromId: uuid('forked_from_id').references((): AnyPgColumn => branches.id, {
+			onDelete: 'set null'
+		}),
+		createdBy: uuid('created_by')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_branches_project_id').on(table.projectId),
+		index('idx_branches_created_at').on(table.createdAt),
+		uniqueIndex('idx_branches_project_name').on(table.projectId, table.name)
+	]
+);
+
 // Floorplans
 export const floorplans = pgTable(
 	'floorplans',
@@ -86,6 +111,9 @@ export const items = pgTable(
 		projectId: uuid('project_id')
 			.notNull()
 			.references(() => projects.id, { onDelete: 'cascade' }),
+		branchId: uuid('branch_id')
+			.notNull()
+			.references(() => branches.id, { onDelete: 'cascade' }),
 		name: text('name').notNull(),
 		width: real('width').notNull(),
 		height: real('height').notNull(),
@@ -103,7 +131,38 @@ export const items = pgTable(
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
 	},
-	(table) => [index('idx_items_project_id').on(table.projectId)]
+	(table) => [
+		index('idx_items_project_id').on(table.projectId),
+		index('idx_items_branch_id').on(table.branchId)
+	]
+);
+
+// Item change history
+export const itemChanges = pgTable(
+	'item_changes',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		projectId: uuid('project_id')
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
+		branchId: uuid('branch_id')
+			.notNull()
+			.references(() => branches.id, { onDelete: 'cascade' }),
+		itemId: uuid('item_id').notNull(),
+		userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+		action: text('action').notNull(),
+		field: text('field'),
+		oldValue: text('old_value'),
+		newValue: text('new_value'),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_item_changes_project_id').on(table.projectId),
+		index('idx_item_changes_branch_id').on(table.branchId),
+		index('idx_item_changes_item_id').on(table.itemId),
+		index('idx_item_changes_created_at').on(table.createdAt),
+		check('item_changes_action_check', sql`action IN ('create', 'update', 'delete')`)
+	]
 );
 
 // Project members (sharing)
@@ -156,9 +215,9 @@ export const oauthClients = pgTable(
 		userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
 		clientId: text('client_id').unique().notNull(),
 		clientSecretHash: text('client_secret_hash'),
-		tokenEndpointAuthMethod: text('token_endpoint_auth_method').notNull().default('client_secret_post'),
 		clientName: text('client_name'),
 		allowedRedirectUris: text('allowed_redirect_uris').array().notNull().default(sql`ARRAY[]::text[]`),
+		tokenEndpointAuthMethod: text('token_endpoint_auth_method').notNull().default('client_secret_post'),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 	},
 	(table) => [
@@ -243,10 +302,14 @@ export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
+export type Branch = typeof branches.$inferSelect;
+export type NewBranch = typeof branches.$inferInsert;
 export type Floorplan = typeof floorplans.$inferSelect;
 export type NewFloorplan = typeof floorplans.$inferInsert;
 export type Item = typeof items.$inferSelect;
 export type NewItem = typeof items.$inferInsert;
+export type ItemChange = typeof itemChanges.$inferSelect;
+export type NewItemChange = typeof itemChanges.$inferInsert;
 export type ProjectMember = typeof projectMembers.$inferSelect;
 export type NewProjectMember = typeof projectMembers.$inferInsert;
 export type ProjectInvite = typeof projectInvites.$inferSelect;

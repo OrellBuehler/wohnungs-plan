@@ -7,10 +7,18 @@ import { z } from 'zod';
 import { config } from '$lib/server/env';
 import { validateAccessToken } from '$lib/server/oauth';
 import { getProjectRole, getUserProjects } from '$lib/server/projects';
-import { createItem } from '$lib/server/items';
+import {
+	createItem,
+	deleteItem,
+	getBranchItems,
+	getItemById,
+	listItemChanges,
+	updateItem
+} from '$lib/server/items';
+import { createBranch, getBranchById, listProjectBranches } from '$lib/server/branches';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
-const MCP_SERVER_VERSION = '1.0.0';
+const MCP_SERVER_VERSION = '2.0.0';
 const REQUIRED_SCOPE = 'mcp:access';
 
 type SessionState = {
@@ -100,6 +108,46 @@ function createMcpServer(userId: string): McpServer {
 		version: MCP_SERVER_VERSION
 	});
 
+	const asText = (payload: unknown) => ({
+		content: [
+			{
+				type: 'text' as const,
+				text: JSON.stringify(payload, null, 2)
+			}
+		]
+	});
+
+	async function ensureProjectRole(
+		projectId: string,
+		requiredRole: 'viewer' | 'editor' | 'owner'
+	): Promise<'owner' | 'editor' | 'viewer'> {
+		const role = await getProjectRole(projectId, userId);
+		if (!role) {
+			throw new Error('Permission denied. You do not have access to this project.');
+		}
+
+		if (requiredRole === 'viewer') {
+			return role;
+		}
+
+		if (requiredRole === 'editor' && role === 'viewer') {
+			throw new Error('Permission denied. You need editor or owner role.');
+		}
+
+		if (requiredRole === 'owner' && role !== 'owner') {
+			throw new Error('Permission denied. You need owner role.');
+		}
+
+		return role;
+	}
+
+	async function ensureBranch(projectId: string, branchId: string): Promise<void> {
+		const branch = await getBranchById(projectId, branchId);
+		if (!branch) {
+			throw new Error('Branch not found for this project.');
+		}
+	}
+
 	server.registerTool(
 		'list_projects',
 		{
@@ -109,26 +157,68 @@ function createMcpServer(userId: string): McpServer {
 		},
 		async () => {
 			const projects = await getUserProjects(userId);
-			return {
-				content: [
-					{
-						type: 'text',
-						text: JSON.stringify(
-							projects.map((project) => ({
-								id: project.id,
-								name: project.name,
-								currency: project.currency,
-								gridSize: project.gridSize,
-								role: project.role,
-								createdAt: project.createdAt?.toISOString(),
-								updatedAt: project.updatedAt?.toISOString()
-							})),
-							null,
-							2
-						)
-					}
-				]
-			};
+			return asText(
+				projects.map((project) => ({
+					id: project.id,
+					name: project.name,
+					currency: project.currency,
+					gridSize: project.gridSize,
+					role: project.role,
+					createdAt: project.createdAt?.toISOString(),
+					updatedAt: project.updatedAt?.toISOString()
+				}))
+			);
+		}
+	);
+
+	server.registerTool(
+		'list_branches',
+		{
+			description: 'List branches for a project.',
+			inputSchema: {
+				project_id: z.string().uuid()
+			}
+		},
+		async ({ project_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			const projectBranches = await listProjectBranches(project_id);
+			return asText(
+				projectBranches.map((branch) => ({
+					id: branch.id,
+					project_id: branch.projectId,
+					name: branch.name,
+					forked_from_id: branch.forkedFromId,
+					created_by: branch.createdBy,
+					created_at: branch.createdAt?.toISOString()
+				}))
+			);
+		}
+	);
+
+	server.registerTool(
+		'create_branch',
+		{
+			description: 'Create a new branch for a project, optionally forked from an existing branch.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				name: z.string().min(1),
+				fork_from_branch_id: z.string().uuid().optional()
+			}
+		},
+		async ({ project_id, name, fork_from_branch_id }) => {
+			await ensureProjectRole(project_id, 'editor');
+			if (fork_from_branch_id) {
+				await ensureBranch(project_id, fork_from_branch_id);
+			}
+			const branch = await createBranch(project_id, userId, name, fork_from_branch_id ?? null);
+			return asText({
+				id: branch.id,
+				project_id: branch.projectId,
+				name: branch.name,
+				forked_from_id: branch.forkedFromId,
+				created_by: branch.createdBy,
+				created_at: branch.createdAt?.toISOString()
+			});
 		}
 	);
 
@@ -136,9 +226,10 @@ function createMcpServer(userId: string): McpServer {
 		'add_furniture_item',
 		{
 			description:
-				'Add a new furniture item to a project. The item is added to the inventory (not placed on canvas). Position (x, y) will be null until user places it manually.',
+				'Add a new furniture item to a project branch. The item is added to the inventory (not placed on canvas).',
 			inputSchema: {
-				projectId: z.string().uuid(),
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
 				name: z.string().min(1),
 				width: z.number().positive(),
 				height: z.number().positive(),
@@ -154,48 +245,193 @@ function createMcpServer(userId: string): McpServer {
 					.optional()
 			}
 		},
-		async ({ projectId, ...itemData }) => {
-			const role = await getProjectRole(projectId, userId);
-			if (!role || role === 'viewer') {
-				throw new Error('Permission denied. You need editor or owner role to add items.');
-			}
-
-			const item = await createItem(projectId, {
+		async ({ project_id, branch_id, ...itemData }) => {
+			await ensureProjectRole(project_id, 'editor');
+			await ensureBranch(project_id, branch_id);
+			const item = await createItem(project_id, branch_id, userId, {
 				...itemData,
 				x: null,
 				y: null
 			});
+			return asText({
+				id: item.id,
+				project_id: item.projectId,
+				branch_id: item.branchId,
+				name: item.name,
+				width: item.width,
+				height: item.height,
+				x: item.x,
+				y: item.y,
+				rotation: item.rotation,
+				color: item.color,
+				price: item.price,
+				price_currency: item.priceCurrency,
+				product_url: item.productUrl,
+				shape: item.shape,
+				cutout_width: item.cutoutWidth,
+				cutout_height: item.cutoutHeight,
+				cutout_corner: item.cutoutCorner,
+				created_at: item.createdAt?.toISOString()
+			});
+		}
+	);
 
-			return {
-				content: [
-					{
-						type: 'text',
-						text: JSON.stringify(
-							{
-								id: item.id,
-								projectId: item.projectId,
-								name: item.name,
-								width: item.width,
-								height: item.height,
-								x: item.x,
-								y: item.y,
-								rotation: item.rotation,
-								color: item.color,
-								price: item.price,
-								priceCurrency: item.priceCurrency,
-								productUrl: item.productUrl,
-								shape: item.shape,
-								cutoutWidth: item.cutoutWidth,
-								cutoutHeight: item.cutoutHeight,
-								cutoutCorner: item.cutoutCorner,
-								createdAt: item.createdAt?.toISOString()
-							},
-							null,
-							2
-						)
-					}
-				]
-			};
+	server.registerTool(
+		'update_furniture_item',
+		{
+			description: 'Update an existing furniture item in a project branch.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				item_id: z.string().uuid(),
+				name: z.string().min(1).optional(),
+				width: z.number().positive().optional(),
+				height: z.number().positive().optional(),
+				x: z.number().nullable().optional(),
+				y: z.number().nullable().optional(),
+				rotation: z.number().optional(),
+				color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+				price: z.number().positive().nullable().optional(),
+				priceCurrency: z.string().optional(),
+				productUrl: z.string().url().nullable().optional(),
+				shape: z.enum(['rectangle', 'l-shape']).optional(),
+				cutoutWidth: z.number().positive().nullable().optional(),
+				cutoutHeight: z.number().positive().nullable().optional(),
+				cutoutCorner: z
+					.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
+					.nullable()
+					.optional()
+			}
+		},
+		async ({ project_id, branch_id, item_id, ...updates }) => {
+			await ensureProjectRole(project_id, 'editor');
+			await ensureBranch(project_id, branch_id);
+
+			const existing = await getItemById(project_id, branch_id, item_id);
+			if (!existing) {
+				throw new Error('Item not found in this branch.');
+			}
+
+			const item = await updateItem(project_id, branch_id, item_id, userId, updates);
+			if (!item) {
+				throw new Error('Item update failed.');
+			}
+
+			return asText({
+				id: item.id,
+				project_id: item.projectId,
+				branch_id: item.branchId,
+				name: item.name,
+				width: item.width,
+				height: item.height,
+				x: item.x,
+				y: item.y,
+				rotation: item.rotation,
+				color: item.color,
+				price: item.price,
+				price_currency: item.priceCurrency,
+				product_url: item.productUrl,
+				shape: item.shape,
+				cutout_width: item.cutoutWidth,
+				cutout_height: item.cutoutHeight,
+				cutout_corner: item.cutoutCorner,
+				updated_at: item.updatedAt?.toISOString()
+			});
+		}
+	);
+
+	server.registerTool(
+		'delete_furniture_item',
+		{
+			description: 'Delete a furniture item from a project branch.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				item_id: z.string().uuid()
+			}
+		},
+		async ({ project_id, branch_id, item_id }) => {
+			await ensureProjectRole(project_id, 'editor');
+			await ensureBranch(project_id, branch_id);
+
+			const deleted = await deleteItem(project_id, branch_id, item_id, userId);
+			if (!deleted) {
+				throw new Error('Item not found in this branch.');
+			}
+
+			return asText({ success: true, item_id });
+		}
+	);
+
+	server.registerTool(
+		'list_furniture_items',
+		{
+			description: 'List furniture items for a specific project branch.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid()
+			}
+		},
+		async ({ project_id, branch_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+			const branchItems = await getBranchItems(project_id, branch_id);
+			return asText(
+				branchItems.map((item) => ({
+					id: item.id,
+					project_id: item.projectId,
+					branch_id: item.branchId,
+					name: item.name,
+					width: item.width,
+					height: item.height,
+					x: item.x,
+					y: item.y,
+					rotation: item.rotation,
+					color: item.color,
+					price: item.price,
+					price_currency: item.priceCurrency,
+					product_url: item.productUrl,
+					shape: item.shape,
+					cutout_width: item.cutoutWidth,
+					cutout_height: item.cutoutHeight,
+					cutout_corner: item.cutoutCorner,
+					created_at: item.createdAt?.toISOString(),
+					updated_at: item.updatedAt?.toISOString()
+				}))
+			);
+		}
+	);
+
+	server.registerTool(
+		'get_change_history',
+		{
+			description: 'Get item change history for a project branch.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				limit: z.number().int().positive().max(200).optional(),
+				offset: z.number().int().min(0).optional()
+			}
+		},
+		async ({ project_id, branch_id, limit, offset }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+			const changes = await listItemChanges(project_id, branch_id, limit ?? 50, offset ?? 0);
+			return asText(
+				changes.map((change) => ({
+					id: change.id,
+					project_id: change.projectId,
+					branch_id: change.branchId,
+					item_id: change.itemId,
+					user_id: change.userId,
+					user_name: change.userName,
+					action: change.action,
+					field: change.field,
+					old_value: change.oldValue,
+					new_value: change.newValue,
+					created_at: change.createdAt?.toISOString()
+				}))
+			);
 		}
 	);
 

@@ -2,12 +2,12 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import type { Item } from '$lib/types';
+	import type { Item, ItemChange } from '$lib/types';
 	import type { CurrencyCode } from '$lib/utils/currency';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Menu, Share2, RefreshCw } from 'lucide-svelte';
+	import { Menu, Share2, RefreshCw, GitBranchPlus, Pencil, Trash2 } from 'lucide-svelte';
 	import LoginButton from '$lib/components/auth/LoginButton.svelte';
 	import UserMenu from '$lib/components/auth/UserMenu.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
@@ -26,6 +26,14 @@
 		deleteItem,
 		duplicateItem,
 		getItems,
+		getBranches,
+		getActiveBranch,
+		setActiveBranch as setProjectActiveBranch,
+		createProjectBranch,
+		renameProjectBranch,
+		deleteProjectBranch,
+		getItemHistory,
+		revertHistoryChanges,
 		getCurrency,
 		setCurrency,
 		getGridSize,
@@ -64,6 +72,12 @@
 	let editingItem = $state<Partial<Item> | null>(null);
 	let showShareDialog = $state(false);
 	let showItemBottomSheet = $state(false);
+	let showHistory = $state(false);
+	let isHistoryLoading = $state(false);
+	let isRevertingHistory = $state(false);
+	let historyChanges = $state<ItemChange[]>([]);
+	let expandedHistoryGroups = $state<Set<string>>(new Set());
+	let selectedHistoryChangeIds = $state<Set<string>>(new Set());
 
 	// Track if project is local-only (not synced to cloud)
 	let isLocalProject = $state(true);
@@ -91,7 +105,8 @@
 		if (isRefreshing || isLocalProject || !projectId) return;
 		isRefreshing = true;
 		try {
-			const loaded = await loadProjectById(projectId);
+			const branchParam = $page.url.searchParams.get('branch') ?? undefined;
+			const loaded = await loadProjectById(projectId, branchParam);
 			if (loaded) setProject(loaded);
 		} finally {
 			isRefreshing = false;
@@ -129,8 +144,194 @@
 	// Reactive project data
 	const project = $derived(getProject());
 	const items = $derived(getItems());
+	const branches = $derived(getBranches());
+	const activeBranch = $derived(getActiveBranch());
 	const displayCurrency = $derived(getCurrency());
 	const gridSize = $derived(getGridSize());
+
+	async function handleBranchSelect(event: Event) {
+		const target = event.currentTarget as HTMLSelectElement | null;
+		const branchId = target?.value;
+		if (!branchId) return;
+		const switched = await setProjectActiveBranch(branchId);
+		if (!switched) return;
+		const url = new URL($page.url);
+		url.searchParams.set('branch', branchId);
+		await goto(`${url.pathname}?${url.searchParams.toString()}`, {
+			replaceState: true,
+			keepFocus: true,
+			noScroll: true
+		});
+	}
+
+	async function handleCreateBranch() {
+		const branchName = prompt('New branch name');
+		if (!branchName?.trim()) return;
+
+		const created = await createProjectBranch(branchName, activeBranch?.id ?? null);
+		if (!created) return;
+
+		await setProjectActiveBranch(created.id);
+		const url = new URL($page.url);
+		url.searchParams.set('branch', created.id);
+		await goto(`${url.pathname}?${url.searchParams.toString()}`, {
+			replaceState: true,
+			keepFocus: true,
+			noScroll: true
+		});
+	}
+
+	async function handleRenameBranch() {
+		if (!activeBranch) return;
+		const nextName = prompt('Rename branch', activeBranch.name);
+		if (!nextName?.trim() || nextName.trim() === activeBranch.name) return;
+		await renameProjectBranch(activeBranch.id, nextName.trim());
+	}
+
+	async function handleDeleteBranch() {
+		if (!activeBranch) return;
+		if (!confirm(`Delete branch "${activeBranch.name}"?`)) return;
+
+		const deleted = await deleteProjectBranch(activeBranch.id);
+		if (!deleted) return;
+
+		const nextActive = getActiveBranch();
+		if (!nextActive) return;
+		const url = new URL($page.url);
+		url.searchParams.set('branch', nextActive.id);
+		await goto(`${url.pathname}?${url.searchParams.toString()}`, {
+			replaceState: true,
+			keepFocus: true,
+			noScroll: true
+		});
+	}
+
+	interface HistoryGroup {
+		id: string;
+		userId: string | null;
+		userName: string;
+		itemId: string;
+		createdAt: string;
+		changes: ItemChange[];
+	}
+
+	function groupHistoryEntries(changes: ItemChange[]): HistoryGroup[] {
+		if (changes.length === 0) return [];
+		const sorted = [...changes].sort(
+			(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+		);
+
+		const groups: HistoryGroup[] = [];
+		for (const change of sorted) {
+			const currentTime = new Date(change.createdAt).getTime();
+			const last = groups[groups.length - 1];
+			const lastTime = last ? new Date(last.createdAt).getTime() : 0;
+			const sameActor = last?.userId === change.userId;
+			const sameItem = last?.itemId === change.itemId;
+			const withinWindow = Math.abs(lastTime - currentTime) <= 2000;
+
+			if (last && sameActor && sameItem && withinWindow) {
+				last.changes.push(change);
+				continue;
+			}
+
+			groups.push({
+				id: `${change.userId ?? 'anonymous'}:${change.itemId}:${change.createdAt}`,
+				userId: change.userId,
+				userName: change.userName ?? 'Unknown user',
+				itemId: change.itemId,
+				createdAt: change.createdAt,
+				changes: [change]
+			});
+		}
+
+		return groups;
+	}
+
+	const historyGroups = $derived(groupHistoryEntries(historyChanges));
+
+	function isGroupExpanded(groupId: string): boolean {
+		return expandedHistoryGroups.has(groupId);
+	}
+
+	function toggleHistoryGroup(groupId: string): void {
+		const next = new Set(expandedHistoryGroups);
+		if (next.has(groupId)) {
+			next.delete(groupId);
+		} else {
+			next.add(groupId);
+		}
+		expandedHistoryGroups = next;
+	}
+
+	function isChangeSelected(changeId: string): boolean {
+		return selectedHistoryChangeIds.has(changeId);
+	}
+
+	function toggleChangeSelection(changeId: string): void {
+		const next = new Set(selectedHistoryChangeIds);
+		if (next.has(changeId)) {
+			next.delete(changeId);
+		} else {
+			next.add(changeId);
+		}
+		selectedHistoryChangeIds = next;
+	}
+
+	function toggleGroupSelection(group: HistoryGroup): void {
+		const next = new Set(selectedHistoryChangeIds);
+		const hasAll = group.changes.every((change) => next.has(change.id));
+		for (const change of group.changes) {
+			if (hasAll) {
+				next.delete(change.id);
+			} else {
+				next.add(change.id);
+			}
+		}
+		selectedHistoryChangeIds = next;
+	}
+
+	function getHistoryItemLabel(itemId: string): string {
+		const item = items.find((candidate) => candidate.id === itemId);
+		return item?.name ?? `Item ${itemId.slice(0, 8)}`;
+	}
+
+	function describeGroupAction(group: HistoryGroup): string {
+		if (group.changes.some((change) => change.action === 'delete')) return 'deleted';
+		if (group.changes.some((change) => change.action === 'create')) return 'created';
+		return 'updated';
+	}
+
+	async function loadHistory() {
+		isHistoryLoading = true;
+		try {
+			historyChanges = await getItemHistory(200, 0);
+			selectedHistoryChangeIds = new Set(historyChanges.map((change) => change.id));
+		} finally {
+			isHistoryLoading = false;
+		}
+	}
+
+	async function handleOpenHistory() {
+		showHistory = true;
+		await loadHistory();
+	}
+
+	async function handleRevertHistory() {
+		const changeIds = Array.from(selectedHistoryChangeIds);
+		if (changeIds.length === 0) return;
+		if (!confirm(`Revert ${changeIds.length} selected change(s)?`)) return;
+
+		isRevertingHistory = true;
+		try {
+			const reverted = await revertHistoryChanges(changeIds);
+			if (reverted) {
+				await loadHistory();
+			}
+		} finally {
+			isRevertingHistory = false;
+		}
+	}
 
 	function handleGridSizeChange(newSize: number) {
 		setGridSize(newSize);
@@ -176,9 +377,19 @@
 			goto('/');
 			return;
 		}
-		const loaded = await loadProjectById(id);
+		const branchParam = $page.url.searchParams.get('branch') ?? undefined;
+		const loaded = await loadProjectById(id, branchParam);
 		if (loaded) {
 			setProject(loaded);
+			if (loaded.activeBranchId && loaded.activeBranchId !== branchParam) {
+				const url = new URL($page.url);
+				url.searchParams.set('branch', loaded.activeBranchId);
+				await goto(`${url.pathname}?${url.searchParams.toString()}`, {
+					replaceState: true,
+					keepFocus: true,
+					noScroll: true
+				});
+			}
 			// If user is authenticated and project was loaded, check if it's a cloud project
 			// by checking if the floorplan URL is a remote URL (not a data URL)
 			if (authed && loaded.floorplan?.imageData?.startsWith('/api/')) {
@@ -187,6 +398,12 @@
 		} else {
 			goto('/');
 		}
+	});
+
+	$effect(() => {
+		const branchParam = $page.url.searchParams.get('branch');
+		if (!branchParam || !activeBranch || branchParam === activeBranch.id) return;
+		void setProjectActiveBranch(branchParam);
 	});
 
 	onMount(() => {
@@ -441,6 +658,41 @@
 					<span class="truncate">{project.name}</span>
 				</Button>
 			{/if}
+
+			{#if branches.length > 0}
+				<div class="flex items-center gap-1.5 min-w-0">
+					<select
+						class="h-8 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700 max-w-40"
+						value={activeBranch?.id ?? ''}
+						onchange={handleBranchSelect}
+					>
+						{#each branches as branch}
+							<option value={branch.id}>{branch.name}</option>
+						{/each}
+					</select>
+					<Button variant="outline" size="icon-sm" onclick={handleCreateBranch} title="Create branch">
+						<GitBranchPlus size={14} />
+					</Button>
+					<Button
+						variant="outline"
+						size="icon-sm"
+						onclick={handleRenameBranch}
+						disabled={!activeBranch}
+						title="Rename branch"
+					>
+						<Pencil size={14} />
+					</Button>
+					<Button
+						variant="outline"
+						size="icon-sm"
+						onclick={handleDeleteBranch}
+						disabled={!activeBranch || branches.length <= 1}
+						title="Delete branch"
+					>
+						<Trash2 size={14} />
+					</Button>
+				</div>
+			{/if}
 		</div>
 
 		<div class="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
@@ -448,6 +700,10 @@
 				<Button variant="outline" size="sm" onclick={() => (showShareDialog = true)}>
 					<Share2 size={16} class="md:mr-1" />
 					<span class="hidden md:inline">Share</span>
+				</Button>
+				<Button variant="outline" size="sm" onclick={handleOpenHistory}>
+					<span class="hidden md:inline">History</span>
+					<span class="md:hidden">Hist</span>
 				</Button>
 				<Button variant="outline" size="icon-sm" onclick={refreshProject} disabled={isRefreshing}>
 					<RefreshCw size={16} class={isRefreshing ? 'animate-spin' : ''} />
@@ -567,6 +823,87 @@
 			/>
 		</aside>
 	</main>
+
+	{#if showHistory}
+		<div class="fixed inset-0 z-50 flex items-end justify-center md:items-center">
+			<button
+				type="button"
+				class="absolute inset-0 bg-black/40"
+				onclick={() => (showHistory = false)}
+				aria-label="Close history"
+			></button>
+			<div class="relative z-10 w-full md:max-w-2xl max-h-[85vh] bg-white rounded-t-xl md:rounded-xl shadow-xl flex flex-col">
+				<div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+					<h2 class="text-base font-semibold text-slate-800">Change History</h2>
+					<div class="flex items-center gap-2">
+						<Button variant="outline" size="sm" onclick={loadHistory} disabled={isHistoryLoading}>
+							Reload
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onclick={handleRevertHistory}
+							disabled={isRevertingHistory || selectedHistoryChangeIds.size === 0}
+						>
+							Revert Selected
+						</Button>
+						<Button variant="ghost" size="sm" onclick={() => (showHistory = false)}>Close</Button>
+					</div>
+				</div>
+
+				<div class="overflow-y-auto px-4 py-3 space-y-3">
+					{#if isHistoryLoading}
+						<p class="text-sm text-slate-500">Loading history...</p>
+					{:else if historyGroups.length === 0}
+						<p class="text-sm text-slate-500">No history entries yet.</p>
+					{:else}
+						{#each historyGroups as group}
+							<div class="border border-slate-200 rounded-lg">
+								<div class="flex items-center justify-between gap-3 px-3 py-2 bg-slate-50">
+									<button
+										type="button"
+										class="text-left flex-1"
+										onclick={() => toggleHistoryGroup(group.id)}
+									>
+										<p class="text-sm font-medium text-slate-800">
+											{group.userName} {describeGroupAction(group)} {getHistoryItemLabel(group.itemId)}
+										</p>
+										<p class="text-xs text-slate-500">{new Date(group.createdAt).toLocaleString()}</p>
+									</button>
+									<input
+										type="checkbox"
+										checked={group.changes.every((change) => isChangeSelected(change.id))}
+										onchange={() => toggleGroupSelection(group)}
+										aria-label="Select group"
+									/>
+								</div>
+
+								{#if isGroupExpanded(group.id)}
+									<div class="px-3 py-2 space-y-2">
+										{#each group.changes as change}
+											<label class="flex items-start gap-2 text-sm text-slate-700">
+												<input
+													type="checkbox"
+													checked={isChangeSelected(change.id)}
+													onchange={() => toggleChangeSelection(change.id)}
+												/>
+												<span>
+													<strong>{change.action}</strong>
+													{#if change.field}
+														: {change.field}
+													{/if}
+												</span>
+											</label>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{/each}
+					{/if}
+				</div>
+			</div>
+		</div>
+	{/if}
 
 	<MobileNav {activeTab} onTabChange={(tab) => (activeTab = tab)} />
 

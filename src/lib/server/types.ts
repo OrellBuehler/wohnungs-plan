@@ -3,8 +3,10 @@ export type {
 	User as DBUser,
 	Session as DBSession,
 	Project as DBProject,
+	Branch as DBBranch,
 	Floorplan as DBFloorplan,
 	Item as DBItem,
+	ItemChange as DBItemChange,
 	ProjectMember as DBProjectMember,
 	ProjectInvite as DBProjectInvite
 } from './schema';

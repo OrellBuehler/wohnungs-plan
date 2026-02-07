@@ -1,4 +1,4 @@
-import type { Project, Item, Floorplan, Position, ProjectMeta } from '$lib/types';
+import type { Project, Item, Floorplan, Position, ProjectMeta, ProjectBranch, ItemChange } from '$lib/types';
 import type { CurrencyCode } from '$lib/utils/currency';
 import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 import {
@@ -20,6 +20,15 @@ interface ApiProject {
 	updatedAt: string | Date | null;
 	currency: string;
 	gridSize: number;
+}
+
+interface ApiBranch {
+	id: string;
+	projectId: string;
+	name: string;
+	forkedFromId: string | null;
+	createdBy: string;
+	createdAt: string | Date | null;
 }
 
 interface ApiItem {
@@ -50,6 +59,50 @@ interface ApiFloorplan {
 	referenceLength: number | null;
 	createdAt: string | Date | null;
 	updatedAt: string | Date | null;
+}
+
+function mapApiBranch(branch: ApiBranch): ProjectBranch {
+	return {
+		id: branch.id,
+		projectId: branch.projectId,
+		name: branch.name,
+		forkedFromId: branch.forkedFromId,
+		createdBy: branch.createdBy,
+		createdAt: branch.createdAt ? toIsoString(branch.createdAt) : new Date().toISOString()
+	};
+}
+
+function ensureProjectBranches(project: Project): Project {
+	if (project.branches && project.branches.length > 0) {
+		return {
+			...project,
+			activeBranchId: project.activeBranchId ?? project.branches[0].id
+		};
+	}
+
+	const now = project.createdAt ?? new Date().toISOString();
+	const mainBranchId = crypto.randomUUID();
+	return {
+		...project,
+		branches: [
+			{
+				id: mainBranchId,
+				projectId: project.id,
+				name: 'Main',
+				forkedFromId: null,
+				createdBy: 'local',
+				createdAt: now
+			}
+		],
+		activeBranchId: mainBranchId
+	};
+}
+
+function getActiveBranchId(project: Project | null): string | null {
+	if (!project) return null;
+	if (project.activeBranchId) return project.activeBranchId;
+	if (project.branches && project.branches.length > 0) return project.branches[0].id;
+	return null;
 }
 
 let currentProject = $state<Project | null>(null);
@@ -110,9 +163,11 @@ function mapApiItem(item: ApiItem): Item {
 function mapApiProject(
 	project: ApiProject,
 	items: ApiItem[],
-	floorplan: ApiFloorplan | null
+	floorplan: ApiFloorplan | null,
+	branches: ApiBranch[] = [],
+	activeBranchId?: string
 ): Project {
-	return {
+	return ensureProjectBranches({
 		id: project.id,
 		name: project.name,
 		createdAt: project.createdAt ? toIsoString(project.createdAt) : new Date().toISOString(),
@@ -125,9 +180,11 @@ function mapApiProject(
 			}
 			: null,
 		items: items.map(mapApiItem),
+		branches: branches.map(mapApiBranch),
+		activeBranchId: activeBranchId ?? null,
 		currency: project.currency as CurrencyCode,
 		gridSize: project.gridSize
-	};
+	});
 }
 
 function buildItemPayload(item: Item): Record<string, unknown> {
@@ -200,12 +257,29 @@ function parseDataUrl(dataUrl: string): { data: Blob; mimeType: string } {
 	return { data: new Blob([buffer], { type: mimeType }), mimeType };
 }
 
+function getBranchItemsBase(project: Project | null): string | null {
+	const branchId = getActiveBranchId(project);
+	if (!project || !branchId) return null;
+	return `/api/projects/${project.id}/branches/${branchId}/items`;
+}
+
 export function getProject() {
 	return currentProject;
 }
 
 export function setProject(project: Project | null) {
-	currentProject = project;
+	currentProject = project ? ensureProjectBranches(project) : null;
+}
+
+export function getBranches(): ProjectBranch[] {
+	return currentProject?.branches ?? [];
+}
+
+export function getActiveBranch(): ProjectBranch | null {
+	const project = currentProject;
+	const activeBranchId = getActiveBranchId(project);
+	if (!project || !activeBranchId || !project.branches) return null;
+	return project.branches.find((branch) => branch.id === activeBranchId) ?? null;
 }
 
 export async function listProjects(): Promise<ProjectMeta[]> {
@@ -265,6 +339,13 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 		});
 		if (!createRes.ok) throw new Error('Failed to create project');
 
+		const projectRes = await fetch(`/api/projects/${project.id}`);
+		if (!projectRes.ok) throw new Error('Failed to load created project');
+		const projectData = await projectRes.json();
+		const defaultBranchId: string | null =
+			projectData.activeBranchId ?? projectData.defaultBranchId ?? null;
+		if (!defaultBranchId) throw new Error('No default branch available');
+
 		// Upload floorplan if exists
 		if (project.floorplan) {
 			await uploadFloorplan(project.id, project.floorplan);
@@ -272,11 +353,14 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 
 		// Create all items - check each response
 		for (const item of project.items) {
-			const itemRes = await fetch(`/api/projects/${project.id}/items`, {
+			const itemRes = await fetch(
+				`/api/projects/${project.id}/branches/${defaultBranchId}/items`,
+				{
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(buildItemPayload(item))
-			});
+				}
+			);
 			if (!itemRes.ok) {
 				throw new Error(`Failed to create item: ${item.name}`);
 			}
@@ -291,26 +375,42 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 	}
 }
 
-export async function loadProjectById(id: string): Promise<Project | null> {
+export async function loadProjectById(id: string, branchId?: string): Promise<Project | null> {
 	// Always check local storage first
 	const local = await loadLocalProject(id);
 
 	// If project exists locally and is marked as local-only, return it without API call
 	if (local?.isLocal) {
+		if (branchId && local.branches?.some((branch) => branch.id === branchId)) {
+			return { ...local, activeBranchId: branchId };
+		}
 		return local;
 	}
 
 	// If not authenticated or offline, return local version if available
 	if (!useRemote()) {
-		return local ? { ...local, isLocal: true } : null;
+		if (!local) return null;
+		if (branchId && local.branches?.some((branch) => branch.id === branchId)) {
+			return { ...local, isLocal: true, activeBranchId: branchId };
+		}
+		return { ...local, isLocal: true };
 	}
 
 	// Project is either not in IndexedDB or is a cloud project - fetch from API
 	try {
-		const response = await fetch(`/api/projects/${id}`);
+		const endpoint = branchId
+			? `/api/projects/${id}?branch=${encodeURIComponent(branchId)}`
+			: `/api/projects/${id}`;
+		const response = await fetch(endpoint);
 		if (!response.ok) throw new Error('Failed to load project');
 		const data = await response.json();
-		const project = mapApiProject(data.project, data.items ?? [], data.floorplan ?? null);
+		const project = mapApiProject(
+			data.project,
+			data.items ?? [],
+			data.floorplan ?? null,
+			data.branches ?? [],
+			data.activeBranchId
+		);
 		project.isLocal = false;
 		await saveLocalProject(project);
 		return project;
@@ -318,6 +418,216 @@ export async function loadProjectById(id: string): Promise<Project | null> {
 		console.error('Failed to load remote project:', error);
 		// Fallback to local version if API fails
 		return local ? { ...local, isLocal: true } : null;
+	}
+}
+
+export async function setActiveBranch(branchId: string): Promise<boolean> {
+	if (!currentProject) return false;
+	if (!currentProject.branches?.some((branch) => branch.id === branchId)) return false;
+
+	if (currentProject.isLocal || !shouldSyncProject()) {
+		currentProject.activeBranchId = branchId;
+		debounceAutoSave();
+		return true;
+	}
+
+	try {
+		const response = await fetch(
+			`/api/projects/${currentProject.id}/branches/${branchId}/items`
+		);
+		if (!response.ok) {
+			throw new Error('Failed to load branch items');
+		}
+
+		const data = await response.json();
+		currentProject.items = (data.items ?? []).map(mapApiItem);
+		currentProject.activeBranchId = branchId;
+		await saveLocalProject(currentProject);
+		return true;
+	} catch (error) {
+		console.error('Failed to switch branch:', error);
+		return false;
+	}
+}
+
+export async function createProjectBranch(
+	name: string,
+	forkFromBranchId?: string | null
+): Promise<ProjectBranch | null> {
+	if (!currentProject) return null;
+	const trimmed = name.trim();
+	if (!trimmed) return null;
+
+	if (currentProject.isLocal || !shouldSyncProject()) {
+		const localBranch: ProjectBranch = {
+			id: crypto.randomUUID(),
+			projectId: currentProject.id,
+			name: trimmed,
+			forkedFromId: forkFromBranchId ?? null,
+			createdBy: 'local',
+			createdAt: new Date().toISOString()
+		};
+		currentProject.branches = [...(currentProject.branches ?? []), localBranch];
+		debounceAutoSave();
+		return localBranch;
+	}
+
+	try {
+		const response = await fetch(`/api/projects/${currentProject.id}/branches`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				name: trimmed,
+				forkFromBranchId: forkFromBranchId ?? undefined
+			})
+		});
+
+		if (!response.ok) {
+			throw new Error('Failed to create branch');
+		}
+
+		const data = await response.json();
+		const branch = mapApiBranch(data.branch);
+		currentProject.branches = [...(currentProject.branches ?? []), branch];
+		debounceAutoSave();
+		return branch;
+	} catch (error) {
+		console.error('Failed to create branch:', error);
+		return null;
+	}
+}
+
+export async function renameProjectBranch(branchId: string, name: string): Promise<boolean> {
+	if (!currentProject) return false;
+	const trimmed = name.trim();
+	if (!trimmed) return false;
+
+	if (currentProject.isLocal || !shouldSyncProject()) {
+		currentProject.branches = (currentProject.branches ?? []).map((branch) =>
+			branch.id === branchId ? { ...branch, name: trimmed } : branch
+		);
+		debounceAutoSave();
+		return true;
+	}
+
+	try {
+		const response = await fetch(`/api/projects/${currentProject.id}/branches/${branchId}`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ name: trimmed })
+		});
+		if (!response.ok) throw new Error('Failed to rename branch');
+
+		currentProject.branches = (currentProject.branches ?? []).map((branch) =>
+			branch.id === branchId ? { ...branch, name: trimmed } : branch
+		);
+		debounceAutoSave();
+		return true;
+	} catch (error) {
+		console.error('Failed to rename branch:', error);
+		return false;
+	}
+}
+
+export async function deleteProjectBranch(branchId: string): Promise<boolean> {
+	if (!currentProject) return false;
+	const projectRef = currentProject;
+	const previousActiveBranchId = getActiveBranchId(currentProject);
+	const remainingBranches = (currentProject.branches ?? []).filter((branch) => branch.id !== branchId);
+	if (remainingBranches.length === 0) return false;
+
+	if (currentProject.isLocal || !shouldSyncProject()) {
+		currentProject.branches = remainingBranches;
+		if (previousActiveBranchId === branchId) {
+			currentProject.activeBranchId = remainingBranches[0].id;
+		}
+		debounceAutoSave();
+		return true;
+	}
+
+	try {
+		const response = await fetch(`/api/projects/${projectRef.id}/branches/${branchId}`, {
+			method: 'DELETE'
+		});
+		if (!response.ok) throw new Error('Failed to delete branch');
+
+		if (previousActiveBranchId === branchId) {
+			const nextBranchId = remainingBranches[0].id;
+			const switched = await setActiveBranch(nextBranchId);
+			if (!switched) {
+				throw new Error('Failed to switch to remaining branch');
+			}
+		}
+
+		if (!currentProject) {
+			throw new Error('Project state unavailable after branch deletion');
+		}
+		currentProject.branches = remainingBranches;
+		debounceAutoSave();
+		return true;
+	} catch (error) {
+		// Server deletion may have succeeded even if local switch failed: reload current project state.
+		const fallbackBranchId =
+			remainingBranches.find((branch) => branch.id !== branchId)?.id ??
+			previousActiveBranchId ??
+			undefined;
+		if (projectRef.id && fallbackBranchId) {
+			const reloaded = await loadProjectById(projectRef.id, fallbackBranchId);
+			if (reloaded) {
+				currentProject = reloaded;
+			}
+		}
+		console.error('Failed to delete branch:', error);
+		return false;
+	}
+}
+
+export async function getItemHistory(limit = 50, offset = 0): Promise<ItemChange[]> {
+	if (!currentProject || currentProject.isLocal || !shouldSyncProject()) {
+		return [];
+	}
+
+	const branchId = getActiveBranchId(currentProject);
+	if (!branchId) return [];
+
+	try {
+		const response = await fetch(
+			`/api/projects/${currentProject.id}/branches/${branchId}/history?limit=${limit}&offset=${offset}`
+		);
+		if (!response.ok) throw new Error('Failed to fetch change history');
+
+		const data = await response.json();
+		return (data.changes ?? []).map((change: ItemChange) => ({
+			...change,
+			createdAt: new Date(change.createdAt).toISOString()
+		}));
+	} catch (error) {
+		console.error('Failed to load item history:', error);
+		return [];
+	}
+}
+
+export async function revertHistoryChanges(changeIds: string[]): Promise<boolean> {
+	if (!currentProject || changeIds.length === 0 || currentProject.isLocal || !shouldSyncProject()) {
+		return false;
+	}
+
+	const branchId = getActiveBranchId(currentProject);
+	if (!branchId) return false;
+
+	try {
+		const response = await fetch(`/api/projects/${currentProject.id}/branches/${branchId}/revert`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ changeIds })
+		});
+		if (!response.ok) throw new Error('Failed to revert changes');
+
+		await setActiveBranch(branchId);
+		return true;
+	} catch (error) {
+		console.error('Failed to revert history changes:', error);
+		return false;
 	}
 }
 
@@ -521,15 +831,20 @@ export function clearFloorplan() {
 
 export function addItem(item: Omit<Item, 'id'>) {
 	if (currentProject) {
+		const branchId = getActiveBranchId(currentProject);
+		if (!branchId) return null;
+
 		const newItem: Item = {
 			...item,
 			id: crypto.randomUUID()
 		};
 		currentProject.items = [...currentProject.items, newItem];
 		debounceAutoSave();
+		const baseUrl = getBranchItemsBase(currentProject);
+		if (!baseUrl) return newItem;
 
 		if (shouldSyncProject()) {
-			void fetch(`/api/projects/${currentProject.id}/items`, {
+			void fetch(baseUrl, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(buildItemPayload(newItem))
@@ -539,6 +854,7 @@ export function addItem(item: Omit<Item, 'id'>) {
 				type: 'create',
 				entity: 'item',
 				projectId: currentProject.id,
+				branchId,
 				data: buildItemPayload(newItem)
 			});
 		}
@@ -550,16 +866,21 @@ export function addItem(item: Omit<Item, 'id'>) {
 
 export function updateItem(id: string, updates: Partial<Item>) {
 	if (currentProject) {
+		const branchId = getActiveBranchId(currentProject);
+		if (!branchId) return;
+
 		currentProject.items = currentProject.items.map((item) =>
 			item.id === id ? { ...item, ...updates } : item
 		);
 		debounceAutoSave();
+		const baseUrl = getBranchItemsBase(currentProject);
+		if (!baseUrl) return;
 
 		const updatedItem = currentProject.items.find((item) => item.id === id);
 		if (!updatedItem) return;
 
 		if (shouldSyncProject()) {
-			void fetch(`/api/projects/${currentProject.id}/items/${id}`, {
+			void fetch(`${baseUrl}/${id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(buildItemPayload(updatedItem))
@@ -569,6 +890,7 @@ export function updateItem(id: string, updates: Partial<Item>) {
 				type: 'update',
 				entity: 'item',
 				projectId: currentProject.id,
+				branchId,
 				entityId: id,
 				data: buildItemPayload(updatedItem)
 			});
@@ -578,11 +900,16 @@ export function updateItem(id: string, updates: Partial<Item>) {
 
 export function deleteItem(id: string) {
 	if (currentProject) {
+		const branchId = getActiveBranchId(currentProject);
+		if (!branchId) return;
+
 		currentProject.items = currentProject.items.filter((item) => item.id !== id);
 		debounceAutoSave();
+		const baseUrl = getBranchItemsBase(currentProject);
+		if (!baseUrl) return;
 
 		if (shouldSyncProject()) {
-			void fetch(`/api/projects/${currentProject.id}/items/${id}`, {
+			void fetch(`${baseUrl}/${id}`, {
 				method: 'DELETE'
 			});
 		} else if (shouldQueueProject()) {
@@ -590,6 +917,7 @@ export function deleteItem(id: string) {
 				type: 'delete',
 				entity: 'item',
 				projectId: currentProject.id,
+				branchId,
 				entityId: id
 			});
 		}
@@ -606,6 +934,9 @@ export function updateItemRotation(id: string, rotation: number) {
 
 export function duplicateItem(id: string) {
 	if (currentProject) {
+		const branchId = getActiveBranchId(currentProject);
+		if (!branchId) return null;
+
 		const item = currentProject.items.find((i) => i.id === id);
 		if (item) {
 			const newItem: Item = {
@@ -617,9 +948,11 @@ export function duplicateItem(id: string) {
 			};
 			currentProject.items = [...currentProject.items, newItem];
 			debounceAutoSave();
+			const baseUrl = getBranchItemsBase(currentProject);
+			if (!baseUrl) return newItem;
 
 			if (shouldSyncProject()) {
-				void fetch(`/api/projects/${currentProject.id}/items`, {
+				void fetch(baseUrl, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(buildItemPayload(newItem))
@@ -629,6 +962,7 @@ export function duplicateItem(id: string) {
 					type: 'create',
 					entity: 'item',
 					projectId: currentProject.id,
+					branchId,
 					data: buildItemPayload(newItem)
 				});
 			}

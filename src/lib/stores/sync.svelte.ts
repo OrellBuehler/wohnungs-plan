@@ -22,6 +22,7 @@ interface PendingChange {
 	type: 'create' | 'update' | 'delete';
 	entity: 'project' | 'item' | 'floorplan';
 	projectId: string;
+	branchId?: string;
 	entityId?: string;
 	data?: unknown;
 	timestamp: number;
@@ -87,20 +88,24 @@ async function processChange(change: PendingChange): Promise<void> {
 
 	switch (change.entity) {
 		case 'item':
+			const itemBaseUrl = change.branchId
+				? `${baseUrl}/branches/${change.branchId}/items`
+				: `${baseUrl}/items`;
+
 			if (change.type === 'create') {
-				await fetch(`${baseUrl}/items`, {
+				await fetch(itemBaseUrl, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(change.data)
 				});
 			} else if (change.type === 'update' && change.entityId) {
-				await fetch(`${baseUrl}/items/${change.entityId}`, {
+				await fetch(`${itemBaseUrl}/${change.entityId}`, {
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(change.data)
 				});
 			} else if (change.type === 'delete' && change.entityId) {
-				await fetch(`${baseUrl}/items/${change.entityId}`, {
+				await fetch(`${itemBaseUrl}/${change.entityId}`, {
 					method: 'DELETE'
 				});
 			}

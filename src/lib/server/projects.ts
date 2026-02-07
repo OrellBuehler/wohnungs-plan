@@ -3,6 +3,7 @@ import { getDB, projects, projectMembers, items, floorplans, type Project, type 
 import type { ProjectWithRole, ProjectRole } from './types';
 import type { ProjectMeta } from '$lib/types';
 import { copyFloorplan } from './floorplans';
+import { ensureMainBranch } from './branches';
 
 export async function getUserProjects(userId: string): Promise<ProjectWithRole[]> {
 	const db = getDB();
@@ -132,6 +133,8 @@ export async function createProject(
 		role: 'owner'
 	});
 
+	await ensureMainBranch(project.id, ownerId);
+
 	return project;
 }
 
@@ -158,9 +161,17 @@ export async function deleteProject(projectId: string): Promise<void> {
 	await db.delete(projects).where(eq(projects.id, projectId));
 }
 
-export async function getProjectItems(projectId: string): Promise<Item[]> {
+export async function getProjectItems(projectId: string, branchId?: string): Promise<Item[]> {
 	const db = getDB();
-	return db.select().from(items).where(eq(items.projectId, projectId)).orderBy(asc(items.createdAt));
+	return db
+		.select()
+		.from(items)
+		.where(
+			branchId
+				? and(eq(items.projectId, projectId), eq(items.branchId, branchId))
+				: eq(items.projectId, projectId)
+		)
+		.orderBy(asc(items.createdAt));
 }
 
 export async function getProjectFloorplan(projectId: string): Promise<Floorplan | null> {
@@ -198,12 +209,16 @@ export async function duplicateProject(sourceProjectId: string, newOwnerId: stri
 		role: 'owner'
 	});
 
-	// Copy all items with new UUIDs
+	// Create Main branch for new project
+	const mainBranch = await ensureMainBranch(newProject.id, newOwnerId);
+
+	// Copy all items with new UUIDs, assigned to the new Main branch
 	const sourceItems = await getProjectItems(sourceProjectId);
 	if (sourceItems.length > 0) {
 		await db.insert(items).values(
 			sourceItems.map((item) => ({
 				projectId: newProject.id,
+				branchId: mainBranch.id,
 				name: item.name,
 				width: item.width,
 				height: item.height,

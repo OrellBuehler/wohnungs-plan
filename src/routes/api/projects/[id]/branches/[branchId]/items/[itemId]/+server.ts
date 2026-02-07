@@ -1,20 +1,8 @@
-import { json, error } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectById, getProjectRole } from '$lib/server/projects';
-import { getItemById, updateItem, deleteItem } from '$lib/server/items';
-import { ensureMainBranch, getDefaultBranch } from '$lib/server/branches';
-
-async function resolveDefaultBranch(projectId: string) {
-	let branch = await getDefaultBranch(projectId);
-	if (!branch) {
-		const project = await getProjectById(projectId);
-		if (!project) {
-			throw error(404, 'Project not found');
-		}
-		branch = await ensureMainBranch(project.id, project.ownerId);
-	}
-	return branch;
-}
+import { getBranchById } from '$lib/server/branches';
+import { deleteItem, getItemById, updateItem } from '$lib/server/items';
+import { getProjectRole } from '$lib/server/projects';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -26,14 +14,18 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		throw error(403, 'Edit access required');
 	}
 
-	const branch = await resolveDefaultBranch(params.id);
-	const existingItem = await getItemById(params.id, branch.id, params.itemId);
+	const branch = await getBranchById(params.id, params.branchId);
+	if (!branch) {
+		throw error(404, 'Branch not found');
+	}
+
+	const existingItem = await getItemById(params.id, params.branchId, params.itemId);
 	if (!existingItem) {
 		throw error(404, 'Item not found');
 	}
 
 	const body = await request.json();
-	const item = await updateItem(params.id, branch.id, params.itemId, locals.user.id, {
+	const item = await updateItem(params.id, params.branchId, params.itemId, locals.user.id, {
 		name: body.name,
 		width: body.width,
 		height: body.height,
@@ -63,12 +55,16 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 		throw error(403, 'Edit access required');
 	}
 
-	const branch = await resolveDefaultBranch(params.id);
-	const existingItem = await getItemById(params.id, branch.id, params.itemId);
+	const branch = await getBranchById(params.id, params.branchId);
+	if (!branch) {
+		throw error(404, 'Branch not found');
+	}
+
+	const existingItem = await getItemById(params.id, params.branchId, params.itemId);
 	if (!existingItem) {
 		throw error(404, 'Item not found');
 	}
 
-	await deleteItem(params.id, branch.id, params.itemId, locals.user.id);
+	await deleteItem(params.id, params.branchId, params.itemId, locals.user.id);
 	return json({ success: true });
 };

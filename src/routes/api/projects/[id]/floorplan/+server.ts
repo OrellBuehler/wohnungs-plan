@@ -63,8 +63,8 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const role = await getProjectRole(params.id, locals.user.id);
-	if (!role || role === 'viewer') {
-		throw error(403, 'Edit access required');
+	if (role !== 'owner') {
+		throw error(403, 'Owner access required');
 	}
 
 	const formData = await request.formData();
@@ -104,8 +104,8 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const role = await getProjectRole(params.id, locals.user.id);
-	if (!role || role === 'viewer') {
-		throw error(403, 'Edit access required');
+	if (role !== 'owner') {
+		throw error(403, 'Owner access required');
 	}
 
 	const floorplan = await getProjectFloorplan(params.id);
@@ -130,8 +130,8 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const role = await getProjectRole(params.id, locals.user.id);
-	if (!role || role === 'viewer') {
-		throw error(403, 'Edit access required');
+	if (role !== 'owner') {
+		throw error(403, 'Owner access required');
 	}
 
 	await deleteFloorplan(params.id);

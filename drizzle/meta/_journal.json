@@ -57,6 +57,13 @@
       "when": 1770481854570,
       "tag": "0007_last_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1770484893621,
+      "tag": "0008_heavy_orphan",
+      "breakpoints": true
     }
   ]
 }
