@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyCoalescedPanAndZoom,
   clampZoom,
   clientToContainer,
   getViewportCenterWorld,
@@ -127,6 +128,68 @@ describe('getViewportCenterWorld', () => {
       expect(actual.x).toBeCloseTo(expected.x, 8);
       expect(actual.y).toBeCloseTo(expected.y, 8);
     }
+  });
+});
+
+describe('applyCoalescedPanAndZoom', () => {
+  it('applies pan deltas when no wheel steps are queued', () => {
+    const next = applyCoalescedPanAndZoom({
+      zoom: 1.2,
+      panX: 40,
+      panY: -10,
+      panDeltaX: 12,
+      panDeltaY: -7,
+      wheelSteps: 0,
+      wheelAnchorX: null,
+      wheelAnchorY: null,
+      zoomStep: 0.1,
+      minZoom: 0.5,
+      maxZoom: 5,
+    });
+
+    expect(next.zoom).toBeCloseTo(1.2, 8);
+    expect(next.panX).toBeCloseTo(52, 8);
+    expect(next.panY).toBeCloseTo(-17, 8);
+  });
+
+  it('applies accumulated wheel steps around the last anchor', () => {
+    const next = applyCoalescedPanAndZoom({
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+      panDeltaX: 0,
+      panDeltaY: 0,
+      wheelSteps: 3,
+      wheelAnchorX: 200,
+      wheelAnchorY: 100,
+      zoomStep: 0.1,
+      minZoom: 0.5,
+      maxZoom: 5,
+    });
+
+    expect(next.zoom).toBeCloseTo(1.3, 8);
+    expect(next.panX).toBeCloseTo(-60, 8);
+    expect(next.panY).toBeCloseTo(-30, 8);
+  });
+
+  it('applies pan and then zoom in a single coalesced update', () => {
+    const next = applyCoalescedPanAndZoom({
+      zoom: 2,
+      panX: 10,
+      panY: 20,
+      panDeltaX: -5,
+      panDeltaY: 15,
+      wheelSteps: -2,
+      wheelAnchorX: 300,
+      wheelAnchorY: 240,
+      zoomStep: 0.1,
+      minZoom: 0.5,
+      maxZoom: 5,
+    });
+
+    expect(next.zoom).toBeCloseTo(1.8, 8);
+    expect(next.panX).toBeCloseTo(34.5, 8);
+    expect(next.panY).toBeCloseTo(55.5, 8);
   });
 });
 

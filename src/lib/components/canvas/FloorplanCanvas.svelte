@@ -3,7 +3,13 @@
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
   import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox, getMinEdgeDistance, type BoundingBox } from '$lib/utils/geometry';
-  import { clampZoom, clientToContainer, getViewportCenterWorld, zoomTowardPoint } from '$lib/utils/canvas-math';
+  import {
+    applyCoalescedPanAndZoom,
+    clampZoom,
+    clientToContainer,
+    getViewportCenterWorld,
+    zoomTowardPoint
+  } from '$lib/utils/canvas-math';
   import { Button } from '$lib/components/ui/button';
   import { Plus, Minus, RotateCcw, RotateCw, Lock, Unlock, RefreshCw, MapPinOff } from 'lucide-svelte';
 
@@ -53,6 +59,14 @@
   let lastPanPoint = $state<{ x: number; y: number } | null>(null);
   let zoomLocked = $state(false);
 
+  // Coalesced desktop interaction state (applied once per animation frame)
+  let pendingPanDeltaX = 0;
+  let pendingPanDeltaY = 0;
+  let pendingWheelSteps = 0;
+  let pendingWheelAnchorX: number | null = null;
+  let pendingWheelAnchorY: number | null = null;
+  let interactionFrameId: number | null = null;
+
   // Touch gesture state
   let pointers = $state(new Map<number, { x: number; y: number }>());
   let lastPinchDistance = $state(0);
@@ -72,6 +86,9 @@
     return () => {
       if (longPressTimer) {
         clearTimeout(longPressTimer);
+      }
+      if (interactionFrameId !== null) {
+        cancelAnimationFrame(interactionFrameId);
       }
     };
   });
@@ -342,22 +359,10 @@
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
 
-    const newZoom = clampZoom(
-      zoom + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP),
-      MIN_ZOOM,
-      MAX_ZOOM
-    );
-    const result = zoomTowardPoint({
-      anchorX: pointer.x,
-      anchorY: pointer.y,
-      oldZoom: zoom,
-      newZoom,
-      panX,
-      panY,
-    });
-    zoom = result.zoom;
-    panX = result.panX;
-    panY = result.panY;
+    pendingWheelSteps += e.deltaY < 0 ? 1 : -1;
+    pendingWheelAnchorX = pointer.x;
+    pendingWheelAnchorY = pointer.y;
+    scheduleInteractionFrame();
   }
 
   function zoomIn() {
@@ -620,15 +625,47 @@
     const dx = e.evt.clientX - lastPanPoint.x;
     const dy = e.evt.clientY - lastPanPoint.y;
 
-    panX += dx;
-    panY += dy;
+    pendingPanDeltaX += dx;
+    pendingPanDeltaY += dy;
     lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
+    scheduleInteractionFrame();
   }
 
   function handleMouseUp() {
     isPanning = false;
     lastPanPoint = null;
     if (containerEl) containerEl.style.cursor = 'default';
+  }
+
+  function scheduleInteractionFrame() {
+    if (interactionFrameId !== null) return;
+
+    interactionFrameId = requestAnimationFrame(() => {
+      interactionFrameId = null;
+      const next = applyCoalescedPanAndZoom({
+        zoom,
+        panX,
+        panY,
+        panDeltaX: pendingPanDeltaX,
+        panDeltaY: pendingPanDeltaY,
+        wheelSteps: pendingWheelSteps,
+        wheelAnchorX: pendingWheelAnchorX,
+        wheelAnchorY: pendingWheelAnchorY,
+        zoomStep: ZOOM_STEP,
+        minZoom: MIN_ZOOM,
+        maxZoom: MAX_ZOOM,
+      });
+
+      zoom = next.zoom;
+      panX = next.panX;
+      panY = next.panY;
+
+      pendingPanDeltaX = 0;
+      pendingPanDeltaY = 0;
+      pendingWheelSteps = 0;
+      pendingWheelAnchorX = null;
+      pendingWheelAnchorY = null;
+    });
   }
 
   // Calculate the display scale (ratio of display size to natural image size)

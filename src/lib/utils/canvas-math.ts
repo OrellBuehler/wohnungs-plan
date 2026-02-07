@@ -18,6 +18,20 @@ export interface ContainerRectLike {
   top: number;
 }
 
+export interface CoalescedPanAndZoomInput {
+  zoom: number;
+  panX: number;
+  panY: number;
+  panDeltaX: number;
+  panDeltaY: number;
+  wheelSteps: number;
+  wheelAnchorX: number | null;
+  wheelAnchorY: number | null;
+  zoomStep: number;
+  minZoom: number;
+  maxZoom: number;
+}
+
 export function clampZoom(zoom: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, zoom));
 }
@@ -68,6 +82,39 @@ export function getViewportCenterWorld(
   panY: number
 ): { x: number; y: number } {
   return screenToWorld(stageWidth / 2, stageHeight / 2, zoom, panX, panY);
+}
+
+export function applyCoalescedPanAndZoom(input: CoalescedPanAndZoomInput): ZoomTransform {
+  let nextPanX = input.panX + input.panDeltaX;
+  let nextPanY = input.panY + input.panDeltaY;
+  let nextZoom = input.zoom;
+
+  if (
+    input.wheelSteps !== 0 &&
+    input.wheelAnchorX !== null &&
+    input.wheelAnchorY !== null
+  ) {
+    const targetZoom = clampZoom(
+      nextZoom + input.wheelSteps * input.zoomStep,
+      input.minZoom,
+      input.maxZoom
+    );
+
+    const transformed = zoomTowardPoint({
+      anchorX: input.wheelAnchorX,
+      anchorY: input.wheelAnchorY,
+      oldZoom: nextZoom,
+      newZoom: targetZoom,
+      panX: nextPanX,
+      panY: nextPanY,
+    });
+
+    nextZoom = transformed.zoom;
+    nextPanX = transformed.panX;
+    nextPanY = transformed.panY;
+  }
+
+  return { zoom: nextZoom, panX: nextPanX, panY: nextPanY };
 }
 
 export function clientToContainer(
