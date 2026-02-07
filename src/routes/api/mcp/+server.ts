@@ -13,21 +13,6 @@ const MCP_SERVER_NAME = 'wohnungs-plan';
 const MCP_SERVER_VERSION = '1.0.0';
 const REQUIRED_SCOPE = 'mcp:access';
 
-const CORS_HEADERS = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-	'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, Mcp-Session-Id',
-	'Access-Control-Expose-Headers': 'Mcp-Session-Id'
-};
-
-/** Add CORS headers to any Response */
-function withCors(response: Response): Response {
-	for (const [key, value] of Object.entries(CORS_HEADERS)) {
-		response.headers.set(key, value);
-	}
-	return response;
-}
-
 type SessionState = {
 	transport: WebStandardStreamableHTTPServerTransport;
 	userId: string;
@@ -66,7 +51,7 @@ function buildWwwAuthenticateHeader(
 }
 
 function unauthorizedResponse(url: URL, message: string): Response {
-	return withCors(new Response(JSON.stringify({ error: 'unauthorized', message }), {
+	return new Response(JSON.stringify({ error: 'unauthorized', message }), {
 		status: 401,
 		headers: {
 			'Content-Type': 'application/json',
@@ -75,11 +60,11 @@ function unauthorizedResponse(url: URL, message: string): Response {
 				errorDescription: message
 			})
 		}
-	}));
+	});
 }
 
 function jsonRpcError(status: number, code: number, message: string, id: unknown = null): Response {
-	return withCors(new Response(
+	return new Response(
 		JSON.stringify({
 			jsonrpc: '2.0',
 			id,
@@ -89,7 +74,7 @@ function jsonRpcError(status: number, code: number, message: string, id: unknown
 			status,
 			headers: { 'Content-Type': 'application/json' }
 		}
-	));
+	);
 }
 
 function containsInitializeRequest(body: unknown): boolean {
@@ -248,10 +233,6 @@ function getSessionTransport(sessionId: string, userId: string): WebStandardStre
 	return session.transport;
 }
 
-export const OPTIONS: RequestHandler = async () => {
-	return new Response(null, { status: 204, headers: CORS_HEADERS });
-};
-
 export const POST: RequestHandler = async ({ request, url }) => {
 	const auth = await authenticateRequest(request);
 	if (!auth) {
@@ -265,7 +246,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		if (!transport) {
 			return jsonRpcError(404, -32001, 'Session not found');
 		}
-		return withCors(await transport.handleRequest(request));
+		return transport.handleRequest(request);
 	}
 
 	// No session — validate this is an initialize request using a clone
@@ -282,7 +263,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	}
 
 	const transport = await createSessionTransport(auth.userId);
-	return withCors(await transport.handleRequest(request));
+	return transport.handleRequest(request);
 };
 
 export const GET: RequestHandler = async ({ request, url }) => {
@@ -301,7 +282,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
 		return jsonRpcError(404, -32001, 'Session not found');
 	}
 
-	return withCors(await transport.handleRequest(request));
+	return transport.handleRequest(request);
 };
 
 export const DELETE: RequestHandler = async ({ request, url }) => {
@@ -320,5 +301,5 @@ export const DELETE: RequestHandler = async ({ request, url }) => {
 		return jsonRpcError(404, -32001, 'Session not found');
 	}
 
-	return withCors(await transport.handleRequest(request));
+	return transport.handleRequest(request);
 };
