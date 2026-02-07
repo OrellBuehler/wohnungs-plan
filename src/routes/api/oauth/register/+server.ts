@@ -84,11 +84,11 @@ export const POST: RequestHandler = async ({ request }) => {
 		);
 	}
 
-	// Validate token_endpoint_auth_method (we only support client_secret_post)
+	// Validate token_endpoint_auth_method (support "none" for public clients and "client_secret_post")
 	const authMethod = (metadata.token_endpoint_auth_method as string | undefined) ?? 'client_secret_post';
-	if (authMethod !== 'client_secret_post') {
+	if (authMethod !== 'client_secret_post' && authMethod !== 'none') {
 		return json(
-			{ error: 'invalid_client_metadata', error_description: 'Only "client_secret_post" is supported for token_endpoint_auth_method' },
+			{ error: 'invalid_client_metadata', error_description: 'token_endpoint_auth_method must be "client_secret_post" or "none"' },
 			{ status: 400 }
 		);
 	}
@@ -98,8 +98,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	// Generate credentials
 	const clientId = generateClientId();
-	const clientSecret = generateClientSecret();
-	const clientSecretHash = hashToken(clientSecret);
+	const isPublicClient = authMethod === 'none';
+	const clientSecret = isPublicClient ? null : generateClientSecret();
+	const clientSecretHash = clientSecret ? hashToken(clientSecret) : null;
 
 	// Insert into database
 	const db = getDB();
@@ -107,24 +108,27 @@ export const POST: RequestHandler = async ({ request }) => {
 		userId: null,
 		clientId,
 		clientSecretHash,
+		tokenEndpointAuthMethod: authMethod,
 		clientName,
 		allowedRedirectUris: normalizedUris
 	});
 
 	const issuedAt = Math.floor(Date.now() / 1000);
 
-	return json(
-		{
-			client_id: clientId,
-			client_secret: clientSecret,
-			client_id_issued_at: issuedAt,
-			client_secret_expires_at: 0,
-			client_name: clientName,
-			redirect_uris: normalizedUris,
-			grant_types: ['authorization_code'],
-			response_types: ['code'],
-			token_endpoint_auth_method: 'client_secret_post'
-		},
-		{ status: 201 }
-	);
+	const response: Record<string, unknown> = {
+		client_id: clientId,
+		client_id_issued_at: issuedAt,
+		client_name: clientName,
+		redirect_uris: normalizedUris,
+		grant_types: ['authorization_code'],
+		response_types: ['code'],
+		token_endpoint_auth_method: authMethod
+	};
+
+	if (!isPublicClient) {
+		response.client_secret = clientSecret;
+		response.client_secret_expires_at = 0;
+	}
+
+	return json(response, { status: 201 });
 };

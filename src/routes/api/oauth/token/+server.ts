@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import {
 	verifyOAuthClient,
+	getPublicOAuthClient,
 	consumeAuthorizationCode,
 	createAccessToken,
 	ACCESS_TOKEN_LIFETIME_MS,
@@ -32,19 +33,17 @@ export const POST: RequestHandler = async ({ request }) => {
 	const clientSecret = formData.get('client_secret');
 	const codeVerifier = formData.get('code_verifier');
 
-	// Validate required parameters
+	// Validate required parameters (client_secret is optional for public clients)
 	if (
 		!grantType ||
 		!code ||
 		!redirectUri ||
 		!clientId ||
-		!clientSecret ||
 		!codeVerifier ||
 		typeof grantType !== 'string' ||
 		typeof code !== 'string' ||
 		typeof redirectUri !== 'string' ||
 		typeof clientId !== 'string' ||
-		typeof clientSecret !== 'string' ||
 		typeof codeVerifier !== 'string'
 	) {
 		return json(
@@ -79,8 +78,14 @@ export const POST: RequestHandler = async ({ request }) => {
 		);
 	}
 
-	// Verify client credentials
-	const client = await verifyOAuthClient(clientId, clientSecret);
+	// Verify client: confidential clients use secret, public clients use PKCE only
+	let client;
+	if (clientSecret && typeof clientSecret === 'string') {
+		client = await verifyOAuthClient(clientId, clientSecret);
+	} else {
+		client = await getPublicOAuthClient(clientId);
+	}
+
 	if (!client) {
 		console.error('[SECURITY] Failed client authentication', {
 			clientId,

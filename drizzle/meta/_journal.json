@@ -50,6 +50,13 @@
       "when": 1770477787947,
       "tag": "0006_lying_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1770481854570,
+      "tag": "0007_last_prism",
+      "breakpoints": true
     }
   ]
 }

@@ -151,7 +151,7 @@ export async function getOAuthClient(clientId: string): Promise<OAuthClient | un
 }
 
 /**
- * Verify OAuth client credentials
+ * Verify OAuth client credentials (confidential clients only)
  * @param clientId Client ID
  * @param clientSecret Client secret (plaintext)
  * @returns OAuth client if credentials are valid, undefined otherwise
@@ -162,12 +162,28 @@ export async function verifyOAuthClient(
 ): Promise<OAuthClient | undefined> {
 	const client = await getOAuthClient(clientId);
 
-	if (!client) {
+	if (!client || !client.clientSecretHash) {
 		return undefined;
 	}
 
 	const isValid = verifyToken(clientSecret, client.clientSecretHash);
 	return isValid ? client : undefined;
+}
+
+/**
+ * Get a public OAuth client (token_endpoint_auth_method: "none")
+ * Public clients authenticate via PKCE only, no client secret.
+ * @param clientId Client ID
+ * @returns OAuth client if it exists and is public, undefined otherwise
+ */
+export async function getPublicOAuthClient(clientId: string): Promise<OAuthClient | undefined> {
+	const client = await getOAuthClient(clientId);
+
+	if (!client || client.tokenEndpointAuthMethod !== 'none') {
+		return undefined;
+	}
+
+	return client;
 }
 
 /**
