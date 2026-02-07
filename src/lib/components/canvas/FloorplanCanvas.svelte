@@ -867,7 +867,7 @@
     onmouseup={handleMouseUp}
     onmouseleave={handleMouseUp}
   >
-    <Layer>
+    <Layer listening={false}>
       <!-- Grid -->
       {#if gridVisible}
         {#each verticalLines as x}
