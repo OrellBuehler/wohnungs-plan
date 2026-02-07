@@ -9,6 +9,7 @@ import {
 	deleteProject
 } from '$lib/server/projects';
 import { ensureMainBranch, getBranchById, getDefaultBranch, listProjectBranches } from '$lib/server/branches';
+import { getImagesByItems } from '$lib/server/item-images';
 
 export const GET: RequestHandler = async ({ locals, params, url }) => {
 	if (!locals.user) {
@@ -45,9 +46,17 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
 		listProjectBranches(params.id)
 	]);
 
+	// Batch-fetch images for all items
+	const itemIds = items.map((item: { id: string }) => item.id);
+	const imagesMap = await getImagesByItems(params.id, itemIds);
+	const itemsWithImages = items.map((item: { id: string }) => ({
+		...item,
+		images: imagesMap.get(item.id) ?? []
+	}));
+
 	return json({
 		project,
-		items,
+		items: itemsWithImages,
 		floorplan,
 		role,
 		branches,

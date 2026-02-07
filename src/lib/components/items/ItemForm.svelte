@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Item, ItemShape, CutoutCorner } from '$lib/types';
+  import type { Item, ItemImage, ItemShape, CutoutCorner } from '$lib/types';
   import type { CurrencyCode } from '$lib/utils/currency';
   import { CURRENCIES, DEFAULT_CURRENCY } from '$lib/utils/currency';
   import { getLShapePoints, getRectPoints } from '$lib/utils/geometry';
@@ -8,17 +8,21 @@
   import { Label } from '$lib/components/ui/label';
   import * as Dialog from '$lib/components/ui/dialog';
   import * as Select from '$lib/components/ui/select';
+  import { ImagePlus, X, Loader2 } from 'lucide-svelte';
 
   interface Props {
     open: boolean;
     item: Partial<Item> | null;
     defaultCurrency: CurrencyCode;
-    onSave: (item: Omit<Item, 'id'>) => void;
+    existingImages?: ItemImage[];
+    onSave: (item: Omit<Item, 'id'>, pendingFiles?: File[]) => void;
     onClose: () => void;
+    onImageUpload?: (file: File) => Promise<ItemImage | null>;
+    onImageDelete?: (imageId: string) => void;
     hidePositionFields?: boolean;
   }
 
-  let { open = $bindable(), item, defaultCurrency, onSave, onClose, hidePositionFields = false }: Props = $props();
+  let { open = $bindable(), item, defaultCurrency, existingImages = [], onSave, onClose, onImageUpload, onImageDelete, hidePositionFields = false }: Props = $props();
 
   let name = $state('');
   let width = $state(100);
@@ -31,6 +35,14 @@
   let cutoutWidth = $state(50);
   let cutoutHeight = $state(50);
   let cutoutCorner = $state<CutoutCorner>('bottom-right');
+
+  // Image upload state
+  let pendingFiles = $state<File[]>([]);
+  let pendingPreviews = $state<string[]>([]);
+  let isUploading = $state(false);
+  let fileInputEl = $state<HTMLInputElement | null>(null);
+
+  const isEditing = $derived(!!item?.id);
 
   const presetColors = [
     '#E8D4B8', // Light wood / cream
@@ -66,6 +78,9 @@
       cutoutWidth = item?.cutoutWidth ?? 50;
       cutoutHeight = item?.cutoutHeight ?? 50;
       cutoutCorner = item?.cutoutCorner ?? 'bottom-right';
+      pendingFiles = [];
+      pendingPreviews = [];
+      isUploading = false;
     }
   });
 
@@ -99,6 +114,40 @@
     return pathParts.join(' ');
   });
 
+  async function handleFileSelect(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    if (files.length === 0) return;
+
+    if (isEditing && onImageUpload) {
+      // Existing item: upload immediately
+      isUploading = true;
+      try {
+        for (const file of files) {
+          await onImageUpload(file);
+        }
+      } finally {
+        isUploading = false;
+      }
+    } else {
+      // New item: queue files for upload after save
+      for (const file of files) {
+        pendingFiles = [...pendingFiles, file];
+        const url = URL.createObjectURL(file);
+        pendingPreviews = [...pendingPreviews, url];
+      }
+    }
+
+    // Reset the input so the same file can be selected again
+    input.value = '';
+  }
+
+  function removePendingFile(index: number) {
+    URL.revokeObjectURL(pendingPreviews[index]);
+    pendingFiles = pendingFiles.filter((_, i) => i !== index);
+    pendingPreviews = pendingPreviews.filter((_, i) => i !== index);
+  }
+
   function handleSubmit(e: Event) {
     e.preventDefault();
     const nameValue = String(name).trim();
@@ -128,11 +177,15 @@
       itemData.cutoutCorner = cutoutCorner;
     }
 
-    onSave(itemData);
+    onSave(itemData, pendingFiles.length > 0 ? pendingFiles : undefined);
     onClose();
   }
 
   function handleClose() {
+    // Clean up object URLs
+    for (const url of pendingPreviews) {
+      URL.revokeObjectURL(url);
+    }
     open = false;
     onClose();
   }
@@ -294,6 +347,59 @@
           type="url"
           bind:value={productUrl}
           placeholder="https://..."
+        />
+      </div>
+
+      <!-- Images section -->
+      <div class="space-y-2">
+        <Label>Images</Label>
+        <div class="flex gap-2 flex-wrap">
+          {#each existingImages as img (img.id)}
+            <div class="relative group w-16 h-16 rounded border border-slate-200 overflow-hidden">
+              <img src={img.thumbUrl} alt={img.originalName ?? 'Item image'} class="w-full h-full object-cover" />
+              {#if onImageDelete}
+                <button
+                  type="button"
+                  class="absolute top-0 right-0 bg-black/60 text-white rounded-bl p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onclick={() => onImageDelete?.(img.id)}
+                >
+                  <X size={12} />
+                </button>
+              {/if}
+            </div>
+          {/each}
+          {#each pendingPreviews as preview, i}
+            <div class="relative group w-16 h-16 rounded border border-dashed border-blue-300 overflow-hidden">
+              <img src={preview} alt="Pending upload" class="w-full h-full object-cover opacity-70" />
+              <button
+                type="button"
+                class="absolute top-0 right-0 bg-black/60 text-white rounded-bl p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                onclick={() => removePendingFile(i)}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          {/each}
+          <button
+            type="button"
+            class="w-16 h-16 rounded border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-slate-400 hover:text-slate-500 transition-colors"
+            onclick={() => fileInputEl?.click()}
+            disabled={isUploading}
+          >
+            {#if isUploading}
+              <Loader2 size={20} class="animate-spin" />
+            {:else}
+              <ImagePlus size={20} />
+            {/if}
+          </button>
+        </div>
+        <input
+          bind:this={fileInputEl}
+          type="file"
+          accept="image/*"
+          multiple
+          class="hidden"
+          onchange={handleFileSelect}
         />
       </div>
 

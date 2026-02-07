@@ -137,6 +137,30 @@ export const items = pgTable(
 	]
 );
 
+// Item images (gallery)
+export const itemImages = pgTable(
+	'item_images',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		itemId: uuid('item_id')
+			.notNull()
+			.references(() => items.id, { onDelete: 'cascade' }),
+		projectId: uuid('project_id')
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
+		filename: text('filename').notNull(),
+		originalName: text('original_name'),
+		mimeType: text('mime_type').notNull(),
+		sizeBytes: integer('size_bytes').notNull(),
+		sortOrder: integer('sort_order').notNull().default(0),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_item_images_item_id').on(table.itemId),
+		index('idx_item_images_item_sort').on(table.itemId, table.sortOrder)
+	]
+);
+
 // Item change history
 export const itemChanges = pgTable(
 	'item_changes',
@@ -332,6 +356,8 @@ export type Floorplan = typeof floorplans.$inferSelect;
 export type NewFloorplan = typeof floorplans.$inferInsert;
 export type Item = typeof items.$inferSelect;
 export type NewItem = typeof items.$inferInsert;
+export type ItemImage = typeof itemImages.$inferSelect;
+export type NewItemImage = typeof itemImages.$inferInsert;
 export type ItemChange = typeof itemChanges.$inferSelect;
 export type NewItemChange = typeof itemChanges.$inferInsert;
 export type ProjectMember = typeof projectMembers.$inferSelect;

@@ -1,4 +1,4 @@
-import type { Project, Item, Floorplan, Position, ProjectMeta, ProjectBranch, ItemChange } from '$lib/types';
+import type { Project, Item, ItemImage, Floorplan, Position, ProjectMeta, ProjectBranch, ItemChange } from '$lib/types';
 import type { CurrencyCode } from '$lib/utils/currency';
 import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 import {
@@ -31,6 +31,17 @@ interface ApiBranch {
 	createdAt: string | Date | null;
 }
 
+interface ApiItemImage {
+	id: string;
+	projectId: string;
+	itemId: string;
+	filename: string;
+	originalName: string | null;
+	mimeType: string;
+	sizeBytes: number;
+	sortOrder: number;
+}
+
 interface ApiItem {
 	id: string;
 	name: string;
@@ -47,6 +58,7 @@ interface ApiItem {
 	cutoutWidth: number | null;
 	cutoutHeight: number | null;
 	cutoutCorner: string | null;
+	images?: ApiItemImage[];
 }
 
 interface ApiFloorplan {
@@ -141,6 +153,19 @@ function toIsoString(value: string | Date): string {
 	return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
+function mapApiItemImage(img: ApiItemImage): ItemImage {
+	return {
+		id: img.id,
+		filename: img.filename,
+		originalName: img.originalName,
+		mimeType: img.mimeType,
+		sizeBytes: img.sizeBytes,
+		sortOrder: img.sortOrder,
+		url: `/api/images/items/${img.projectId}/${img.itemId}/${img.filename}`,
+		thumbUrl: `/api/images/items/${img.projectId}/${img.itemId}/${img.filename}?thumb=1`
+	};
+}
+
 function mapApiItem(item: ApiItem): Item {
 	return {
 		id: item.id,
@@ -156,7 +181,8 @@ function mapApiItem(item: ApiItem): Item {
 		shape: item.shape as Item['shape'],
 		cutoutWidth: item.cutoutWidth ?? undefined,
 		cutoutHeight: item.cutoutHeight ?? undefined,
-		cutoutCorner: item.cutoutCorner as Item['cutoutCorner']
+		cutoutCorner: item.cutoutCorner as Item['cutoutCorner'],
+		images: item.images?.map(mapApiItemImage)
 	};
 }
 
@@ -981,6 +1007,146 @@ export function duplicateItem(id: string) {
 		}
 	}
 	return null;
+}
+
+export async function uploadItemImage(itemId: string, file: File): Promise<ItemImage | null> {
+	if (!currentProject) return null;
+	const branchId = getActiveBranchId(currentProject);
+	if (!branchId) return null;
+
+	if (currentProject.isLocal || !shouldSyncProject()) {
+		// Local: read as data URL and store in item's images array
+		const dataUrl = await new Promise<string>((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => resolve(reader.result as string);
+			reader.onerror = reject;
+			reader.readAsDataURL(file);
+		});
+
+		const item = currentProject.items.find((i) => i.id === itemId);
+		if (!item) return null;
+
+		const existingImages = item.images ?? [];
+		const newImage: ItemImage = {
+			id: crypto.randomUUID(),
+			filename: file.name,
+			originalName: file.name,
+			mimeType: file.type,
+			sizeBytes: file.size,
+			sortOrder: existingImages.length,
+			url: dataUrl,
+			thumbUrl: dataUrl
+		};
+
+		currentProject.items = currentProject.items.map((i) =>
+			i.id === itemId ? { ...i, images: [...existingImages, newImage] } : i
+		);
+		debounceAutoSave();
+		return newImage;
+	}
+
+	// Cloud: upload via API
+	const formData = new FormData();
+	formData.set('file', file);
+
+	try {
+		const response = await fetch(
+			`/api/projects/${currentProject.id}/branches/${branchId}/items/${itemId}/images`,
+			{ method: 'POST', body: formData }
+		);
+		if (!response.ok) throw new Error('Failed to upload image');
+
+		const data = await response.json();
+		const apiImage: ApiItemImage = {
+			...data.image,
+			projectId: currentProject.id,
+			itemId
+		};
+		const newImage = mapApiItemImage(apiImage);
+
+		currentProject.items = currentProject.items.map((i) =>
+			i.id === itemId ? { ...i, images: [...(i.images ?? []), newImage] } : i
+		);
+		return newImage;
+	} catch (err) {
+		console.error('Failed to upload item image:', err);
+		return null;
+	}
+}
+
+export async function deleteItemImage(itemId: string, imageId: string): Promise<boolean> {
+	if (!currentProject) return false;
+	const branchId = getActiveBranchId(currentProject);
+	if (!branchId) return false;
+
+	if (currentProject.isLocal || !shouldSyncProject()) {
+		currentProject.items = currentProject.items.map((i) =>
+			i.id === itemId
+				? { ...i, images: (i.images ?? []).filter((img) => img.id !== imageId) }
+				: i
+		);
+		debounceAutoSave();
+		return true;
+	}
+
+	try {
+		const response = await fetch(
+			`/api/projects/${currentProject.id}/branches/${branchId}/items/${itemId}/images/${imageId}`,
+			{ method: 'DELETE' }
+		);
+		if (!response.ok) throw new Error('Failed to delete image');
+
+		currentProject.items = currentProject.items.map((i) =>
+			i.id === itemId
+				? { ...i, images: (i.images ?? []).filter((img) => img.id !== imageId) }
+				: i
+		);
+		return true;
+	} catch (err) {
+		console.error('Failed to delete item image:', err);
+		return false;
+	}
+}
+
+export async function reorderItemImages(itemId: string, imageIds: string[]): Promise<boolean> {
+	if (!currentProject) return false;
+	const branchId = getActiveBranchId(currentProject);
+	if (!branchId) return false;
+
+	// Reorder locally
+	const item = currentProject.items.find((i) => i.id === itemId);
+	if (!item?.images) return false;
+
+	const reordered = imageIds
+		.map((id, index) => {
+			const img = item.images!.find((i) => i.id === id);
+			return img ? { ...img, sortOrder: index } : null;
+		})
+		.filter((img): img is ItemImage => img !== null);
+
+	currentProject.items = currentProject.items.map((i) =>
+		i.id === itemId ? { ...i, images: reordered } : i
+	);
+
+	if (currentProject.isLocal || !shouldSyncProject()) {
+		debounceAutoSave();
+		return true;
+	}
+
+	try {
+		await fetch(
+			`/api/projects/${currentProject.id}/branches/${branchId}/items/${itemId}/images/reorder`,
+			{
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ imageIds })
+			}
+		);
+		return true;
+	} catch (err) {
+		console.error('Failed to reorder item images:', err);
+		return false;
+	}
 }
 
 export function getItems() {

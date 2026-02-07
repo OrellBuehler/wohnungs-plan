@@ -40,7 +40,9 @@
 		setCurrency,
 		getGridSize,
 		setGridSize,
-		loadProjectById
+		loadProjectById,
+		uploadItemImage,
+		deleteItemImage as storeDeleteItemImage
 	} from '$lib/stores/project.svelte';
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
@@ -735,12 +737,28 @@
 		}
 	}
 
-	function handleSaveItem(itemData: Omit<Item, 'id'>) {
+	function handleSaveItem(itemData: Omit<Item, 'id'>, pendingFiles?: File[]) {
 		if (editingItem?.id) {
 			updateItem(editingItem.id, itemData);
 		} else {
-			addItem(itemData);
+			const newItem = addItem(itemData);
+			// Upload pending files for newly created items
+			if (newItem && pendingFiles && pendingFiles.length > 0) {
+				for (const file of pendingFiles) {
+					void uploadItemImage(newItem.id, file);
+				}
+			}
 		}
+	}
+
+	function handleImageUpload(file: File) {
+		if (!editingItem?.id) return Promise.resolve(null);
+		return uploadItemImage(editingItem.id, file);
+	}
+
+	function handleImageDelete(imageId: string) {
+		if (!editingItem?.id) return;
+		void storeDeleteItemImage(editingItem.id, imageId);
 	}
 
 	function handleDeleteItem(id: string) {
@@ -1135,9 +1153,12 @@
 		bind:open={showItemForm}
 		item={editingItem}
 		defaultCurrency={displayCurrency}
+		existingImages={editingItem?.id ? (items.find((i) => i.id === editingItem?.id)?.images ?? []) : []}
 		hidePositionFields={isMobile}
 		onSave={handleSaveItem}
 		onClose={() => (showItemForm = false)}
+		onImageUpload={handleImageUpload}
+		onImageDelete={handleImageDelete}
 	/>
 
 	<ShareDialog

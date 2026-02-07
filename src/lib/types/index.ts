@@ -14,6 +14,17 @@ export type CutoutCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-ri
 
 import type { CurrencyCode } from '$lib/utils/currency';
 
+export interface ItemImage {
+  id: string;
+  filename: string;
+  originalName: string | null;
+  mimeType: string;
+  sizeBytes: number;
+  sortOrder: number;
+  url: string;       // full-size image URL (API URL or data URL)
+  thumbUrl: string;  // thumbnail URL
+}
+
 export interface Item {
   id: string;
   name: string;
@@ -30,6 +41,8 @@ export interface Item {
   cutoutWidth?: number;     // Width of cutout in cm
   cutoutHeight?: number;    // Height of cutout in cm
   cutoutCorner?: CutoutCorner; // Which corner is cut out
+  // Item images (gallery)
+  images?: ItemImage[];
 }
 
 export interface Project {

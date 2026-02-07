@@ -4,6 +4,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { RotateCcw, RotateCw, MapPin, MapPinOff, Copy, Trash2 } from 'lucide-svelte';
+	import ImageViewer from './ImageViewer.svelte';
 
 	interface Props {
 		open: boolean;
@@ -38,6 +39,14 @@
 	const dimensions = $derived(
 		item ? `${item.width} × ${item.height} cm` : ''
 	);
+
+	let showImageViewer = $state(false);
+	let imageViewerIndex = $state(0);
+
+	function openImageViewer(index: number) {
+		imageViewerIndex = index;
+		showImageViewer = true;
+	}
 </script>
 
 <Sheet.Root bind:open>
@@ -48,6 +57,21 @@
 			</Sheet.Header>
 
 			<div class="py-3 space-y-3 overflow-y-auto flex-1">
+				<!-- Image gallery -->
+				{#if item.images && item.images.length > 0}
+					<div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+						{#each item.images as img, i (img.id)}
+							<button
+								type="button"
+								class="flex-shrink-0 w-20 h-20 rounded-lg border border-slate-200 overflow-hidden"
+								onclick={() => openImageViewer(i)}
+							>
+								<img src={img.thumbUrl} alt={img.originalName ?? 'Item image'} class="w-full h-full object-cover" />
+							</button>
+						{/each}
+					</div>
+				{/if}
+
 				<!-- Info grid -->
 				<div class="grid grid-cols-2 gap-3">
 					<div>
@@ -124,3 +148,12 @@
 		{/if}
 	</Sheet.Content>
 </Sheet.Root>
+
+{#if item?.images && item.images.length > 0}
+	<ImageViewer
+		images={item.images}
+		initialIndex={imageViewerIndex}
+		bind:open={showImageViewer}
+		onClose={() => (showImageViewer = false)}
+	/>
+{/if}

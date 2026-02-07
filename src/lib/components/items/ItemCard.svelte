@@ -78,9 +78,17 @@
 >
   <Card.Content class="p-3">
     <div class="flex items-start gap-3">
-      <svg width="32" height="32" class="flex-shrink-0 rounded border border-slate-200 bg-slate-50">
-        <path d={previewPath} fill={item.color} stroke="#374151" stroke-width="0.5" />
-      </svg>
+      {#if item.images && item.images.length > 0}
+        <img
+          src={item.images[0].thumbUrl}
+          alt={item.name}
+          class="w-8 h-8 flex-shrink-0 rounded border border-slate-200 object-cover"
+        />
+      {:else}
+        <svg width="32" height="32" class="flex-shrink-0 rounded border border-slate-200 bg-slate-50">
+          <path d={previewPath} fill={item.color} stroke="#374151" stroke-width="0.5" />
+        </svg>
+      {/if}
 
       <div class="flex-1 min-w-0">
         <h3 class="font-medium text-slate-800 truncate">{item.name}</h3>
