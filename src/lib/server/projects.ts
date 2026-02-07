@@ -85,6 +85,7 @@ export async function getUserProjectsWithDetails(userId: string): Promise<Projec
 		createdAt: p.createdAt?.toISOString() ?? new Date().toISOString(),
 		updatedAt: p.updatedAt?.toISOString() ?? new Date().toISOString(),
 		isLocal: false,
+		thumbnailUrl: `/api/images/thumbnails/${p.id}`,
 		floorplanUrl: floorplanMap.has(p.id)
 			? `/api/images/floorplans/${p.id}/${floorplanMap.get(p.id)}`
 			: null,

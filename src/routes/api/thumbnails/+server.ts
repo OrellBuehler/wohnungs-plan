@@ -1,6 +1,8 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { config } from '$lib/server/env';
+import { getProjectById, getProjectRole } from '$lib/server/projects';
+import { ensureMainBranch, getDefaultBranch } from '$lib/server/branches';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -12,23 +14,59 @@ function getThumbnailPath(projectId: string): string {
 	return join(getThumbnailsDir(), `${projectId}.png`);
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const pngDataUrlRegex = /^data:image\/png;base64,[a-z0-9+/=\s]+$/i;
+
+export const POST: RequestHandler = async ({ locals, request }) => {
+	if (!locals.user) {
+		throw error(401, 'Authentication required');
+	}
+
 	try {
 		const body = await request.json();
-		const { projectId, imageData } = body;
+		const { projectId, branchId, imageData } = body;
 
 		if (!projectId || typeof projectId !== 'string') {
 			throw error(400, 'Missing or invalid projectId');
+		}
+
+		if (!branchId || typeof branchId !== 'string') {
+			throw error(400, 'Missing or invalid branchId');
 		}
 
 		if (!imageData || typeof imageData !== 'string') {
 			throw error(400, 'Missing or invalid imageData');
 		}
 
-		// Validate projectId format (UUID)
-		const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 		if (!uuidRegex.test(projectId)) {
 			throw error(400, 'Invalid projectId format');
+		}
+
+		if (!uuidRegex.test(branchId)) {
+			throw error(400, 'Invalid branchId format');
+		}
+
+		if (!pngDataUrlRegex.test(imageData)) {
+			throw error(400, 'Thumbnail must be a PNG data URL');
+		}
+
+		const role = await getProjectRole(projectId, locals.user.id);
+		if (!role || role === 'viewer') {
+			throw error(403, 'Edit access required');
+		}
+
+		const project = await getProjectById(projectId);
+		if (!project) {
+			throw error(404, 'Project not found');
+		}
+
+		let defaultBranch = await getDefaultBranch(projectId);
+		if (!defaultBranch) {
+			defaultBranch = await ensureMainBranch(projectId, project.ownerId);
+		}
+
+		if (branchId !== defaultBranch.id) {
+			throw error(409, 'Thumbnails can only be updated from the default branch');
 		}
 
 		const thumbnailsDir = getThumbnailsDir();

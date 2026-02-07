@@ -911,10 +911,32 @@
     thumbnailTimeout = setTimeout(generateThumbnail, 2000);
   }
 
+  const thumbnailSignature = $derived.by(() =>
+    placedItems
+      .map((item) => {
+        const position = item.position;
+        return [
+          item.id,
+          item.name,
+          item.shape,
+          item.width,
+          item.height,
+          item.cutoutWidth ?? '',
+          item.cutoutHeight ?? '',
+          item.cutoutCorner ?? '',
+          item.rotation,
+          item.color,
+          position ? position.x : '',
+          position ? position.y : ''
+        ].join(':');
+      })
+      .join('|')
+  );
+
   // Generate thumbnail when items or floorplan changes
   $effect(() => {
     // Track dependencies
-    const _ = [items.length, floorplanImage];
+    const _ = [thumbnailSignature, floorplanImage, stageWidth, stageHeight];
     debounceThumbnail();
   });
 </script>

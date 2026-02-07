@@ -73,7 +73,7 @@ export async function readFileAsJSON(file: File): Promise<string> {
 
 export async function fetchServerThumbnail(projectId: string): Promise<string | null> {
   try {
-    const response = await fetch(`/api/images/thumbnails/${projectId}.png`);
+    const response = await fetch(`/api/images/thumbnails/${projectId}`);
     if (!response.ok) return null;
 
     const blob = await response.blob();

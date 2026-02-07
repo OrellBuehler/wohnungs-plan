@@ -37,6 +37,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		seo: {
 			title: `${project.name} - Shared Floorplan`,
 			description: 'View a shared floor plan',
+			image: `${BASE_URL}/api/images/thumbnails/${link.projectId}`,
 			url: `${BASE_URL}/share/${params.token}`
 		}
 	};

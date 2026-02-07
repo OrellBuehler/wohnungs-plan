@@ -164,6 +164,7 @@
 	const items = $derived(getItems());
 	const branches = $derived(getBranches());
 	const activeBranch = $derived(getActiveBranch());
+	const defaultBranchId = $derived(branches[0]?.id ?? null);
 	const displayCurrency = $derived(getCurrency());
 	const gridSize = $derived(getGridSize());
 
@@ -739,6 +740,9 @@
 
 	async function handleThumbnailReady(dataUrl: string) {
 		if (!project) return;
+		const activeBranchId = activeBranch?.id ?? null;
+		if (!defaultBranchId || !activeBranchId || activeBranchId !== defaultBranchId) return;
+
 		try {
 			if (project.isLocal) {
 				// Save to IndexedDB for local projects
@@ -750,6 +754,7 @@
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
 						projectId: project.id,
+						branchId: activeBranchId,
 						imageData: dataUrl
 					})
 				});

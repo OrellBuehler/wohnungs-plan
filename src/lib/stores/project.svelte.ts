@@ -287,6 +287,7 @@ export async function listProjects(): Promise<ProjectMeta[]> {
 	const localMetas: ProjectMeta[] = localProjects.map((p) => ({
 		...p,
 		isLocal: true,
+		thumbnailUrl: null,
 		floorplanUrl: null, // Will be loaded separately for local
 		memberCount: 0
 	}));
@@ -684,6 +685,7 @@ export async function duplicateProject(id: string): Promise<ProjectMeta | null> 
 			createdAt: clone.createdAt,
 			updatedAt: clone.updatedAt,
 			isLocal: true,
+			thumbnailUrl: null,
 			floorplanUrl: null,
 			memberCount: 0
 		};
@@ -700,6 +702,7 @@ export async function duplicateProject(id: string): Promise<ProjectMeta | null> 
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
 			isLocal: false,
+			thumbnailUrl: null,
 			floorplanUrl: null,
 			memberCount: 1
 		};

@@ -6,6 +6,7 @@
 	import { Cloud, HardDrive, Users, MoreVertical, Trash2, Share2, Upload, Download, Copy } from 'lucide-svelte';
 	import { isAuthenticated } from '$lib/stores/auth.svelte';
 	import { getLocalFloorplanUrl } from '$lib/stores/project.svelte';
+	import { getThumbnail as getLocalThumbnail } from '$lib/db';
 	import { onMount } from 'svelte';
 	import House from 'lucide-svelte/icons/house';
 
@@ -21,7 +22,7 @@
 
 	let { project, onOpen, onDelete, onShare, onSync, onExport, onDuplicate }: Props = $props();
 
-	let localThumbnailUrl = $state<string | null>(null);
+	let localPreviewUrl = $state<string | null>(null);
 
 	function formatRelativeTime(iso: string): string {
 		const diff = Date.now() - new Date(iso).getTime();
@@ -35,13 +36,21 @@
 		return new Date(iso).toLocaleDateString();
 	}
 
-	const thumbnailUrl = $derived(project.isLocal ? localThumbnailUrl : project.floorplanUrl);
+	const thumbnailUrl = $derived.by(() => {
+		if (project.isLocal) return localPreviewUrl;
+		return project.thumbnailUrl ?? project.floorplanUrl;
+	});
 	const relativeTime = $derived(formatRelativeTime(project.updatedAt));
 	const showMemberBadge = $derived(!project.isLocal && project.memberCount > 1);
 
 	onMount(async () => {
 		if (project.isLocal) {
-			localThumbnailUrl = await getLocalFloorplanUrl(project.id);
+			const thumbnail = await getLocalThumbnail(project.id);
+			if (thumbnail) {
+				localPreviewUrl = thumbnail;
+				return;
+			}
+			localPreviewUrl = await getLocalFloorplanUrl(project.id);
 		}
 	});
 
@@ -73,7 +82,7 @@
 		{#if thumbnailUrl}
 			<img
 				src={thumbnailUrl}
-				alt="{project.name} floorplan"
+				alt="{project.name} preview"
 				class="w-full h-full object-cover"
 			/>
 		{:else}

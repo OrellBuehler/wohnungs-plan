@@ -77,6 +77,7 @@ export interface ProjectMeta {
   updatedAt: string;
   // New fields for overview page
   isLocal: boolean;              // true if only in IndexedDB
-  floorplanUrl: string | null;   // thumbnail URL or null
+  thumbnailUrl: string | null;   // generated canvas thumbnail URL or null
+  floorplanUrl: string | null;   // floorplan image URL fallback or null
   memberCount: number;           // 0 for local, 1+ for shared cloud projects
 }

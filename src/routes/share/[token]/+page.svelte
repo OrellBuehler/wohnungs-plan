@@ -283,6 +283,7 @@
 	<SEO
 		title={data.seo.title}
 		description={data.seo.description}
+		image={data.seo.image}
 		url={data.seo.url}
 	/>
 {/if}
