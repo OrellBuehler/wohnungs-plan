@@ -239,13 +239,6 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		return unauthorizedResponse(url, 'Missing or invalid bearer token.');
 	}
 
-	let parsedBody: unknown;
-	try {
-		parsedBody = await request.json();
-	} catch {
-		return jsonRpcError(400, -32700, 'Parse error: Invalid JSON');
-	}
-
 	const sessionId = request.headers.get('mcp-session-id');
 
 	if (sessionId) {
@@ -253,15 +246,24 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		if (!transport) {
 			return jsonRpcError(404, -32001, 'Session not found');
 		}
-		return transport.handleRequest(request, { parsedBody });
+		return transport.handleRequest(request);
 	}
 
-	if (!containsInitializeRequest(parsedBody)) {
+	// No session — validate this is an initialize request using a clone
+	// so the original body remains unconsumed for the transport
+	let body: unknown;
+	try {
+		body = await request.clone().json();
+	} catch {
+		return jsonRpcError(400, -32700, 'Parse error: Invalid JSON');
+	}
+
+	if (!containsInitializeRequest(body)) {
 		return jsonRpcError(400, -32600, 'Invalid Request: Initialization required');
 	}
 
 	const transport = await createSessionTransport(auth.userId);
-	return transport.handleRequest(request, { parsedBody });
+	return transport.handleRequest(request);
 };
 
 export const GET: RequestHandler = async ({ request, url }) => {
