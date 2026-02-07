@@ -41,76 +41,72 @@
 </script>
 
 <Sheet.Root bind:open>
-	<Sheet.Content side="bottom" class="max-h-[60vh]" style="padding-bottom: env(safe-area-inset-bottom);">
+	<Sheet.Content side="bottom" class="max-h-[60vh] rounded-t-xl px-4" style="padding-bottom: env(safe-area-inset-bottom);">
 		{#if item}
 			<Sheet.Header>
 				<Sheet.Title class="text-xl font-bold">{item.name}</Sheet.Title>
 			</Sheet.Header>
 
-			<div class="py-4 space-y-4 overflow-y-auto flex-1">
-				<!-- Price -->
-				<div>
-					<p class="text-sm text-slate-500">Price</p>
-					<p class="text-lg font-semibold">{formattedPrice}</p>
-				</div>
-
-				<!-- Dimensions -->
-				<div>
-					<p class="text-sm text-slate-500">Dimensions</p>
-					<p class="text-lg">{dimensions}</p>
-				</div>
-
-				<!-- Product URL -->
-				{#if item.productUrl}
+			<div class="py-3 space-y-3 overflow-y-auto flex-1">
+				<!-- Info grid -->
+				<div class="grid grid-cols-2 gap-3">
 					<div>
-						<p class="text-sm text-slate-500">Product URL</p>
-						<a
-							href={item.productUrl}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="text-blue-600 underline text-sm break-all"
-						>
-							{item.productUrl}
-						</a>
+						<p class="text-xs text-slate-500">Price</p>
+						<p class="text-sm font-semibold">{formattedPrice}</p>
 					</div>
-				{/if}
-
-				<!-- Color preview -->
-				<div>
-					<p class="text-sm text-slate-500">Color</p>
-					<div class="flex items-center gap-2">
-						<div
-							class="w-8 h-8 rounded border border-slate-200"
-							style="background-color: {item.color}"
-						></div>
-						<span class="text-sm font-mono">{item.color}</span>
+					<div>
+						<p class="text-xs text-slate-500">Dimensions</p>
+						<p class="text-sm">{dimensions}</p>
 					</div>
+					<div>
+						<p class="text-xs text-slate-500">Color</p>
+						<div class="flex items-center gap-1.5">
+							<div
+								class="w-5 h-5 rounded border border-slate-200"
+								style="background-color: {item.color}"
+							></div>
+							<span class="text-xs font-mono">{item.color}</span>
+						</div>
+					</div>
+					{#if item.productUrl}
+						<div>
+							<p class="text-xs text-slate-500">Product</p>
+							<a
+								href={item.productUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="text-blue-600 underline text-xs truncate block"
+							>
+								View product
+							</a>
+						</div>
+					{/if}
 				</div>
 			</div>
 
 			{#if !readonly}
 				<!-- Quick Actions -->
-				<div class="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2">
-					<Button variant="outline" size="sm" class="min-h-[44px] min-w-[44px] flex-shrink-0" onclick={() => onRotate(item.id, 'ccw')}>
-						<RotateCcw size={16} class="mr-1.5" /> Left
+				<div class="flex flex-wrap gap-1.5 pb-3">
+					<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onRotate(item.id, 'ccw')} title="Rotate left">
+						<RotateCcw size={16} />
 					</Button>
-					<Button variant="outline" size="sm" class="min-h-[44px] min-w-[44px] flex-shrink-0" onclick={() => onRotate(item.id, 'cw')}>
-						<RotateCw size={16} class="mr-1.5" /> Right
+					<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onRotate(item.id, 'cw')} title="Rotate right">
+						<RotateCw size={16} />
 					</Button>
 					{#if item.position}
-						<Button variant="outline" size="sm" class="min-h-[44px] min-w-[44px] flex-shrink-0" onclick={() => onUnplace(item.id)}>
-							<MapPinOff size={16} class="mr-1.5" /> Unplace
+						<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onUnplace(item.id)} title="Remove from plan">
+							<MapPinOff size={16} />
 						</Button>
 					{:else}
-						<Button variant="outline" size="sm" class="min-h-[44px] min-w-[44px] flex-shrink-0" onclick={() => onPlace(item.id)}>
-							<MapPin size={16} class="mr-1.5" /> Place
+						<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onPlace(item.id)} title="Place on plan">
+							<MapPin size={16} />
 						</Button>
 					{/if}
-					<Button variant="outline" size="sm" class="min-h-[44px] min-w-[44px] flex-shrink-0" onclick={() => onDuplicate(item.id)}>
-						<Copy size={16} class="mr-1.5" /> Copy
+					<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onDuplicate(item.id)} title="Duplicate">
+						<Copy size={16} />
 					</Button>
-					<Button variant="destructive" size="sm" class="min-h-[44px] min-w-[44px] flex-shrink-0" onclick={() => onDelete(item.id)}>
-						<Trash2 size={16} class="mr-1.5" /> Delete
+					<Button variant="destructive" size="icon-sm" class="h-9 w-9" onclick={() => onDelete(item.id)} title="Delete">
+						<Trash2 size={16} />
 					</Button>
 				</div>
 			{/if}
