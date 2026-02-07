@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  getCanvasLabelFontSizes,
   getItemShadowStyle,
+  getGridStepCount,
   remToPx,
   resolveItemDisplayPosition,
   shouldShowDistanceIndicators,
@@ -127,5 +129,32 @@ describe('remToPx', () => {
   it('converts rem units with provided root font size', () => {
     expect(remToPx(0.5, 16)).toBe(8);
     expect(remToPx(1.25, 20)).toBe(25);
+  });
+});
+
+describe('getGridStepCount', () => {
+  it('returns enough steps to cover stage plus one trailing line', () => {
+    expect(getGridStepCount(800, 50)).toBe(17);
+    expect(getGridStepCount(801, 50)).toBe(18);
+  });
+
+  it('guards against invalid grid sizes', () => {
+    expect(getGridStepCount(200, 0)).toBe(201);
+    expect(getGridStepCount(200, -5)).toBe(201);
+  });
+});
+
+describe('getCanvasLabelFontSizes', () => {
+  it('returns larger default item label sizes', () => {
+    expect(getCanvasLabelFontSizes({ rootFontPx: 16, mobileMode: false, zoom: 1 })).toEqual({
+      itemNamePx: 10,
+      itemDimensionsPx: 8,
+      distanceLabelPx: 9,
+    });
+  });
+
+  it('keeps distance labels constant on screen by compensating zoom', () => {
+    const sizes = getCanvasLabelFontSizes({ rootFontPx: 16, mobileMode: false, zoom: 2 });
+    expect(sizes.distanceLabelPx).toBe(4.5);
   });
 });

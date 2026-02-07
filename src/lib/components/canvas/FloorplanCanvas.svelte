@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { Stage, Layer, Image as KonvaImage, Rect, Line, Text, Group } from 'svelte-konva';
+  import { Stage, Layer, Shape, Image as KonvaImage, Rect, Line, Text, Group } from 'svelte-konva';
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
+  import type { Context } from 'konva/lib/Context';
+  import type { Shape as KonvaShape } from 'konva/lib/Shape';
   import {
     getMinEdgeDistance,
     getOverlappingItems,
@@ -12,6 +14,7 @@
   } from '$lib/utils/geometry';
   import {
     getItemShadowStyle,
+    getGridStepCount,
     remToPx,
     resolveItemDisplayPosition,
     shouldShowDistanceIndicators,
@@ -764,9 +767,25 @@
   const gridVisible = $derived(shouldRenderGrid(showGrid, isInteractionActive));
   const itemShadowStyle = $derived(getItemShadowStyle(isInteractionActive));
 
-  // Grid lines for rendering
-  const verticalLines = $derived(Array.from({ length: Math.ceil(stageWidth / gridSize) + 1 }, (_, i) => i * gridSize));
-  const horizontalLines = $derived(Array.from({ length: Math.ceil(stageHeight / gridSize) + 1 }, (_, i) => i * gridSize));
+  function drawGridScene(context: Context, shape: KonvaShape) {
+    const step = Math.max(1, gridSize);
+    const verticalCount = getGridStepCount(stageWidth, step);
+    const horizontalCount = getGridStepCount(stageHeight, step);
+
+    context.beginPath();
+    for (let i = 0; i < verticalCount; i++) {
+      const x = i * step + 0.5;
+      context.moveTo(x, 0);
+      context.lineTo(x, stageHeight);
+    }
+    for (let i = 0; i < horizontalCount; i++) {
+      const y = i * step + 0.5;
+      context.moveTo(0, y);
+      context.lineTo(stageWidth, y);
+    }
+    context.strokeShape(shape);
+  }
+
   const placedItems = $derived(items.filter(i => i.position !== null));
 
   // Overlap detection
@@ -908,24 +927,12 @@
     <Layer listening={false}>
       <!-- Grid -->
       {#if gridVisible}
-        {#each verticalLines as x}
-          <Rect
-            x={x}
-            y={0}
-            width={1}
-            height={stageHeight}
-            fill="rgba(255,255,255,0.1)"
-          />
-        {/each}
-        {#each horizontalLines as y}
-          <Rect
-            x={0}
-            y={y}
-            width={stageWidth}
-            height={1}
-            fill="rgba(255,255,255,0.1)"
-          />
-        {/each}
+        <Shape
+          listening={false}
+          stroke="rgba(255,255,255,0.1)"
+          strokeWidth={1}
+          sceneFunc={drawGridScene}
+        />
       {/if}
 
       <!-- Floorplan image -->
