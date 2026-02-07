@@ -3,6 +3,7 @@
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
   import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox, getMinEdgeDistance, type BoundingBox } from '$lib/utils/geometry';
+  import { clampZoom, clientToContainer, zoomTowardPoint } from '$lib/utils/canvas-math';
   import { Button } from '$lib/components/ui/button';
   import { Plus, Minus, RotateCcw, RotateCw, Lock, Unlock, RefreshCw, MapPinOff } from 'lucide-svelte';
 
@@ -111,15 +112,16 @@
     return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
   };
 
-  // Font sizes that scale with zoom level and respect browser font preferences
+  // World-space labels should scale naturally with stage zoom.
   const itemNameFontSize = $derived(
-    remToPx(BASE_ITEM_NAME_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) * zoom
+    remToPx(BASE_ITEM_NAME_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1)
   );
   const itemDimensionsFontSize = $derived(
-    remToPx(BASE_ITEM_DIMENSIONS_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) * zoom
+    remToPx(BASE_ITEM_DIMENSIONS_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1)
   );
+  // HUD labels compensate for stage zoom to remain constant on screen.
   const distanceLabelFontSize = $derived(
-    remToPx(BASE_DISTANCE_LABEL_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) * zoom
+    remToPx(BASE_DISTANCE_LABEL_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) / zoom
   );
 
   // Update viewport center for item placement (in natural image coordinates)
@@ -351,47 +353,56 @@
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
 
-    const oldZoom = zoom;
-    const newZoom = e.deltaY < 0
-      ? Math.min(MAX_ZOOM, zoom + ZOOM_STEP)
-      : Math.max(MIN_ZOOM, zoom - ZOOM_STEP);
-
-    // Zoom toward pointer position
-    const mousePointTo = {
-      x: (pointer.x - panX) / oldZoom,
-      y: (pointer.y - panY) / oldZoom,
-    };
-
-    zoom = newZoom;
-    panX = pointer.x - mousePointTo.x * newZoom;
-    panY = pointer.y - mousePointTo.y * newZoom;
+    const newZoom = clampZoom(
+      zoom + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP),
+      MIN_ZOOM,
+      MAX_ZOOM
+    );
+    const result = zoomTowardPoint({
+      anchorX: pointer.x,
+      anchorY: pointer.y,
+      oldZoom: zoom,
+      newZoom,
+      panX,
+      panY,
+    });
+    zoom = result.zoom;
+    panX = result.panX;
+    panY = result.panY;
   }
 
   function zoomIn() {
-    const newZoom = Math.min(MAX_ZOOM, zoom + ZOOM_STEP * 2);
-    // Zoom toward center
     const centerX = stageWidth / 2;
     const centerY = stageHeight / 2;
-    const mousePointTo = {
-      x: (centerX - panX) / zoom,
-      y: (centerY - panY) / zoom,
-    };
-    zoom = newZoom;
-    panX = centerX - mousePointTo.x * newZoom;
-    panY = centerY - mousePointTo.y * newZoom;
+    const newZoom = clampZoom(zoom + ZOOM_STEP * 2, MIN_ZOOM, MAX_ZOOM);
+    const result = zoomTowardPoint({
+      anchorX: centerX,
+      anchorY: centerY,
+      oldZoom: zoom,
+      newZoom,
+      panX,
+      panY,
+    });
+    zoom = result.zoom;
+    panX = result.panX;
+    panY = result.panY;
   }
 
   function zoomOut() {
-    const newZoom = Math.max(MIN_ZOOM, zoom - ZOOM_STEP * 2);
     const centerX = stageWidth / 2;
     const centerY = stageHeight / 2;
-    const mousePointTo = {
-      x: (centerX - panX) / zoom,
-      y: (centerY - panY) / zoom,
-    };
-    zoom = newZoom;
-    panX = centerX - mousePointTo.x * newZoom;
-    panY = centerY - mousePointTo.y * newZoom;
+    const newZoom = clampZoom(zoom - ZOOM_STEP * 2, MIN_ZOOM, MAX_ZOOM);
+    const result = zoomTowardPoint({
+      anchorX: centerX,
+      anchorY: centerY,
+      oldZoom: zoom,
+      newZoom,
+      panX,
+      panY,
+    });
+    zoom = result.zoom;
+    panX = result.panX;
+    panY = result.panY;
   }
 
   function resetView() {
@@ -407,7 +418,8 @@
     const stage = stageRef?.node;
     if (!stage) return;
 
-    const point = { x: e.clientX, y: e.clientY };
+    const rect = containerEl.getBoundingClientRect();
+    const point = clientToContainer(e.clientX, e.clientY, rect);
     pointers.set(e.pointerId, point);
 
     // If we now have 2 pointers, start pinch
@@ -462,7 +474,8 @@
     const currentPointer = pointers.get(e.pointerId);
     if (!currentPointer) return;
 
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const rect = containerEl.getBoundingClientRect();
+    pointers.set(e.pointerId, clientToContainer(e.clientX, e.clientY, rect));
 
     // Handle pinch zoom with 2 fingers
     if (pointers.size === 2 && isPinching) {
@@ -481,17 +494,18 @@
         // Calculate zoom change
         const scale = distance / lastPinchDistance;
         const oldZoom = zoom;
-        const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * scale));
-
-        // Zoom toward pinch center
-        const pinchPointTo = {
-          x: (lastPinchCenter.x - panX) / oldZoom,
-          y: (lastPinchCenter.y - panY) / oldZoom,
-        };
-
-        zoom = newZoom;
-        panX = center.x - pinchPointTo.x * newZoom;
-        panY = center.y - pinchPointTo.y * newZoom;
+        const newZoom = clampZoom(zoom * scale, MIN_ZOOM, MAX_ZOOM);
+        const result = zoomTowardPoint({
+          anchorX: lastPinchCenter.x,
+          anchorY: lastPinchCenter.y,
+          oldZoom,
+          newZoom,
+          panX,
+          panY,
+        });
+        zoom = result.zoom;
+        panX = result.panX;
+        panY = result.panY;
       }
 
       lastPinchDistance = distance;
@@ -510,9 +524,8 @@
       if (isLongPressDragging && longPressItemId) {
         // Move item with finger
         const point = Array.from(pointers.values())[0];
-        const rect = containerEl.getBoundingClientRect();
-        const canvasX = (point.x - rect.left - panX) / zoom;
-        const canvasY = (point.y - rect.top - panY) / zoom;
+        const canvasX = (point.x - panX) / zoom;
+        const canvasY = (point.y - panY) / zoom;
         // Center item on finger
         const item = items.find(i => i.id === longPressItemId);
         if (item) {
@@ -917,60 +930,63 @@
           {@const midX = (indicator.pointA.x + indicator.pointB.x) / 2}
           {@const midY = (indicator.pointA.y + indicator.pointB.y) / 2}
           {@const labelText = `${Math.round(indicator.distanceCm)} cm`}
+          {@const endCapLength = END_CAP_LENGTH / zoom}
 
           <!-- Main dimension line -->
           <Line
             points={[indicator.pointA.x, indicator.pointA.y, indicator.pointB.x, indicator.pointB.y]}
             stroke="#3B82F6"
-            strokeWidth={1.5}
+            strokeWidth={1.5 / zoom}
             listening={false}
           />
 
           <!-- End cap at pointA -->
           <Line
             points={[
-              indicator.pointA.x - Math.sin(angle) * END_CAP_LENGTH,
-              indicator.pointA.y + Math.cos(angle) * END_CAP_LENGTH,
-              indicator.pointA.x + Math.sin(angle) * END_CAP_LENGTH,
-              indicator.pointA.y - Math.cos(angle) * END_CAP_LENGTH,
+              indicator.pointA.x - Math.sin(angle) * endCapLength,
+              indicator.pointA.y + Math.cos(angle) * endCapLength,
+              indicator.pointA.x + Math.sin(angle) * endCapLength,
+              indicator.pointA.y - Math.cos(angle) * endCapLength,
             ]}
             stroke="#3B82F6"
-            strokeWidth={1.5}
+            strokeWidth={1.5 / zoom}
             listening={false}
           />
 
           <!-- End cap at pointB -->
           <Line
             points={[
-              indicator.pointB.x - Math.sin(angle) * END_CAP_LENGTH,
-              indicator.pointB.y + Math.cos(angle) * END_CAP_LENGTH,
-              indicator.pointB.x + Math.sin(angle) * END_CAP_LENGTH,
-              indicator.pointB.y - Math.cos(angle) * END_CAP_LENGTH,
+              indicator.pointB.x - Math.sin(angle) * endCapLength,
+              indicator.pointB.y + Math.cos(angle) * endCapLength,
+              indicator.pointB.x + Math.sin(angle) * endCapLength,
+              indicator.pointB.y - Math.cos(angle) * endCapLength,
             ]}
             stroke="#3B82F6"
-            strokeWidth={1.5}
+            strokeWidth={1.5 / zoom}
             listening={false}
           />
 
           <!-- Distance label with background -->
           <Group x={midX} y={midY} listening={false}>
-            {@const labelWidth = Math.max(50, labelText.length * 7)}
+            {@const labelWidth = Math.max(50, labelText.length * 7) / zoom}
+            {@const labelHeight = 20 / zoom}
+            {@const labelYOffset = 10 / zoom}
             <Rect
               x={-labelWidth / 2}
-              y={-10}
+              y={-labelYOffset}
               width={labelWidth}
-              height={20}
+              height={labelHeight}
               fill="white"
-              cornerRadius={4}
+              cornerRadius={4 / zoom}
               shadowColor="black"
-              shadowBlur={2}
+              shadowBlur={2 / zoom}
               shadowOpacity={0.2}
             />
             <Text
               x={-labelWidth / 2}
-              y={-10}
+              y={-labelYOffset}
               width={labelWidth}
-              height={20}
+              height={labelHeight}
               text={labelText}
               fontSize={distanceLabelFontSize}
               fontFamily="system-ui, sans-serif"
@@ -992,16 +1008,16 @@
             <Line
               points={[guide.pos, -10000, guide.pos, 10000]}
               stroke="#3B82F6"
-              strokeWidth={1}
-              dash={[4, 4]}
+              strokeWidth={1 / zoom}
+              dash={[4 / zoom, 4 / zoom]}
               listening={false}
             />
           {:else}
             <Line
               points={[-10000, guide.pos, 10000, guide.pos]}
               stroke="#3B82F6"
-              strokeWidth={1}
-              dash={[4, 4]}
+              strokeWidth={1 / zoom}
+              dash={[4 / zoom, 4 / zoom]}
               listening={false}
             />
           {/if}
