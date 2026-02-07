@@ -3,6 +3,7 @@
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
   import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox, getMinEdgeDistance, type BoundingBox } from '$lib/utils/geometry';
+  import { getItemShadowStyle, shouldRenderGrid, shouldRenderItemLabels } from '$lib/utils/canvas-performance';
   import {
     applyCoalescedPanAndZoom,
     clampZoom,
@@ -58,6 +59,7 @@
   let isPanning = $state(false);
   let lastPanPoint = $state<{ x: number; y: number } | null>(null);
   let zoomLocked = $state(false);
+  let isInteractionActive = $state(false);
 
   // Coalesced desktop interaction state (applied once per animation frame)
   let pendingPanDeltaX = 0;
@@ -90,6 +92,9 @@
       if (interactionFrameId !== null) {
         cancelAnimationFrame(interactionFrameId);
       }
+      if (interactionIdleTimeout) {
+        clearTimeout(interactionIdleTimeout);
+      }
     };
   });
 
@@ -112,6 +117,7 @@
   const MAX_DISTANCE_CM = 400; // 4 meters
   const MAX_NEIGHBORS = 2;
   const END_CAP_LENGTH = 8; // pixels
+  const INTERACTION_IDLE_MS = 120;
 
   // Responsive font sizes - scale with viewport and zoom
   // Base sizes in rem (relative to root font size, typically 16px)
@@ -362,6 +368,7 @@
     pendingWheelSteps += e.deltaY < 0 ? 1 : -1;
     pendingWheelAnchorX = pointer.x;
     pendingWheelAnchorY = pointer.y;
+    markInteractionActive();
     scheduleInteractionFrame();
   }
 
@@ -474,6 +481,7 @@
     // Handle pinch zoom with 2 fingers
     if (pointers.size === 2 && isPinching) {
       e.preventDefault();
+      markInteractionActive();
 
       const [p1, p2] = Array.from(pointers.values());
       const distance = Math.sqrt(
@@ -516,6 +524,7 @@
       }
 
       if (isLongPressDragging && longPressItemId) {
+        markInteractionActive();
         // Move item with finger
         const point = Array.from(pointers.values())[0];
         const canvasX = (point.x - panX) / zoom;
@@ -536,6 +545,7 @@
         // Pan (only when not in long-press detection on mobile)
         const isDraggingItem = draggingItemId !== null;
         if (!isDraggingItem) {
+          markInteractionActive();
           const currentPoint = Array.from(pointers.values())[0];
           if (lastPanPoint) {
             const dx = currentPoint.x - lastPanPoint.x;
@@ -628,6 +638,7 @@
     pendingPanDeltaX += dx;
     pendingPanDeltaY += dy;
     lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
+    markInteractionActive();
     scheduleInteractionFrame();
   }
 
@@ -635,6 +646,17 @@
     isPanning = false;
     lastPanPoint = null;
     if (containerEl) containerEl.style.cursor = 'default';
+  }
+
+  function markInteractionActive() {
+    isInteractionActive = true;
+    if (interactionIdleTimeout) {
+      clearTimeout(interactionIdleTimeout);
+    }
+    interactionIdleTimeout = setTimeout(() => {
+      isInteractionActive = false;
+      interactionIdleTimeout = null;
+    }, INTERACTION_IDLE_MS);
   }
 
   function scheduleInteractionFrame() {
@@ -713,6 +735,8 @@
     if (!floorplan?.scale) return 2;
     return floorplan.scale * displayScale;
   });
+  const gridVisible = $derived(shouldRenderGrid(showGrid, isInteractionActive));
+  const itemShadowStyle = $derived(getItemShadowStyle(isInteractionActive));
 
   // Grid lines for rendering
   const verticalLines = $derived(Array.from({ length: Math.ceil(stageWidth / gridSize) + 1 }, (_, i) => i * gridSize));
@@ -783,6 +807,7 @@
 
   // Thumbnail generation - debounced after changes
   let thumbnailTimeout: ReturnType<typeof setTimeout> | null = null;
+  let interactionIdleTimeout: ReturnType<typeof setTimeout> | null = null;
 
   function generateThumbnail() {
     const stage = stageRef?.node;
@@ -844,7 +869,7 @@
   >
     <Layer>
       <!-- Grid -->
-      {#if showGrid}
+      {#if gridVisible}
         {#each verticalLines as x}
           <Rect
             x={x}
@@ -885,6 +910,11 @@
         {@const itemWidthPx = cmToPixels(item.width)}
         {@const itemHeightPx = cmToPixels(item.height)}
         {@const displayPos = naturalToDisplay(item.position!.x, item.position!.y)}
+        {@const renderLabels = shouldRenderItemLabels({
+          isInteractionActive,
+          isSelected: selectedItemId === item.id,
+          isDragging: draggingItemId === item.id || longPressItemId === item.id
+        })}
         <Group
           x={displayPos.x}
           y={displayPos.y}
@@ -904,10 +934,10 @@
               fill={isOverlapping ? '#F87171' : item.color}
               opacity={isOverlapping ? 0.7 : 1}
               shadowColor="black"
-              shadowBlur={10}
-              shadowOpacity={0.3}
-              shadowOffsetX={4}
-              shadowOffsetY={4}
+              shadowBlur={itemShadowStyle.blur}
+              shadowOpacity={itemShadowStyle.opacity}
+              shadowOffsetX={itemShadowStyle.offsetX}
+              shadowOffsetY={itemShadowStyle.offsetY}
               stroke={longPressItemId === item.id ? '#3B82F6' : (selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent'))}
               strokeWidth={longPressItemId === item.id ? 3 : 2}
             />
@@ -918,39 +948,41 @@
               fill={isOverlapping ? '#F87171' : item.color}
               opacity={isOverlapping ? 0.7 : 1}
               shadowColor="black"
-              shadowBlur={10}
-              shadowOpacity={0.3}
-              shadowOffsetX={4}
-              shadowOffsetY={4}
+              shadowBlur={itemShadowStyle.blur}
+              shadowOpacity={itemShadowStyle.opacity}
+              shadowOffsetX={itemShadowStyle.offsetX}
+              shadowOffsetY={itemShadowStyle.offsetY}
               stroke={longPressItemId === item.id ? '#3B82F6' : (selectedItemId === item.id ? '#60A5FA' : (isOverlapping ? '#DC2626' : 'transparent'))}
               strokeWidth={longPressItemId === item.id ? 3 : 2}
               cornerRadius={2}
             />
           {/if}
-          <!-- Item label -->
-          <Text
-            x={0}
-            y={itemHeightPx / 2 - 12}
-            text={item.name}
-            fontSize={itemNameFontSize}
-            fontFamily="system-ui, sans-serif"
-            fontStyle="bold"
-            fill="#1e293b"
-            align="center"
-            width={itemWidthPx}
-            listening={false}
-          />
-          <Text
-            x={0}
-            y={itemHeightPx / 2 + 2}
-            text={`${item.width} × ${item.height} cm`}
-            fontSize={itemDimensionsFontSize}
-            fontFamily="system-ui, sans-serif"
-            fill="#475569"
-            align="center"
-            width={itemWidthPx}
-            listening={false}
-          />
+          {#if renderLabels}
+            <!-- Item label -->
+            <Text
+              x={0}
+              y={itemHeightPx / 2 - 12}
+              text={item.name}
+              fontSize={itemNameFontSize}
+              fontFamily="system-ui, sans-serif"
+              fontStyle="bold"
+              fill="#1e293b"
+              align="center"
+              width={itemWidthPx}
+              listening={false}
+            />
+            <Text
+              x={0}
+              y={itemHeightPx / 2 + 2}
+              text={`${item.width} × ${item.height} cm`}
+              fontSize={itemDimensionsFontSize}
+              fontFamily="system-ui, sans-serif"
+              fill="#475569"
+              align="center"
+              width={itemWidthPx}
+              listening={false}
+            />
+          {/if}
         </Group>
       {/each}
     </Layer>
