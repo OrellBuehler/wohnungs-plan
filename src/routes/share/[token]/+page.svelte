@@ -47,7 +47,6 @@
 		project: ShareProject;
 		items: ShareItemApi[];
 		floorplan: {
-			filename: string;
 			scale: number | null;
 			referenceLength: number | null;
 		} | null;
@@ -71,6 +70,7 @@
 	let isVerifyingPassword = $state(false);
 	let isLoading = $state(false);
 	let isBranchSwitching = $state(false);
+	let branchRequestId = 0;
 	let loadError = $state<string | null>(null);
 	let project = $state<ShareProject | null>(null);
 	let items = $state<Item[]>([]);
@@ -166,10 +166,12 @@
 		const branchId = target?.value ?? '';
 		if (!branchId || branchId === activeBranchId || isBranchSwitching) return;
 
+		const requestId = ++branchRequestId;
 		isBranchSwitching = true;
 		loadError = null;
 		try {
 			const response = await fetch(`/api/share/${token}/branches/${branchId}/items`);
+			if (requestId !== branchRequestId) return;
 			if (response.status === 404) {
 				isInvalid = true;
 				return;
@@ -183,13 +185,17 @@
 			}
 
 			const payload = (await response.json()) as { items: ShareItemApi[] };
+			if (requestId !== branchRequestId) return;
 			items = mapShareItems(payload.items);
 			activeBranchId = branchId;
 			selectedItemId = null;
 		} catch (err) {
+			if (requestId !== branchRequestId) return;
 			loadError = err instanceof Error ? err.message : 'Failed to switch branch';
 		} finally {
-			isBranchSwitching = false;
+			if (requestId === branchRequestId) {
+				isBranchSwitching = false;
+			}
 		}
 	}
 
@@ -207,7 +213,9 @@
 			});
 
 			if (response.ok) {
-				window.location.reload();
+				requiresPassword = false;
+				password = '';
+				await loadShareData();
 				return;
 			}
 

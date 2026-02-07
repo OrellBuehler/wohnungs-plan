@@ -45,10 +45,16 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		throw error(403, 'Owner access required');
 	}
 
-	const body = await request.json();
-	const label = typeof body.label === 'string' ? body.label : undefined;
-	const password = typeof body.password === 'string' ? body.password : undefined;
-	const expiresAt = body.expiresAt ?? undefined;
+	let body: unknown;
+	try {
+		body = await request.json();
+	} catch {
+		throw error(400, 'Invalid request body');
+	}
+	const b = body as Record<string, unknown>;
+	const label = typeof b.label === 'string' ? b.label : undefined;
+	const password = typeof b.password === 'string' ? b.password : undefined;
+	const expiresAt = (b.expiresAt as string) ?? undefined;
 
 	const link = await createShareLink(params.id, locals.user.id, { label, password, expiresAt });
 	return json({ link: toPublicShareLink(link) }, { status: 201 });

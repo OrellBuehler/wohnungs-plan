@@ -25,8 +25,13 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 		return json({ success: true });
 	}
 
-	const body = await request.json();
-	const password = typeof body.password === 'string' ? body.password : '';
+	let body: unknown;
+	try {
+		body = await request.json();
+	} catch {
+		throw error(400, 'Invalid request body');
+	}
+	const password = typeof (body as Record<string, unknown>).password === 'string' ? (body as Record<string, unknown>).password as string : '';
 	if (!password) {
 		throw error(400, 'Password is required');
 	}

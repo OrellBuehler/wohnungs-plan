@@ -91,14 +91,8 @@ export const GET: RequestHandler = async ({ params, cookies, url }) => {
 		items: sanitizeItems(items),
 		floorplan: floorplan
 			? {
-					filename: floorplan.filename,
-					originalName: floorplan.originalName,
-					mimeType: floorplan.mimeType,
-					sizeBytes: floorplan.sizeBytes,
 					scale: floorplan.scale,
-					referenceLength: floorplan.referenceLength,
-					createdAt: floorplan.createdAt,
-					updatedAt: floorplan.updatedAt
+					referenceLength: floorplan.referenceLength
 				}
 			: null,
 		branches: branches.map((branch) => ({

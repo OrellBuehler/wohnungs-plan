@@ -14,6 +14,11 @@ export function checkRateLimit(key: string): boolean {
 
 	if (!existing || now - existing.windowStart >= WINDOW_MS) {
 		buckets.set(key, { count: 1, windowStart: now });
+		if (buckets.size > 100) {
+			for (const [k, v] of buckets) {
+				if (now - v.windowStart >= WINDOW_MS) buckets.delete(k);
+			}
+		}
 		return true;
 	}
 

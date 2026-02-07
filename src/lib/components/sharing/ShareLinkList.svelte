@@ -64,20 +64,28 @@
 	}
 
 	async function copyLink(token: string, id: string) {
-		await navigator.clipboard.writeText(getShareUrl(token));
-		copiedId = id;
-		setTimeout(() => {
-			if (copiedId === id) copiedId = null;
-		}, 1200);
+		try {
+			await navigator.clipboard.writeText(getShareUrl(token));
+			copiedId = id;
+			setTimeout(() => {
+				if (copiedId === id) copiedId = null;
+			}, 1200);
+		} catch {
+			// Clipboard API unavailable (insecure context or unsupported browser)
+		}
 	}
 
 	async function copyCreatedLink() {
 		if (!createdShareUrl) return;
-		await navigator.clipboard.writeText(createdShareUrl);
-		copiedId = 'created';
-		setTimeout(() => {
-			if (copiedId === 'created') copiedId = null;
-		}, 1200);
+		try {
+			await navigator.clipboard.writeText(createdShareUrl);
+			copiedId = 'created';
+			setTimeout(() => {
+				if (copiedId === 'created') copiedId = null;
+			}, 1200);
+		} catch {
+			// Clipboard API unavailable (insecure context or unsupported browser)
+		}
 	}
 
 	async function createLink(forceWithoutPassword = false) {
