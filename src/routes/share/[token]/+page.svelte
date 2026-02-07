@@ -60,15 +60,12 @@
 	let { data }: { data: PageData } = $props();
 
 	const token = $derived($page.params.token);
-	const initialInvalid = data.error === 'invalid';
-	const initialRequiresPassword = Boolean(data.requiresPassword);
-	const initialProjectName = data.projectName ?? '';
 
 	let activeTab = $state<'plan' | 'items'>('plan');
 	let isMobile = $state(false);
-	let isInvalid = $state(initialInvalid);
-	let requiresPassword = $state(initialRequiresPassword);
-	let projectName = $state(initialProjectName);
+	let isInvalid = $state(false);
+	let requiresPassword = $state(false);
+	let projectName = $state('');
 	let password = $state('');
 	let passwordError = $state<string | null>(null);
 	let isVerifyingPassword = $state(false);
@@ -250,6 +247,12 @@
 	function noopItemUnplace(_id: string) {}
 	function noopItemAction(_id: string) {}
 	function noopItemRotateAction(_id: string, _direction: 'cw' | 'ccw') {}
+
+	$effect(() => {
+		isInvalid = data.error === 'invalid';
+		requiresPassword = Boolean(data.requiresPassword);
+		projectName = data.projectName ?? projectName;
+	});
 
 	onMount(() => {
 		const media = window.matchMedia('(max-width: 767px)');
