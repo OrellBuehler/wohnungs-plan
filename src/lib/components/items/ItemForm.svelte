@@ -192,7 +192,7 @@
 </script>
 
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleClose()}>
-  <Dialog.Content class="sm:max-w-md max-h-[100dvh] sm:max-h-[min(90vh,700px)] flex flex-col overflow-hidden inset-0 sm:inset-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] translate-x-0 translate-y-0 rounded-none sm:rounded-lg">
+  <Dialog.Content class="top-0 left-0 right-0 bottom-0 translate-x-0 translate-y-0 max-w-full max-h-[100dvh] flex flex-col overflow-hidden rounded-none p-4 sm:top-[50%] sm:left-[50%] sm:right-auto sm:bottom-auto sm:translate-x-[-50%] sm:translate-y-[-50%] sm:max-w-md sm:max-h-[min(90vh,700px)] sm:rounded-lg sm:p-6">
     <Dialog.Header>
       <Dialog.Title>{item?.name ? 'Edit Item' : 'Add New Item'}</Dialog.Title>
     </Dialog.Header>

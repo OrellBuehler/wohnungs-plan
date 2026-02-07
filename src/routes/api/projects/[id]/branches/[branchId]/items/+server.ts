@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { getBranchById } from '$lib/server/branches';
 import { createItem, getBranchItems } from '$lib/server/items';
 import { getProjectRole } from '$lib/server/projects';
+import { getImagesByItems } from '$lib/server/item-images';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -20,7 +21,16 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const items = await getBranchItems(params.id, params.branchId);
-	return json({ items });
+
+	// Batch-fetch images for all items
+	const itemIds = items.map((item: { id: string }) => item.id);
+	const imagesMap = await getImagesByItems(params.id, itemIds);
+	const itemsWithImages = items.map((item: { id: string }) => ({
+		...item,
+		images: imagesMap.get(item.id) ?? []
+	}));
+
+	return json({ items: itemsWithImages });
 };
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
