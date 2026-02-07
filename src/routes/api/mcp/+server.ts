@@ -12,7 +12,6 @@ import {
 	deleteItem,
 	getBranchItems,
 	getItemById,
-	listItemChanges,
 	updateItem
 } from '$lib/server/items';
 import { createBranch, getBranchById, listProjectBranches } from '$lib/server/branches';
@@ -397,39 +396,6 @@ function createMcpServer(userId: string): McpServer {
 					cutout_corner: item.cutoutCorner,
 					created_at: item.createdAt?.toISOString(),
 					updated_at: item.updatedAt?.toISOString()
-				}))
-			);
-		}
-	);
-
-	server.registerTool(
-		'get_change_history',
-		{
-			description: 'Get item change history for a project branch.',
-			inputSchema: {
-				project_id: z.string().uuid(),
-				branch_id: z.string().uuid(),
-				limit: z.number().int().positive().max(200).optional(),
-				offset: z.number().int().min(0).optional()
-			}
-		},
-		async ({ project_id, branch_id, limit, offset }) => {
-			await ensureProjectRole(project_id, 'viewer');
-			await ensureBranch(project_id, branch_id);
-			const changes = await listItemChanges(project_id, branch_id, limit ?? 50, offset ?? 0);
-			return asText(
-				changes.map((change) => ({
-					id: change.id,
-					project_id: change.projectId,
-					branch_id: change.branchId,
-					item_id: change.itemId,
-					user_id: change.userId,
-					user_name: change.userName,
-					action: change.action,
-					field: change.field,
-					old_value: change.oldValue,
-					new_value: change.newValue,
-					created_at: change.createdAt?.toISOString()
 				}))
 			);
 		}
