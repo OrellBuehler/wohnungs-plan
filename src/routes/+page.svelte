@@ -4,7 +4,7 @@
 	import type { ProjectMeta } from '$lib/types';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Plus } from 'lucide-svelte';
+	import { Plus, Upload } from 'lucide-svelte';
 	import House from 'lucide-svelte/icons/house';
 	import ProjectCard from '$lib/components/projects/ProjectCard.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
@@ -14,9 +14,12 @@
 		listProjects,
 		createProject,
 		removeProject,
-		syncProjectToCloud
+		syncProjectToCloud,
+		loadProjectById
 	} from '$lib/stores/project.svelte';
 	import { isAuthenticated, fetchUser } from '$lib/stores/auth.svelte';
+	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
+	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
 
 	// State
 	let projects = $state<ProjectMeta[]>([]);
@@ -89,6 +92,61 @@
 			await loadProjects();
 		}
 	}
+
+	async function handleExport(id: string) {
+		const project = await loadProjectById(id);
+		if (!project) return;
+
+		let thumbnail: string | null = null;
+		if (project.isLocal) {
+			thumbnail = await getThumbnail(project.id);
+		} else {
+			thumbnail = await fetchServerThumbnail(project.id);
+		}
+
+		let exportProject = project;
+		if (!project.isLocal && project.floorplan?.imageData?.startsWith('/api/')) {
+			const floorplanData = await fetchServerFloorplan(project.floorplan.imageData);
+			if (floorplanData) {
+				exportProject = {
+					...project,
+					floorplan: {
+						...project.floorplan,
+						imageData: floorplanData
+					}
+				};
+			}
+		}
+
+		downloadProject(exportProject, thumbnail);
+	}
+
+	async function handleImport() {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.json';
+		input.onchange = async () => {
+			const file = input.files?.[0];
+			if (file) {
+				const json = await readFileAsJSON(file);
+				const { project: imported, thumbnail } = importProjectFromJSON(json);
+				if (imported) {
+					await saveLocalProject(imported);
+					if (thumbnail) {
+						try {
+							await saveThumbnail(imported.id, thumbnail);
+						} catch (error) {
+							console.error('Failed to save thumbnail:', error);
+						}
+					}
+					await loadProjects();
+				} else {
+					alert('Invalid project file');
+				}
+			}
+		};
+		input.click();
+	}
 </script>
 
 <div class="h-screen bg-slate-50 flex flex-col overflow-hidden">
@@ -113,10 +171,16 @@
 		<!-- Title + New button -->
 		<div class="flex items-center justify-between mb-6">
 			<h2 class="text-2xl font-bold text-slate-800">My Projects</h2>
-			<Button onclick={handleNew}>
-				<Plus class="size-4 mr-2" />
-				New Project
-			</Button>
+			<div class="flex items-center gap-2">
+				<Button variant="outline" onclick={handleImport}>
+					<Upload class="size-4 mr-2" />
+					Import JSON
+				</Button>
+				<Button onclick={handleNew}>
+					<Plus class="size-4 mr-2" />
+					New Project
+				</Button>
+			</div>
 		</div>
 
 		<!-- Loading state -->
@@ -162,6 +226,7 @@
 						onDelete={handleDeleteClick}
 						onShare={handleShare}
 						onSync={handleSync}
+						onExport={handleExport}
 					/>
 				{/each}
 			</div>

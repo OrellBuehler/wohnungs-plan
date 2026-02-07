@@ -32,8 +32,7 @@
 		setGridSize,
 		loadProjectById
 	} from '$lib/stores/project.svelte';
-	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
-	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
+	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
@@ -242,65 +241,6 @@
 			showItemBottomSheet = false;
 		}
 	});
-
-	async function handleExport() {
-		if (!project) return;
-
-		// Fetch thumbnail based on project type
-		let thumbnail: string | null = null;
-		if (project.isLocal) {
-			thumbnail = await getThumbnail(project.id);
-		} else {
-			thumbnail = await fetchServerThumbnail(project.id);
-		}
-
-		// For cloud projects, fetch floorplan image and convert to base64
-		let exportProject = project;
-		if (!project.isLocal && project.floorplan?.imageData?.startsWith('/api/')) {
-			const floorplanData = await fetchServerFloorplan(project.floorplan.imageData);
-			if (floorplanData) {
-				exportProject = {
-					...project,
-					floorplan: {
-						...project.floorplan,
-						imageData: floorplanData
-					}
-				};
-			}
-		}
-
-		// Export with thumbnail
-		downloadProject(exportProject, thumbnail);
-	}
-
-	async function handleImport() {
-		const input = document.createElement('input');
-		input.type = 'file';
-		input.accept = '.json';
-		input.onchange = async () => {
-			const file = input.files?.[0];
-			if (file) {
-				const json = await readFileAsJSON(file);
-				const { project: imported, thumbnail } = importProjectFromJSON(json);
-				if (imported) {
-					setProject(imported);
-					await saveLocalProject(imported);
-
-					// Save thumbnail if present
-					if (thumbnail) {
-						try {
-							await saveThumbnail(imported.id, thumbnail);
-						} catch (error) {
-							console.error('Failed to save thumbnail:', error);
-						}
-					}
-				} else {
-					alert('Invalid project file');
-				}
-			}
-		};
-		input.click();
-	}
 
 	// Floorplan actions
 	function handleFloorplanUpload(imageData: string) {
@@ -515,38 +455,37 @@
 			{:else}
 				<LoginButton />
 			{/if}
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
-					{#snippet child({ props })}
-						<Button {...props} variant="outline" size="sm">
-							<Menu size={16} class="md:mr-1" />
-							<span class="hidden md:inline">Menu</span>
-						</Button>
-					{/snippet}
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content>
-					<DropdownMenu.Item onclick={handleExport}>Export JSON</DropdownMenu.Item>
-					<DropdownMenu.Item onclick={handleImport}>Import JSON</DropdownMenu.Item>
-					{#if !isLocalProject}
-						<DropdownMenu.Separator />
-						<DropdownMenu.Item onclick={refreshProject}>
-							{isRefreshing ? 'Refreshing...' : 'Refresh'}
-						</DropdownMenu.Item>
-					{/if}
-					{#if project.floorplan && isMobile}
-						<DropdownMenu.Separator />
-						<DropdownMenu.Item onclick={handleRecalibrate}>Recalibrate Scale</DropdownMenu.Item>
-						<DropdownMenu.Item onclick={handleChangeFloorplan}>Change Floorplan</DropdownMenu.Item>
-						<DropdownMenu.Separator />
-						<DropdownMenu.Item onclick={() => showGrid = !showGrid}>
-							{showGrid ? 'Hide Grid' : 'Show Grid'}
-						</DropdownMenu.Item>
-						<DropdownMenu.Item onclick={() => snapToGrid = !snapToGrid}>
-							{snapToGrid ? 'Disable Snap' : 'Enable Snap'}
-						</DropdownMenu.Item>
-					{/if}
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+			{#if !isLocalProject || (project.floorplan && isMobile)}
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" size="sm">
+								<Menu size={16} class="md:mr-1" />
+								<span class="hidden md:inline">Menu</span>
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content>
+						{#if !isLocalProject}
+							<DropdownMenu.Item onclick={refreshProject}>
+								{isRefreshing ? 'Refreshing...' : 'Refresh'}
+							</DropdownMenu.Item>
+						{/if}
+						{#if project.floorplan && isMobile}
+							{#if !isLocalProject}<DropdownMenu.Separator />{/if}
+							<DropdownMenu.Item onclick={handleRecalibrate}>Recalibrate Scale</DropdownMenu.Item>
+							<DropdownMenu.Item onclick={handleChangeFloorplan}>Change Floorplan</DropdownMenu.Item>
+							<DropdownMenu.Separator />
+							<DropdownMenu.Item onclick={() => showGrid = !showGrid}>
+								{showGrid ? 'Hide Grid' : 'Show Grid'}
+							</DropdownMenu.Item>
+							<DropdownMenu.Item onclick={() => snapToGrid = !snapToGrid}>
+								{snapToGrid ? 'Disable Snap' : 'Enable Snap'}
+							</DropdownMenu.Item>
+						{/if}
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			{/if}
 		</div>
 	</header>
 
