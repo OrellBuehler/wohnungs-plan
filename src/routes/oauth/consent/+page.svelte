@@ -30,7 +30,7 @@
 				<div class="space-y-4">
 					<div>
 						<p class="text-sm text-slate-600 mb-3">
-							An application is requesting access to your account with the following permissions:
+							<strong>{data.clientName ?? 'An application'}</strong> is requesting access to your account with the following permissions:
 						</p>
 						<ul class="space-y-2">
 							{#each permissions as permission}

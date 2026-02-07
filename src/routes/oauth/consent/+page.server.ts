@@ -65,6 +65,7 @@ export const load: PageServerLoad = async ({ url, request }) => {
 	// Return data needed for consent screen
 	return {
 		clientId,
+		clientName: client.clientName,
 		redirectUri,
 		state,
 		codeChallenge,

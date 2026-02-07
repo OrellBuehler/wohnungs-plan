@@ -148,16 +148,15 @@ export const projectInvites = pgTable(
 	]
 );
 
-// OAuth Clients - one per user for MCP access
+// OAuth Clients - per-user or dynamically registered (RFC 7591)
 export const oauthClients = pgTable(
 	'oauth_clients',
 	{
 		id: uuid('id').primaryKey().defaultRandom(),
-		userId: uuid('user_id')
-			.notNull()
-			.references(() => users.id, { onDelete: 'cascade' }),
+		userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
 		clientId: text('client_id').unique().notNull(),
 		clientSecretHash: text('client_secret_hash').notNull(),
+		clientName: text('client_name'),
 		allowedRedirectUris: text('allowed_redirect_uris').array().notNull().default(sql`ARRAY[]::text[]`),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 	},
