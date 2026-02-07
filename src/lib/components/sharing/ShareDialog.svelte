@@ -1,9 +1,11 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
+	import { Separator } from '$lib/components/ui/separator';
 	import { getUser } from '$lib/stores/auth.svelte';
 	import MemberList, { type Member, type ProjectRole } from './MemberList.svelte';
 	import InviteForm from './InviteForm.svelte';
+	import ShareLinkList from './ShareLinkList.svelte';
 
 	interface Props {
 		open: boolean;
@@ -142,6 +144,11 @@
 					onRoleChange={handleRoleChange}
 					onRemove={handleRemove}
 				/>
+			{/if}
+
+			{#if canManage}
+				<Separator />
+				<ShareLinkList {projectId} />
 			{/if}
 		</div>
 
