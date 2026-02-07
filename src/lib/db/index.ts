@@ -2,6 +2,31 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Project, ProjectMeta } from '$lib/types';
 import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 
+function ensureProjectBranches(project: Project): Project {
+	if (project.branches && project.branches.length > 0) {
+		if (!project.activeBranchId) {
+			project.activeBranchId = project.branches[0].id;
+		}
+		return project;
+	}
+
+	const mainBranchId = crypto.randomUUID();
+	return {
+		...project,
+		branches: [
+			{
+				id: mainBranchId,
+				projectId: project.id,
+				name: 'Main',
+				forkedFromId: null,
+				createdBy: 'local',
+				createdAt: project.createdAt
+			}
+		],
+		activeBranchId: mainBranchId
+	};
+}
+
 interface WohnungsPlanDB extends DBSchema {
   projects: {
     key: string;
@@ -49,13 +74,14 @@ export async function getAllProjects(): Promise<ProjectMeta[]> {
 
 export async function getProject(id: string): Promise<Project | undefined> {
   const db = await getDB();
-  return db.get('projects', id);
+  const project = await db.get('projects', id);
+  return project ? ensureProjectBranches(project) : undefined;
 }
 
 export async function saveProject(project: Project): Promise<void> {
   const db = await getDB();
   // Deep clone to strip Svelte 5 proxy objects (IndexedDB can't clone proxies)
-  const plainProject = JSON.parse(JSON.stringify(project)) as Project;
+  const plainProject = ensureProjectBranches(JSON.parse(JSON.stringify(project)) as Project);
   plainProject.updatedAt = new Date().toISOString();
   await db.put('projects', plainProject);
 }
@@ -68,13 +94,26 @@ export async function deleteProject(id: string): Promise<void> {
 
 export function createNewProject(name: string = 'Untitled Project'): Project {
   const now = new Date().toISOString();
+  const projectId = crypto.randomUUID();
+  const mainBranchId = crypto.randomUUID();
   return {
-    id: crypto.randomUUID(),
+    id: projectId,
     name,
     createdAt: now,
     updatedAt: now,
     floorplan: null,
     items: [],
+    branches: [
+      {
+        id: mainBranchId,
+        projectId,
+        name: 'Main',
+        forkedFromId: null,
+        createdBy: 'local',
+        createdAt: now
+      }
+    ],
+    activeBranchId: mainBranchId,
     currency: DEFAULT_CURRENCY,
     gridSize: 50,
     isLocal: true,

@@ -10,9 +10,12 @@ import {
 import { getProjectRole } from './projects';
 import { getSessionWithUser, parseSessionCookie } from './session';
 import type { DBUser } from './types';
+import { getBranchById } from './branches';
 
 interface WSData {
 	projectId: string;
+	branchId: string;
+	roomId: string;
 	connectionId: string;
 	user: DBUser;
 }
@@ -22,9 +25,9 @@ type WSMessage =
 	| { type: 'lock_item'; itemId: string }
 	| { type: 'unlock_item' }
 	| { type: 'select_item'; itemId: string | null }
-	| { type: 'item_updated'; item: unknown }
-	| { type: 'item_created'; item: unknown }
-	| { type: 'item_deleted'; itemId: string };
+	| { type: 'item_updated'; item: unknown; branchId?: string }
+	| { type: 'item_created'; item: unknown; branchId?: string }
+	| { type: 'item_deleted'; itemId: string; branchId?: string };
 
 const projectConnections = new Map<string, Set<ServerWebSocket<WSData>>>();
 
@@ -49,10 +52,11 @@ export async function handleWSUpgrade(
 	server: { upgrade: (req: Request, options: unknown) => boolean }
 ): Promise<Response | undefined> {
 	const url = new URL(req.url);
-	const match = url.pathname.match(/^\/ws\/projects\/([^/]+)$/);
+	const match = url.pathname.match(/^\/ws\/projects\/([^/]+)\/branches\/([^/]+)$/);
 	if (!match) return undefined;
 
 	const projectId = match[1];
+	const branchId = match[2];
 	const cookie = req.headers.get('cookie');
 	const sessionId = parseSessionCookie(cookie);
 
@@ -70,10 +74,18 @@ export async function handleWSUpgrade(
 		return new Response('Forbidden', { status: 403 });
 	}
 
+	const branch = await getBranchById(projectId, branchId);
+	if (!branch) {
+		return new Response('Branch not found', { status: 404 });
+	}
+
+	const roomId = `project:${projectId}:branch:${branchId}`;
 	const connectionId = crypto.randomUUID();
 	const upgraded = server.upgrade(req, {
 		data: {
 			projectId,
+			branchId,
+			roomId,
 			connectionId,
 			user: session.user
 		} satisfies WSData
@@ -83,21 +95,21 @@ export async function handleWSUpgrade(
 }
 
 export function handleWSOpen(ws: ServerWebSocket<WSData>): void {
-	const { projectId, connectionId, user } = ws.data;
+	const { roomId, connectionId, user } = ws.data;
 
 	// Add to project connections
-	let connections = projectConnections.get(projectId);
+	let connections = projectConnections.get(roomId);
 	if (!connections) {
 		connections = new Set();
-		projectConnections.set(projectId, connections);
+		projectConnections.set(roomId, connections);
 	}
 	connections.add(ws);
 
 	// Add collaborator and get state
-	const state = addCollaborator(projectId, connectionId, user);
+	const state = addCollaborator(roomId, connectionId, user);
 
 	// Send current collaborators to new user
-	const collaborators = getCollaborators(projectId);
+	const collaborators = getCollaborators(roomId);
 	ws.send(JSON.stringify({
 		type: 'init',
 		collaborators: collaborators.filter((c) => c.user.id !== user.id),
@@ -106,31 +118,31 @@ export function handleWSOpen(ws: ServerWebSocket<WSData>): void {
 
 	// Broadcast join to others
 	broadcastToProject(
-		projectId,
+		roomId,
 		{ type: 'user_joined', user: state.user, color: state.color },
 		connectionId
 	);
 }
 
 export function handleWSMessage(ws: ServerWebSocket<WSData>, message: string): void {
-	const { projectId, connectionId, user } = ws.data;
+	const { roomId, branchId, connectionId, user } = ws.data;
 
 	try {
 		const msg = JSON.parse(message) as WSMessage;
 
 		switch (msg.type) {
 			case 'cursor_move':
-				updateCursor(projectId, connectionId, msg.x, msg.y);
+				updateCursor(roomId, connectionId, msg.x, msg.y);
 				broadcastToProject(
-					projectId,
+					roomId,
 					{ type: 'cursor_move', userId: user.id, x: msg.x, y: msg.y },
 					connectionId
 				);
 				break;
 
 			case 'lock_item':
-				if (lockItem(projectId, connectionId, msg.itemId)) {
-					broadcastToProject(projectId, {
+				if (lockItem(roomId, connectionId, msg.itemId)) {
+					broadcastToProject(roomId, {
 						type: 'item_locked',
 						itemId: msg.itemId,
 						userId: user.id
@@ -139,9 +151,9 @@ export function handleWSMessage(ws: ServerWebSocket<WSData>, message: string): v
 				break;
 
 			case 'unlock_item': {
-				const unlockedItemId = unlockItem(projectId, connectionId);
+				const unlockedItemId = unlockItem(roomId, connectionId);
 				if (unlockedItemId) {
-					broadcastToProject(projectId, {
+					broadcastToProject(roomId, {
 						type: 'item_unlocked',
 						itemId: unlockedItemId
 					});
@@ -153,7 +165,7 @@ export function handleWSMessage(ws: ServerWebSocket<WSData>, message: string): v
 			case 'item_created':
 			case 'item_deleted':
 				// Broadcast to others (the sender already has the update)
-				broadcastToProject(projectId, msg, connectionId);
+				broadcastToProject(roomId, { ...msg, branchId }, connectionId);
 				break;
 		}
 	} catch (err) {
@@ -162,20 +174,20 @@ export function handleWSMessage(ws: ServerWebSocket<WSData>, message: string): v
 }
 
 export function handleWSClose(ws: ServerWebSocket<WSData>): void {
-	const { projectId, connectionId, user } = ws.data;
+	const { roomId, connectionId, user } = ws.data;
 
 	// Remove from connections
-	const connections = projectConnections.get(projectId);
+	const connections = projectConnections.get(roomId);
 	if (connections) {
 		connections.delete(ws);
 		if (connections.size === 0) {
-			projectConnections.delete(projectId);
+			projectConnections.delete(roomId);
 		}
 	}
 
 	// Remove collaborator (also releases locks)
-	removeCollaborator(projectId, connectionId);
+	removeCollaborator(roomId, connectionId);
 
 	// Broadcast leave
-	broadcastToProject(projectId, { type: 'user_left', userId: user.id });
+	broadcastToProject(roomId, { type: 'user_left', userId: user.id });
 }

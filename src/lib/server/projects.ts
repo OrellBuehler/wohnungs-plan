@@ -2,6 +2,7 @@ import { eq, desc, asc, and, or, sql, inArray } from 'drizzle-orm';
 import { getDB, projects, projectMembers, items, floorplans, type Project, type Item, type Floorplan } from './db';
 import type { ProjectWithRole, ProjectRole } from './types';
 import type { ProjectMeta } from '$lib/types';
+import { ensureMainBranch } from './branches';
 
 export async function getUserProjects(userId: string): Promise<ProjectWithRole[]> {
 	const db = getDB();
@@ -131,6 +132,8 @@ export async function createProject(
 		role: 'owner'
 	});
 
+	await ensureMainBranch(project.id, ownerId);
+
 	return project;
 }
 
@@ -157,9 +160,17 @@ export async function deleteProject(projectId: string): Promise<void> {
 	await db.delete(projects).where(eq(projects.id, projectId));
 }
 
-export async function getProjectItems(projectId: string): Promise<Item[]> {
+export async function getProjectItems(projectId: string, branchId?: string): Promise<Item[]> {
 	const db = getDB();
-	return db.select().from(items).where(eq(items.projectId, projectId)).orderBy(asc(items.createdAt));
+	return db
+		.select()
+		.from(items)
+		.where(
+			branchId
+				? and(eq(items.projectId, projectId), eq(items.branchId, branchId))
+				: eq(items.projectId, projectId)
+		)
+		.orderBy(asc(items.createdAt));
 }
 
 export async function getProjectFloorplan(projectId: string): Promise<Floorplan | null> {

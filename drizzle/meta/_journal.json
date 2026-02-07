@@ -50,6 +50,13 @@
       "when": 1770477787947,
       "tag": "0006_lying_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1770481250532,
+      "tag": "0007_late_wendell_vaughn",
+      "breakpoints": true
     }
   ]
 }

@@ -31,7 +31,7 @@ let state = $state<CollaborationState>({
 });
 
 let ws: WebSocket | null = null;
-let currentProjectId: string | null = null;
+let currentRoomKey: string | null = null;
 let cursorThrottleTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const CURSOR_THROTTLE_MS = 50;
@@ -61,17 +61,18 @@ export function getUserColor(userId: string): string | undefined {
 	return state.users.find((u) => u.id === userId)?.color;
 }
 
-export function connect(projectId: string): void {
+export function connect(projectId: string, branchId: string): void {
 	if (!isAuthenticated()) return;
-	if (ws && currentProjectId === projectId) return;
+	const roomKey = `${projectId}:${branchId}`;
+	if (ws && currentRoomKey === roomKey) return;
 
 	disconnect();
 
 	const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-	const url = `${protocol}//${window.location.host}/ws/projects/${projectId}`;
+	const url = `${protocol}//${window.location.host}/ws/projects/${projectId}/branches/${branchId}`;
 
 	ws = new WebSocket(url);
-	currentProjectId = projectId;
+	currentRoomKey = roomKey;
 
 	ws.onopen = () => {
 		state.isConnected = true;
@@ -104,7 +105,7 @@ export function disconnect(): void {
 		ws.close();
 		ws = null;
 	}
-	currentProjectId = null;
+	currentRoomKey = null;
 	state.isConnected = false;
 	state.users = [];
 	state.cursors = new Map();
