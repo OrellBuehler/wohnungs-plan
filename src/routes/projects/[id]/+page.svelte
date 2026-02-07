@@ -737,15 +737,20 @@
 		}
 	}
 
-	function handleSaveItem(itemData: Omit<Item, 'id'>, pendingFiles?: File[]) {
+	async function handleSaveItem(itemData: Omit<Item, 'id'>, pendingFiles?: File[]) {
 		if (editingItem?.id) {
 			updateItem(editingItem.id, itemData);
 		} else {
 			const newItem = addItem(itemData);
 			// Upload pending files for newly created items
 			if (newItem && pendingFiles && pendingFiles.length > 0) {
-				for (const file of pendingFiles) {
-					void uploadItemImage(newItem.id, file);
+				const results = await Promise.allSettled(
+					pendingFiles.map((file) => uploadItemImage(newItem.id, file))
+				);
+				for (const result of results) {
+					if (result.status === 'rejected') {
+						console.error('Image upload failed:', result.reason);
+					}
 				}
 			}
 		}

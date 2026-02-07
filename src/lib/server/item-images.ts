@@ -1,4 +1,4 @@
-import { eq, and, inArray, asc } from 'drizzle-orm';
+import { eq, and, inArray, asc, sql } from 'drizzle-orm';
 import { getDB, itemImages } from './db';
 import { config } from './env';
 import { mkdir, writeFile, unlink, rm } from 'node:fs/promises';
@@ -66,14 +66,10 @@ export async function createItemImage(
 ) {
 	const db = getDB();
 
-	// Get next sort order
-	const existing = await db
-		.select({ sortOrder: itemImages.sortOrder })
+	const nextOrder = db
+		.select({ val: sql<number>`coalesce(max(${itemImages.sortOrder}), -1) + 1` })
 		.from(itemImages)
-		.where(eq(itemImages.itemId, itemId))
-		.orderBy(asc(itemImages.sortOrder));
-
-	const nextOrder = existing.length > 0 ? existing[existing.length - 1].sortOrder + 1 : 0;
+		.where(eq(itemImages.itemId, itemId));
 
 	const [image] = await db
 		.insert(itemImages)
@@ -84,7 +80,7 @@ export async function createItemImage(
 			originalName: data.originalName,
 			mimeType: data.mimeType,
 			sizeBytes: data.sizeBytes,
-			sortOrder: nextOrder
+			sortOrder: sql`(${nextOrder})`
 		})
 		.returning();
 
@@ -131,12 +127,14 @@ export async function deleteAllItemImages(projectId: string, itemId: string): Pr
 
 export async function reorderItemImages(itemId: string, imageIds: string[]): Promise<void> {
 	const db = getDB();
-	for (let i = 0; i < imageIds.length; i++) {
-		await db
-			.update(itemImages)
-			.set({ sortOrder: i })
-			.where(and(eq(itemImages.id, imageIds[i]), eq(itemImages.itemId, itemId)));
-	}
+	await db.transaction(async (tx) => {
+		for (let i = 0; i < imageIds.length; i++) {
+			await tx
+				.update(itemImages)
+				.set({ sortOrder: i })
+				.where(and(eq(itemImages.id, imageIds[i]), eq(itemImages.itemId, itemId)));
+		}
+	});
 }
 
 export async function getImagesByItems(

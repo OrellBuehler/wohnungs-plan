@@ -7,10 +7,15 @@ import {
 	getItemImages,
 	createItemImage,
 	saveItemImageFile,
-	generateThumbnail
+	generateThumbnail,
+	getItemImagePath,
+	getItemImageThumbPath
 } from '$lib/server/item-images';
 import { config } from '$lib/server/env';
 import { detectImageMime, EXT_BY_MIME } from '$lib/server/image-utils';
+import { unlink } from 'node:fs/promises';
+
+const MAX_IMAGES_PER_ITEM = 20;
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -46,6 +51,12 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		throw error(404, 'Item not found');
 	}
 
+	// Check image count limit
+	const existing = await getItemImages(params.itemId);
+	if (existing.length >= MAX_IMAGES_PER_ITEM) {
+		throw error(400, `Maximum ${MAX_IMAGES_PER_ITEM} images per item`);
+	}
+
 	const formData = await request.formData();
 	const file = formData.get('file') as File | null;
 
@@ -69,14 +80,27 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	const filename = `${crypto.randomUUID()}.${EXT_BY_MIME[detectedMime]}`;
 
 	await saveItemImageFile(params.id, params.itemId, filename, buffer);
-	await generateThumbnail(params.id, params.itemId, filename);
+	try {
+		await generateThumbnail(params.id, params.itemId, filename);
+	} catch (e) {
+		// Clean up saved file on thumbnail failure
+		try { await unlink(getItemImagePath(params.id, params.itemId, filename)); } catch { /* ignore */ }
+		throw e;
+	}
 
-	const image = await createItemImage(params.id, params.itemId, {
-		filename,
-		originalName: file.name,
-		mimeType: detectedMime,
-		sizeBytes: file.size
-	});
+	try {
+		const image = await createItemImage(params.id, params.itemId, {
+			filename,
+			originalName: file.name,
+			mimeType: detectedMime,
+			sizeBytes: file.size
+		});
 
-	return json({ image }, { status: 201 });
+		return json({ image }, { status: 201 });
+	} catch (e) {
+		// Clean up files on DB insert failure
+		try { await unlink(getItemImagePath(params.id, params.itemId, filename)); } catch { /* ignore */ }
+		try { await unlink(getItemImageThumbPath(params.id, params.itemId, filename)); } catch { /* ignore */ }
+		throw e;
+	}
 };

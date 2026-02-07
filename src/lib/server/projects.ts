@@ -4,6 +4,9 @@ import type { ProjectWithRole, ProjectRole } from './types';
 import type { ProjectMeta } from '$lib/types';
 import { copyFloorplan } from './floorplans';
 import { ensureMainBranch } from './branches';
+import { config } from './env';
+import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
 
 export async function getUserProjects(userId: string): Promise<ProjectWithRole[]> {
 	const db = getDB();
@@ -160,6 +163,19 @@ export async function updateProject(
 export async function deleteProject(projectId: string): Promise<void> {
 	const db = getDB();
 	await db.delete(projects).where(eq(projects.id, projectId));
+
+	// Clean up upload directories on disk (DB rows cascade-deleted with the project)
+	const dirs = [
+		join(config.uploads.dir, 'item-images', projectId),
+		join(config.uploads.dir, 'floorplans', projectId)
+	];
+	for (const dir of dirs) {
+		try {
+			await rm(dir, { recursive: true, force: true });
+		} catch {
+			// Directory may not exist
+		}
+	}
 }
 
 export async function getProjectItems(projectId: string, branchId?: string): Promise<Item[]> {

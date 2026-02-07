@@ -21,7 +21,7 @@
     }
   });
 
-  const currentImage = $derived(images[currentIndex]);
+  const currentImage = $derived(images[Math.min(currentIndex, Math.max(images.length - 1, 0))]);
   const hasPrev = $derived(currentIndex > 0);
   const hasNext = $derived(currentIndex < images.length - 1);
 

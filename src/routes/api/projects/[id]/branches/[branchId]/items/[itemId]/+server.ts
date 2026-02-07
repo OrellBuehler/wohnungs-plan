@@ -3,6 +3,8 @@ import type { RequestHandler } from './$types';
 import { getBranchById } from '$lib/server/branches';
 import { deleteItem, getItemById, updateItem } from '$lib/server/items';
 import { getProjectRole } from '$lib/server/projects';
+import { getItemImagesDir } from '$lib/server/item-images';
+import { rm } from 'node:fs/promises';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -66,5 +68,13 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	}
 
 	await deleteItem(params.id, params.branchId, params.itemId, locals.user.id);
+
+	// Clean up image files on disk (DB rows cascade-deleted with the item)
+	try {
+		await rm(getItemImagesDir(params.id, params.itemId), { recursive: true, force: true });
+	} catch {
+		// Directory may not exist
+	}
+
 	return json({ success: true });
 };

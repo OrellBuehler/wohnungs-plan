@@ -360,7 +360,7 @@
               {#if onImageDelete}
                 <button
                   type="button"
-                  class="absolute top-0 right-0 bg-black/60 text-white rounded-bl p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  class="absolute top-0 right-0 bg-black/60 text-white rounded-bl p-0.5 opacity-70 hover:opacity-100 transition-opacity"
                   onclick={() => onImageDelete?.(img.id)}
                 >
                   <X size={12} />
