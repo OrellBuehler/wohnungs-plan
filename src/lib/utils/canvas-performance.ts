@@ -25,6 +25,10 @@ export interface DistanceIndicatorVisibilityInput {
   isDraggingItem: boolean;
 }
 
+export function remToPx(rem: number, rootFontPx: number): number {
+  return rem * rootFontPx;
+}
+
 export function shouldRenderGrid(showGrid: boolean, isInteractionActive: boolean): boolean {
   return showGrid && !isInteractionActive;
 }

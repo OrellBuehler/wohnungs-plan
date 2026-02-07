@@ -12,6 +12,7 @@
   } from '$lib/utils/geometry';
   import {
     getItemShadowStyle,
+    remToPx,
     resolveItemDisplayPosition,
     shouldShowDistanceIndicators,
     shouldRenderGrid,
@@ -139,23 +140,33 @@
   const BASE_ITEM_DIMENSIONS_REM = 0.3125; // ~5px
   const BASE_DISTANCE_LABEL_REM = 0.34375; // ~5.5px
   const MOBILE_SCALE_FACTOR = 0.75; // 25% smaller on mobile
+  let rootFontPx = $state(16);
 
-  // Convert rem to pixels at runtime (respects user's browser font size)
-  const remToPx = (rem: number) => {
-    if (typeof window === 'undefined') return rem * 16; // SSR fallback
-    return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
-  };
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+
+    const updateRootFontPx = () => {
+      const value = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      if (Number.isFinite(value) && value > 0) {
+        rootFontPx = value;
+      }
+    };
+
+    updateRootFontPx();
+    window.addEventListener('resize', updateRootFontPx);
+    return () => window.removeEventListener('resize', updateRootFontPx);
+  });
 
   // World-space labels should scale naturally with stage zoom.
   const itemNameFontSize = $derived(
-    remToPx(BASE_ITEM_NAME_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1)
+    remToPx(BASE_ITEM_NAME_REM, rootFontPx) * (mobileMode ? MOBILE_SCALE_FACTOR : 1)
   );
   const itemDimensionsFontSize = $derived(
-    remToPx(BASE_ITEM_DIMENSIONS_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1)
+    remToPx(BASE_ITEM_DIMENSIONS_REM, rootFontPx) * (mobileMode ? MOBILE_SCALE_FACTOR : 1)
   );
   // HUD labels compensate for stage zoom to remain constant on screen.
   const distanceLabelFontSize = $derived(
-    remToPx(BASE_DISTANCE_LABEL_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) / zoom
+    remToPx(BASE_DISTANCE_LABEL_REM, rootFontPx) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) / zoom
   );
 
   // Load floorplan image

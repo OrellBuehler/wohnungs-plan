@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   getItemShadowStyle,
+  remToPx,
   resolveItemDisplayPosition,
   shouldShowDistanceIndicators,
   shouldRenderGrid,
@@ -119,5 +120,12 @@ describe('shouldShowDistanceIndicators', () => {
     expect(
       shouldShowDistanceIndicators({ isInteractionActive: true, isDraggingItem: true })
     ).toBe(true);
+  });
+});
+
+describe('remToPx', () => {
+  it('converts rem units with provided root font size', () => {
+    expect(remToPx(0.5, 16)).toBe(8);
+    expect(remToPx(1.25, 20)).toBe(25);
   });
 });
