@@ -43,7 +43,7 @@
 	<title>MCP Settings - Floorplanner</title>
 </svelte:head>
 
-<div class="min-h-screen bg-slate-50 p-4 md:p-8">
+<div class="h-full overflow-y-auto bg-slate-50 p-4 md:p-8">
 	<div class="max-w-3xl mx-auto space-y-6">
 		<!-- Header -->
 		<div>

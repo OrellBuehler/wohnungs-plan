@@ -86,7 +86,7 @@
 	const error = $derived(errorCodes[code] ?? errorCodes['unknown']);
 </script>
 
-<div class="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+<div class="h-full overflow-y-auto bg-slate-50 flex items-center justify-center p-4">
 	<div class="w-full max-w-md">
 		<Card.Root>
 			<Card.Header>
