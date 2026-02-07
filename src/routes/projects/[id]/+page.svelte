@@ -7,7 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Menu, Share2 } from 'lucide-svelte';
+	import { Menu, Share2, RefreshCw } from 'lucide-svelte';
 	import LoginButton from '$lib/components/auth/LoginButton.svelte';
 	import UserMenu from '$lib/components/auth/UserMenu.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
@@ -449,13 +449,17 @@
 					<Share2 size={16} class="md:mr-1" />
 					<span class="hidden md:inline">Share</span>
 				</Button>
+				<Button variant="outline" size="icon-sm" onclick={refreshProject} disabled={isRefreshing}>
+					<RefreshCw size={16} class={isRefreshing ? 'animate-spin' : ''} />
+					<span class="sr-only">Refresh</span>
+				</Button>
 			{/if}
 			{#if authed}
 				<UserMenu />
 			{:else}
 				<LoginButton />
 			{/if}
-			{#if !isLocalProject || (project.floorplan && isMobile)}
+			{#if project.floorplan && isMobile}
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger>
 						{#snippet child({ props })}
@@ -466,23 +470,15 @@
 						{/snippet}
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content>
-						{#if !isLocalProject}
-							<DropdownMenu.Item onclick={refreshProject}>
-								{isRefreshing ? 'Refreshing...' : 'Refresh'}
-							</DropdownMenu.Item>
-						{/if}
-						{#if project.floorplan && isMobile}
-							{#if !isLocalProject}<DropdownMenu.Separator />{/if}
-							<DropdownMenu.Item onclick={handleRecalibrate}>Recalibrate Scale</DropdownMenu.Item>
-							<DropdownMenu.Item onclick={handleChangeFloorplan}>Change Floorplan</DropdownMenu.Item>
-							<DropdownMenu.Separator />
-							<DropdownMenu.Item onclick={() => showGrid = !showGrid}>
-								{showGrid ? 'Hide Grid' : 'Show Grid'}
-							</DropdownMenu.Item>
-							<DropdownMenu.Item onclick={() => snapToGrid = !snapToGrid}>
-								{snapToGrid ? 'Disable Snap' : 'Enable Snap'}
-							</DropdownMenu.Item>
-						{/if}
+						<DropdownMenu.Item onclick={handleRecalibrate}>Recalibrate Scale</DropdownMenu.Item>
+						<DropdownMenu.Item onclick={handleChangeFloorplan}>Change Floorplan</DropdownMenu.Item>
+						<DropdownMenu.Separator />
+						<DropdownMenu.Item onclick={() => showGrid = !showGrid}>
+							{showGrid ? 'Hide Grid' : 'Show Grid'}
+						</DropdownMenu.Item>
+						<DropdownMenu.Item onclick={() => snapToGrid = !snapToGrid}>
+							{snapToGrid ? 'Disable Snap' : 'Enable Snap'}
+						</DropdownMenu.Item>
 					</DropdownMenu.Content>
 				</DropdownMenu.Root>
 			{/if}
