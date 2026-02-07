@@ -43,6 +43,7 @@
 	} from '$lib/stores/project.svelte';
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
+	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
 
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
 	import FloorplanCanvas from '$lib/components/canvas/FloorplanCanvas.svelte';
@@ -93,6 +94,8 @@
 	let branchNameInputValue = $state('');
 	let branchNameInputEl = $state<HTMLInputElement | null>(null);
 	let isBranchDialogSubmitting = $state(false);
+	let pendingBranchUrlSyncId = $state<string | null>(null);
+	let isBranchSwitching = $state(false);
 
 	// Track if project is local-only (not synced to cloud)
 	let isLocalProject = $state(true);
@@ -168,8 +171,11 @@
 		const target = event.currentTarget as HTMLSelectElement | null;
 		const branchId = target?.value;
 		if (!branchId) return;
-		const switched = await setProjectActiveBranch(branchId);
-		if (!switched) return;
+		if (branchId === activeBranch?.id) return;
+		await switchBranchWithTransition(branchId);
+	}
+
+	async function syncBranchUrl(branchId: string) {
 		const url = new URL($page.url);
 		url.searchParams.set('branch', branchId);
 		await goto(`${url.pathname}?${url.searchParams.toString()}`, {
@@ -177,6 +183,35 @@
 			keepFocus: true,
 			noScroll: true
 		});
+	}
+
+	async function switchBranchWithTransition(
+		branchId: string,
+		options: { syncUrl?: boolean; markPendingUrl?: boolean } = {}
+	): Promise<boolean> {
+		const { syncUrl = true, markPendingUrl = syncUrl } = options;
+		if (isBranchSwitching) return false;
+
+		let didSyncUrl = false;
+		if (markPendingUrl) {
+			pendingBranchUrlSyncId = branchId;
+		}
+
+		isBranchSwitching = true;
+		try {
+			const switched = await setProjectActiveBranch(branchId);
+			if (!switched) return false;
+			if (syncUrl) {
+				await syncBranchUrl(branchId);
+				didSyncUrl = true;
+			}
+			return true;
+		} finally {
+			if ((!didSyncUrl || !syncUrl) && pendingBranchUrlSyncId === branchId) {
+				pendingBranchUrlSyncId = null;
+			}
+			isBranchSwitching = false;
+		}
 	}
 
 	function openConfirmDialog(options: {
@@ -254,14 +289,7 @@
 			const created = await createProjectBranch(branchName, activeBranch?.id ?? null);
 			if (!created) return;
 
-			await setProjectActiveBranch(created.id);
-			const url = new URL($page.url);
-			url.searchParams.set('branch', created.id);
-			await goto(`${url.pathname}?${url.searchParams.toString()}`, {
-				replaceState: true,
-				keepFocus: true,
-				noScroll: true
-			});
+			await switchBranchWithTransition(created.id);
 			showBranchNameDialog = false;
 		} finally {
 			isBranchDialogSubmitting = false;
@@ -282,13 +310,7 @@
 
 				const nextActive = getActiveBranch();
 				if (!nextActive) return;
-				const url = new URL($page.url);
-				url.searchParams.set('branch', nextActive.id);
-				await goto(`${url.pathname}?${url.searchParams.toString()}`, {
-					replaceState: true,
-					keepFocus: true,
-					noScroll: true
-				});
+				await syncBranchUrl(nextActive.id);
 			}
 		});
 	}
@@ -475,13 +497,14 @@
 		if (loaded) {
 			setProject(loaded);
 			if (loaded.activeBranchId && loaded.activeBranchId !== branchParam) {
-				const url = new URL($page.url);
-				url.searchParams.set('branch', loaded.activeBranchId);
-				await goto(`${url.pathname}?${url.searchParams.toString()}`, {
-					replaceState: true,
-					keepFocus: true,
-					noScroll: true
-				});
+				pendingBranchUrlSyncId = loaded.activeBranchId;
+				try {
+					await syncBranchUrl(loaded.activeBranchId);
+				} finally {
+					if (pendingBranchUrlSyncId === loaded.activeBranchId) {
+						pendingBranchUrlSyncId = null;
+					}
+				}
 			}
 			// If user is authenticated and project was loaded, check if it's a cloud project
 			// by checking if the floorplan URL is a remote URL (not a data URL)
@@ -495,8 +518,10 @@
 
 	$effect(() => {
 		const branchParam = $page.url.searchParams.get('branch');
-		if (!branchParam || !activeBranch || branchParam === activeBranch.id) return;
-		void setProjectActiveBranch(branchParam);
+		if (!branchParam) return;
+		const activeBranchId = activeBranch?.id ?? null;
+		if (!shouldApplyUrlBranch(branchParam, activeBranchId, pendingBranchUrlSyncId)) return;
+		void switchBranchWithTransition(branchParam, { syncUrl: false, markPendingUrl: false });
 	});
 
 	onMount(() => {
@@ -776,20 +801,27 @@
 					<select
 						class="h-8 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700 max-w-40"
 						value={activeBranch?.id ?? ''}
+						disabled={isBranchSwitching}
 						onchange={handleBranchSelect}
 					>
 						{#each branches as branch}
 							<option value={branch.id}>{branch.name}</option>
 						{/each}
 					</select>
-					<Button variant="outline" size="icon-sm" onclick={handleCreateBranch} title="Create branch">
+					<Button
+						variant="outline"
+						size="icon-sm"
+						onclick={handleCreateBranch}
+						disabled={isBranchSwitching}
+						title="Create branch"
+					>
 						<GitBranchPlus size={14} />
 					</Button>
 					<Button
 						variant="outline"
 						size="icon-sm"
 						onclick={handleRenameBranch}
-						disabled={!activeBranch}
+						disabled={!activeBranch || isBranchSwitching}
 						title="Rename branch"
 					>
 						<Pencil size={14} />
@@ -798,7 +830,7 @@
 						variant="outline"
 						size="icon-sm"
 						onclick={handleDeleteBranch}
-						disabled={!activeBranch || branches.length <= 1}
+						disabled={!activeBranch || branches.length <= 1 || isBranchSwitching}
 						title="Delete branch"
 					>
 						<Trash2 size={14} />
@@ -853,7 +885,7 @@
 		</div>
 	</header>
 
-	<main class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
+	<main class="relative flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
 		<div class="flex-1 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
 			<div class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden">
 				{#if pendingImageData}
@@ -934,6 +966,14 @@
 				onDisplayCurrencyChange={handleDisplayCurrencyChange}
 			/>
 		</aside>
+
+		{#if isBranchSwitching}
+			<div class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
+				<div class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
+					Switching branch...
+				</div>
+			</div>
+		{/if}
 	</main>
 
 	{#if showHistory}
