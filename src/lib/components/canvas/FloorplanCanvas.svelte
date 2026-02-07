@@ -2,7 +2,14 @@
   import { Stage, Layer, Image as KonvaImage, Rect, Line, Text, Group } from 'svelte-konva';
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
-  import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox, getMinEdgeDistance, type BoundingBox } from '$lib/utils/geometry';
+  import {
+    getMinEdgeDistance,
+    getOverlappingItems,
+    getItemShapePoints,
+    getRotatedBoundingBox,
+    selectNearestByDistance,
+    type BoundingBox
+  } from '$lib/utils/geometry';
   import { getItemShadowStyle, shouldRenderGrid, shouldRenderItemLabels } from '$lib/utils/canvas-performance';
   import {
     applyCoalescedPanAndZoom,
@@ -772,37 +779,42 @@
       activeItem.rotation
     );
 
-    // Calculate distances to all other placed items
-    const distances = placedItems
-      .filter(item => item.id !== activeItemId)
-      .map(item => {
-        const itemDisplayPos = naturalToDisplay(item.position!.x, item.position!.y);
-        const itemWidthPx = cmToPixels(item.width);
-        const itemHeightPx = cmToPixels(item.height);
-        const itemBox = getRotatedBoundingBox(
-          itemDisplayPos.x,
-          itemDisplayPos.y,
-          itemWidthPx,
-          itemHeightPx,
-          item.rotation
-        );
+    const candidates: Array<{
+      item: Item;
+      distance: number;
+      distanceCm: number;
+      pointA: { x: number; y: number };
+      pointB: { x: number; y: number };
+    }> = [];
 
-        const { distance, pointA, pointB } = getMinEdgeDistance(activeBox, itemBox);
-        const distanceCm = distance / effectiveScale;
+    for (const item of placedItems) {
+      if (item.id === activeItemId) continue;
 
-        return {
-          item,
-          distance,
-          distanceCm,
-          pointA,
-          pointB,
-        };
-      })
-      .filter(d => d.distanceCm <= MAX_DISTANCE_CM)
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, MAX_NEIGHBORS);
+      const itemDisplayPos = naturalToDisplay(item.position!.x, item.position!.y);
+      const itemWidthPx = cmToPixels(item.width);
+      const itemHeightPx = cmToPixels(item.height);
+      const itemBox = getRotatedBoundingBox(
+        itemDisplayPos.x,
+        itemDisplayPos.y,
+        itemWidthPx,
+        itemHeightPx,
+        item.rotation
+      );
 
-    return distances;
+      const { distance, pointA, pointB } = getMinEdgeDistance(activeBox, itemBox);
+      const distanceCm = distance / effectiveScale;
+      if (distanceCm > MAX_DISTANCE_CM) continue;
+
+      candidates.push({
+        item,
+        distance,
+        distanceCm,
+        pointA,
+        pointB,
+      });
+    }
+
+    return selectNearestByDistance(candidates, MAX_NEIGHBORS);
   });
 
   // Thumbnail generation - debounced after changes

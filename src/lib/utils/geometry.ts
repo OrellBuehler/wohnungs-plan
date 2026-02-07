@@ -317,6 +317,36 @@ export function collectPotentialOverlapPairs(
   return pairs;
 }
 
+export function selectNearestByDistance<T extends { distance: number }>(
+  candidates: T[],
+  limit: number
+): T[] {
+  if (limit <= 0 || candidates.length === 0) return [];
+
+  const nearest: T[] = [];
+
+  for (const candidate of candidates) {
+    let insertAt = nearest.length;
+    for (let i = 0; i < nearest.length; i++) {
+      if (candidate.distance < nearest[i].distance) {
+        insertAt = i;
+        break;
+      }
+    }
+
+    if (insertAt < limit) {
+      nearest.splice(insertAt, 0, candidate);
+      if (nearest.length > limit) {
+        nearest.length = limit;
+      }
+    } else if (nearest.length < limit) {
+      nearest.push(candidate);
+    }
+  }
+
+  return nearest;
+}
+
 export function itemToRect(item: Item, scale: number): Rect | null {
   if (!item.position) return null;
   return {

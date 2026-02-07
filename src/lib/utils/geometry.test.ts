@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { collectPotentialOverlapPairs, getOverlappingItems, type BoundingBox } from '$lib/utils/geometry';
+import {
+  collectPotentialOverlapPairs,
+  getOverlappingItems,
+  selectNearestByDistance,
+  type BoundingBox
+} from '$lib/utils/geometry';
 import type { Item } from '$lib/types';
 
 function makeItem(
@@ -68,5 +73,28 @@ describe('getOverlappingItems', () => {
     expect(overlaps.has('b')).toBe(true);
     expect(overlaps.has('c')).toBe(false);
     expect(overlaps.has('d')).toBe(false);
+  });
+});
+
+describe('selectNearestByDistance', () => {
+  it('returns nearest values sorted by distance', () => {
+    const nearest = selectNearestByDistance(
+      [
+        { id: 'a', distance: 12 },
+        { id: 'b', distance: 4 },
+        { id: 'c', distance: 8 },
+        { id: 'd', distance: 1 },
+      ],
+      2
+    );
+
+    expect(nearest).toEqual([
+      { id: 'd', distance: 1 },
+      { id: 'b', distance: 4 },
+    ]);
+  });
+
+  it('returns empty for non-positive limits', () => {
+    expect(selectNearestByDistance([{ id: 'a', distance: 1 }], 0)).toEqual([]);
   });
 });
