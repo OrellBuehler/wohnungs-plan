@@ -73,7 +73,7 @@
 </script>
 
 <Sheet.Root {open} onOpenChange={handleOpenChange}>
-	<Sheet.Content side="right" class="w-80 flex flex-col bg-sidebar text-sidebar-foreground p-0">
+	<Sheet.Content side="right" class="!w-full sm:!w-80 sm:!max-w-sm flex flex-col bg-sidebar text-sidebar-foreground p-0">
 		<Sheet.Header class="p-4 pb-0">
 			<Sheet.Title class="sr-only">Menu</Sheet.Title>
 			<Sheet.Description class="sr-only">App navigation and actions</Sheet.Description>

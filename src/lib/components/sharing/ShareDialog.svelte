@@ -119,15 +119,15 @@
 </script>
 
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleClose()}>
-	<Dialog.Content class="max-w-[calc(100vw-2rem)] sm:max-w-xl">
-		<Dialog.Header>
+	<Dialog.Content class="max-h-[100dvh] h-full w-full max-w-none rounded-none sm:h-auto sm:max-h-[85vh] sm:max-w-xl sm:rounded-lg flex flex-col">
+		<Dialog.Header class="flex-shrink-0">
 			<Dialog.Title>Share Project</Dialog.Title>
 			<Dialog.Description>
 				Invite people to collaborate. Owners can manage roles and remove members.
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<div class="space-y-6">
+		<div class="flex-1 overflow-y-auto space-y-6 min-h-0">
 			{#if canManage}
 				<InviteForm onInvite={handleInvite} />
 			{/if}
@@ -152,7 +152,7 @@
 			{/if}
 		</div>
 
-		<Dialog.Footer>
+		<Dialog.Footer class="flex-shrink-0">
 			<Button variant="outline" onclick={handleClose}>Close</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
