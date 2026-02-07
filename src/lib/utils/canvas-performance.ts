@@ -70,6 +70,10 @@ export function getGridStepCount(stageSize: number, gridSize: number): number {
   return Math.ceil(safeStageSize / safeGridSize) + 1;
 }
 
+export function buildIdMap<T extends { id: string }>(items: T[]): Map<string, T> {
+  return new Map(items.map((item) => [item.id, item]));
+}
+
 export function shouldRenderGrid(showGrid: boolean, isInteractionActive: boolean): boolean {
   return showGrid && !isInteractionActive;
 }

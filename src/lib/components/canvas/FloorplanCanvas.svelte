@@ -13,9 +13,10 @@
     type BoundingBox
   } from '$lib/utils/geometry';
   import {
+    buildIdMap,
+    getCanvasLabelFontSizes,
     getItemShadowStyle,
     getGridStepCount,
-    remToPx,
     resolveItemDisplayPosition,
     shouldShowDistanceIndicators,
     shouldRenderGrid,
@@ -136,13 +137,7 @@
   const END_CAP_LENGTH = 8; // pixels
   const INTERACTION_IDLE_MS = 120;
 
-  // Responsive font sizes - scale with viewport and zoom
-  // Base sizes in rem (relative to root font size, typically 16px)
-  // These scale with user's browser font size preferences for accessibility
-  const BASE_ITEM_NAME_REM = 0.375; // ~6px at default browser settings
-  const BASE_ITEM_DIMENSIONS_REM = 0.3125; // ~5px
-  const BASE_DISTANCE_LABEL_REM = 0.34375; // ~5.5px
-  const MOBILE_SCALE_FACTOR = 0.75; // 25% smaller on mobile
+  // Label font sizes respect browser root font settings for accessibility.
   let rootFontPx = $state(16);
 
   $effect(() => {
@@ -160,17 +155,18 @@
     return () => window.removeEventListener('resize', updateRootFontPx);
   });
 
+  const labelFontSizes = $derived(
+    getCanvasLabelFontSizes({
+      rootFontPx,
+      mobileMode,
+      zoom,
+    })
+  );
   // World-space labels should scale naturally with stage zoom.
-  const itemNameFontSize = $derived(
-    remToPx(BASE_ITEM_NAME_REM, rootFontPx) * (mobileMode ? MOBILE_SCALE_FACTOR : 1)
-  );
-  const itemDimensionsFontSize = $derived(
-    remToPx(BASE_ITEM_DIMENSIONS_REM, rootFontPx) * (mobileMode ? MOBILE_SCALE_FACTOR : 1)
-  );
+  const itemNameFontSize = $derived(labelFontSizes.itemNamePx);
+  const itemDimensionsFontSize = $derived(labelFontSizes.itemDimensionsPx);
   // HUD labels compensate for stage zoom to remain constant on screen.
-  const distanceLabelFontSize = $derived(
-    remToPx(BASE_DISTANCE_LABEL_REM, rootFontPx) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) / zoom
-  );
+  const distanceLabelFontSize = $derived(labelFontSizes.distanceLabelPx);
 
   // Load floorplan image
   $effect(() => {
@@ -265,7 +261,7 @@
     // Track current drag position for distance indicators
     dragPosition = { x: dragX, y: dragY };
 
-    const draggedItem = items.find(i => i.id === itemId);
+    const draggedItem = itemsById.get(itemId);
     if (!draggedItem) return;
 
     const dragW = cmToPixels(draggedItem.width);
@@ -335,7 +331,7 @@
   }
 
   function handleRotate(itemId: string, direction: 'cw' | 'ccw') {
-    const item = items.find(i => i.id === itemId);
+    const item = itemsById.get(itemId);
     if (item) {
       const delta = direction === 'cw' ? 90 : -90;
       const newRotation = (item.rotation + delta + 360) % 360;
@@ -557,7 +553,7 @@
         const canvasX = (point.x - panX) / zoom;
         const canvasY = (point.y - panY) / zoom;
         // Center item on finger
-        const item = items.find(i => i.id === longPressItemId);
+        const item = itemsById.get(longPressItemId);
         if (item) {
           const itemW = cmToPixels(item.width);
           const itemH = cmToPixels(item.height);
@@ -787,6 +783,7 @@
   }
 
   const placedItems = $derived(items.filter(i => i.position !== null));
+  const itemsById = $derived.by(() => buildIdMap(items));
 
   // Overlap detection
   const overlappingIds = $derived.by(() => {
@@ -806,7 +803,7 @@
     const activeItemId = draggingItemId ?? selectedItemId;
     if (!activeItemId || !floorplan?.scale) return [];
 
-    const activeItem = items.find(i => i.id === activeItemId);
+    const activeItem = itemsById.get(activeItemId);
     if (!activeItem?.position) return [];
 
     // Convert active item to display coordinates
