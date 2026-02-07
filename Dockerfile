@@ -71,6 +71,8 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
+# Point dynamic linker to bundled libvips from sharp's npm package
+ENV LD_LIBRARY_PATH=/app/node_modules/@img/sharp-libvips-linuxmusl-x64/lib
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
