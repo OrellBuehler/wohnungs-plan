@@ -37,6 +37,11 @@ export interface CanvasLabelFontSizes {
   distanceLabelPx: number;
 }
 
+export interface ItemDimensionsPx {
+  widthPx: number;
+  heightPx: number;
+}
+
 const BASE_ITEM_NAME_REM = 0.625; // 10px at default browser font size
 const BASE_ITEM_DIMENSIONS_REM = 0.5; // 8px
 const BASE_DISTANCE_LABEL_REM = 0.5625; // 9px
@@ -72,6 +77,22 @@ export function getGridStepCount(stageSize: number, gridSize: number): number {
 
 export function buildIdMap<T extends { id: string }>(items: T[]): Map<string, T> {
   return new Map(items.map((item) => [item.id, item]));
+}
+
+export function buildDimensionMap<T extends { id: string; width: number; height: number }>(
+  items: T[],
+  pixelsPerCm: number
+): Map<string, ItemDimensionsPx> {
+  const safePixelsPerCm = Number.isFinite(pixelsPerCm) && pixelsPerCm > 0 ? pixelsPerCm : 1;
+  return new Map(
+    items.map((item) => [
+      item.id,
+      {
+        widthPx: item.width * safePixelsPerCm,
+        heightPx: item.height * safePixelsPerCm,
+      },
+    ])
+  );
 }
 
 export function shouldRenderGrid(showGrid: boolean, isInteractionActive: boolean): boolean {

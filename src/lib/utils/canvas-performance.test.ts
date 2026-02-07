@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildDimensionMap,
   getCanvasLabelFontSizes,
   getItemShadowStyle,
   getGridStepCount,
@@ -156,5 +157,25 @@ describe('getCanvasLabelFontSizes', () => {
   it('keeps distance labels constant on screen by compensating zoom', () => {
     const sizes = getCanvasLabelFontSizes({ rootFontPx: 16, mobileMode: false, zoom: 2 });
     expect(sizes.distanceLabelPx).toBe(4.5);
+  });
+});
+
+describe('buildDimensionMap', () => {
+  it('builds width/height pixel values for each item id', () => {
+    const map = buildDimensionMap(
+      [
+        { id: 'a', width: 50, height: 30 },
+        { id: 'b', width: 80, height: 40 },
+      ],
+      2.5
+    );
+
+    expect(map.get('a')).toEqual({ widthPx: 125, heightPx: 75 });
+    expect(map.get('b')).toEqual({ widthPx: 200, heightPx: 100 });
+  });
+
+  it('uses a safe fallback scale for invalid inputs', () => {
+    const map = buildDimensionMap([{ id: 'x', width: 10, height: 5 }], 0);
+    expect(map.get('x')).toEqual({ widthPx: 10, heightPx: 5 });
   });
 });

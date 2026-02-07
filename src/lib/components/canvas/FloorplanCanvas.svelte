@@ -13,6 +13,7 @@
     type BoundingBox
   } from '$lib/utils/geometry';
   import {
+    buildDimensionMap,
     buildIdMap,
     getCanvasLabelFontSizes,
     getItemShadowStyle,
@@ -263,9 +264,11 @@
 
     const draggedItem = itemsById.get(itemId);
     if (!draggedItem) return;
+    const draggedDimensions = itemDimensionsPxById.get(itemId);
+    if (!draggedDimensions) return;
 
-    const dragW = cmToPixels(draggedItem.width);
-    const dragH = cmToPixels(draggedItem.height);
+    const dragW = draggedDimensions.widthPx;
+    const dragH = draggedDimensions.heightPx;
 
     // Get rotated bounding box for dragged item
     const dragBox = getRotatedBoundingBox(dragX, dragY, dragW, dragH, draggedItem.rotation);
@@ -278,9 +281,11 @@
 
     for (const other of placedItems) {
       if (other.id === itemId) continue;
+      const otherDimensions = itemDimensionsPxById.get(other.id);
+      if (!otherDimensions) continue;
 
-      const otherW = cmToPixels(other.width);
-      const otherH = cmToPixels(other.height);
+      const otherW = otherDimensions.widthPx;
+      const otherH = otherDimensions.heightPx;
 
       // Convert other item's natural coordinates to display coordinates for alignment
       const otherDisplayPos = naturalToDisplay(other.position!.x, other.position!.y);
@@ -553,10 +558,10 @@
         const canvasX = (point.x - panX) / zoom;
         const canvasY = (point.y - panY) / zoom;
         // Center item on finger
-        const item = itemsById.get(longPressItemId);
-        if (item) {
-          const itemW = cmToPixels(item.width);
-          const itemH = cmToPixels(item.height);
+        const itemDimensions = itemDimensionsPxById.get(longPressItemId);
+        if (itemDimensions) {
+          const itemW = itemDimensions.widthPx;
+          const itemH = itemDimensions.heightPx;
           const displayX = snapValue(canvasX - itemW / 2);
           const displayY = snapValue(canvasY - itemH / 2);
           // Update drag position for distance indicators
@@ -747,14 +752,6 @@
     };
   }
 
-  // Convert cm to display pixels using stored scale (natural pixels/cm) and display scale
-  function cmToPixels(cm: number): number {
-    if (!floorplan?.scale) return cm * 2;
-    // floorplan.scale is in natural image pixels per cm
-    // multiply by displayScale to get display pixels
-    return cm * floorplan.scale * displayScale;
-  }
-
   // Get the effective scale for overlap detection (in display pixels per cm)
   const effectiveScale = $derived.by(() => {
     if (!floorplan?.scale) return 2;
@@ -784,6 +781,7 @@
 
   const placedItems = $derived(items.filter(i => i.position !== null));
   const itemsById = $derived.by(() => buildIdMap(items));
+  const itemDimensionsPxById = $derived.by(() => buildDimensionMap(items, effectiveScale));
 
   // Overlap detection
   const overlappingIds = $derived.by(() => {
@@ -811,8 +809,10 @@
     const activeDisplayPos = draggingItemId && dragPosition
       ? dragPosition
       : naturalToDisplay(activeItem.position.x, activeItem.position.y);
-    const activeWidthPx = cmToPixels(activeItem.width);
-    const activeHeightPx = cmToPixels(activeItem.height);
+    const activeDimensions = itemDimensionsPxById.get(activeItem.id);
+    if (!activeDimensions) return [];
+    const activeWidthPx = activeDimensions.widthPx;
+    const activeHeightPx = activeDimensions.heightPx;
     const activeBox = getRotatedBoundingBox(
       activeDisplayPos.x,
       activeDisplayPos.y,
@@ -831,10 +831,12 @@
 
     for (const item of placedItems) {
       if (item.id === activeItemId) continue;
+      const dimensions = itemDimensionsPxById.get(item.id);
+      if (!dimensions) continue;
 
       const itemDisplayPos = naturalToDisplay(item.position!.x, item.position!.y);
-      const itemWidthPx = cmToPixels(item.width);
-      const itemHeightPx = cmToPixels(item.height);
+      const itemWidthPx = dimensions.widthPx;
+      const itemHeightPx = dimensions.heightPx;
       const itemBox = getRotatedBoundingBox(
         itemDisplayPos.x,
         itemDisplayPos.y,
@@ -949,8 +951,9 @@
       <!-- Furniture items -->
       {#each placedItems as item (item.id)}
         {@const isOverlapping = overlappingIds.has(item.id)}
-        {@const itemWidthPx = cmToPixels(item.width)}
-        {@const itemHeightPx = cmToPixels(item.height)}
+        {@const itemDimensions = itemDimensionsPxById.get(item.id)}
+        {@const itemWidthPx = itemDimensions?.widthPx ?? item.width * effectiveScale}
+        {@const itemHeightPx = itemDimensions?.heightPx ?? item.height * effectiveScale}
         {@const displayPos = resolveItemDisplayPosition({
           itemId: item.id,
           naturalX: item.position!.x,
