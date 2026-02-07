@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ url, request }) => {
 
 	// Validate required parameters
 	if (!clientId || !redirectUri || !state || !codeChallenge || !codeChallengeMethod) {
-		throw redirect(302, '/?error=invalid_oauth_request');
+		throw redirect(302, '/oauth/error?code=missing_params');
 	}
 
 	// Check if user is authenticated
@@ -45,21 +45,21 @@ export const load: PageServerLoad = async ({ url, request }) => {
 	// Validate client exists
 	const client = await getOAuthClient(clientId);
 	if (!client) {
-		throw redirect(302, '/?error=invalid_client');
+		throw redirect(302, `/oauth/error?code=invalid_client&detail=${encodeURIComponent(clientId)}`);
 	}
 
 	// Validate redirect URI is registered for this client
 	if (!validateRedirectUri(client, redirectUri)) {
-		throw redirect(302, '/?error=invalid_redirect_uri');
+		throw redirect(302, `/oauth/error?code=unregistered_redirect_uri&detail=${encodeURIComponent(redirectUri)}`);
 	}
 
 	// Validate PKCE parameters
 	if (codeChallengeMethod !== 'S256') {
-		throw redirect(302, '/?error=invalid_code_challenge_method');
+		throw redirect(302, `/oauth/error?code=invalid_code_challenge_method&detail=${encodeURIComponent(codeChallengeMethod)}`);
 	}
 
 	if (!isValidCodeChallengeS256(codeChallenge)) {
-		throw redirect(302, '/?error=invalid_code_challenge');
+		throw redirect(302, '/oauth/error?code=invalid_code_challenge');
 	}
 
 	// Return data needed for consent screen

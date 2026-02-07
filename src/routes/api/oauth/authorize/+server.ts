@@ -10,6 +10,18 @@ import {
 } from '$lib/server/oauth';
 
 /**
+ * Redirect to OAuth error page with error code and optional detail
+ */
+function oauthError(code: string, detail?: string): never {
+	const errorUrl = new URL('/oauth/error', 'http://localhost');
+	errorUrl.searchParams.set('code', code);
+	if (detail) {
+		errorUrl.searchParams.set('detail', detail);
+	}
+	throw redirect(302, errorUrl.pathname + errorUrl.search);
+}
+
+/**
  * Validate redirect URI format according to OAuth 2.0 spec
  * Must be HTTPS or localhost (for development)
  */
@@ -56,49 +68,38 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 
 	// Validate required parameters
 	if (!clientId || !redirectUri || !state || !codeChallenge || !codeChallengeMethod) {
-		return new Response('Missing required OAuth parameters', { status: 400 });
+		oauthError('missing_params');
 	}
 
 	// Validate response_type
 	if (responseType !== 'code') {
-		return new Response('Invalid response_type. Must be "code"', { status: 400 });
+		oauthError('invalid_response_type', `Got "${responseType}" instead of "code"`);
 	}
 
 	// Validate code_challenge_method - only S256 is allowed for security
 	if (codeChallengeMethod !== 'S256') {
-		return new Response('Invalid code_challenge_method. Must be "S256"', {
-			status: 400
-		});
+		oauthError('invalid_code_challenge_method', `Got "${codeChallengeMethod}"`);
 	}
 
 	// Validate code_challenge format per RFC 7636
 	if (!isValidCodeChallengeS256(codeChallenge)) {
-		return new Response(
-			'Invalid code_challenge. Must be 43 characters, base64url-encoded (RFC 7636)',
-			{ status: 400 }
-		);
+		oauthError('invalid_code_challenge');
 	}
 
 	// Validate redirect_uri format
 	if (!isValidRedirectUriFormat(redirectUri)) {
-		return new Response(
-			'Invalid redirect_uri. Must be HTTPS or localhost (http://localhost, http://127.0.0.1)',
-			{ status: 400 }
-		);
+		oauthError('invalid_redirect_uri_format', redirectUri);
 	}
 
 	// Validate client exists
 	const client = await getOAuthClient(clientId);
 	if (!client) {
-		return new Response('Invalid client_id', { status: 400 });
+		oauthError('invalid_client', clientId);
 	}
 
 	// Validate redirect_uri is registered for this client
 	if (!validateRedirectUri(client, redirectUri)) {
-		return new Response(
-			'Invalid redirect_uri. The URI is not registered for this client.',
-			{ status: 400 }
-		);
+		oauthError('unregistered_redirect_uri', redirectUri);
 	}
 
 	// Check if user is authenticated
