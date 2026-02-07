@@ -7,7 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Menu, Share2 } from 'lucide-svelte';
+	import { Menu, Share2, RefreshCw } from 'lucide-svelte';
 	import LoginButton from '$lib/components/auth/LoginButton.svelte';
 	import UserMenu from '$lib/components/auth/UserMenu.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
@@ -32,8 +32,7 @@
 		setGridSize,
 		loadProjectById
 	} from '$lib/stores/project.svelte';
-	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
-	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
+	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
@@ -84,6 +83,48 @@
 
 	// Mobile detection state
 	let isMobile = $state(false);
+
+	// Pull-to-refresh state
+	let isRefreshing = $state(false);
+
+	async function refreshProject() {
+		if (isRefreshing || isLocalProject || !projectId) return;
+		isRefreshing = true;
+		try {
+			const loaded = await loadProjectById(projectId);
+			if (loaded) setProject(loaded);
+		} finally {
+			isRefreshing = false;
+		}
+	}
+
+	// Swipe detection for tab switching
+	let swipeStartX = $state(0);
+	let swipeStartY = $state(0);
+	const SWIPE_THRESHOLD = 80; // px minimum swipe distance
+	const SWIPE_MAX_Y = 50; // px max vertical movement (prevent diagonal swipes)
+
+	function handleSwipeStart(e: TouchEvent) {
+		if (!isMobile) return;
+		const touch = e.touches[0];
+		swipeStartX = touch.clientX;
+		swipeStartY = touch.clientY;
+	}
+
+	function handleSwipeEnd(e: TouchEvent) {
+		if (!isMobile) return;
+		const touch = e.changedTouches[0];
+		const dx = touch.clientX - swipeStartX;
+		const dy = Math.abs(touch.clientY - swipeStartY);
+
+		if (dy > SWIPE_MAX_Y) return; // Too much vertical movement
+
+		if (dx < -SWIPE_THRESHOLD && activeTab === 'plan') {
+			activeTab = 'items';
+		} else if (dx > SWIPE_THRESHOLD && activeTab === 'items') {
+			activeTab = 'plan';
+		}
+	}
 
 	// Reactive project data
 	const project = $derived(getProject());
@@ -201,65 +242,6 @@
 		}
 	});
 
-	async function handleExport() {
-		if (!project) return;
-
-		// Fetch thumbnail based on project type
-		let thumbnail: string | null = null;
-		if (project.isLocal) {
-			thumbnail = await getThumbnail(project.id);
-		} else {
-			thumbnail = await fetchServerThumbnail(project.id);
-		}
-
-		// For cloud projects, fetch floorplan image and convert to base64
-		let exportProject = project;
-		if (!project.isLocal && project.floorplan?.imageData?.startsWith('/api/')) {
-			const floorplanData = await fetchServerFloorplan(project.floorplan.imageData);
-			if (floorplanData) {
-				exportProject = {
-					...project,
-					floorplan: {
-						...project.floorplan,
-						imageData: floorplanData
-					}
-				};
-			}
-		}
-
-		// Export with thumbnail
-		downloadProject(exportProject, thumbnail);
-	}
-
-	async function handleImport() {
-		const input = document.createElement('input');
-		input.type = 'file';
-		input.accept = '.json';
-		input.onchange = async () => {
-			const file = input.files?.[0];
-			if (file) {
-				const json = await readFileAsJSON(file);
-				const { project: imported, thumbnail } = importProjectFromJSON(json);
-				if (imported) {
-					setProject(imported);
-					await saveLocalProject(imported);
-
-					// Save thumbnail if present
-					if (thumbnail) {
-						try {
-							await saveThumbnail(imported.id, thumbnail);
-						} catch (error) {
-							console.error('Failed to save thumbnail:', error);
-						}
-					}
-				} else {
-					alert('Invalid project file');
-				}
-			}
-		};
-		input.click();
-	}
-
 	// Floorplan actions
 	function handleFloorplanUpload(imageData: string) {
 		pendingImageData = imageData;
@@ -361,6 +343,32 @@
 		selectedItemId = null;
 	}
 
+	function handleItemBottomSheetRotate(id: string, direction: 'cw' | 'ccw') {
+		const item = items.find(i => i.id === id);
+		if (item) {
+			const delta = direction === 'cw' ? 90 : -90;
+			handleItemRotate(id, (item.rotation + delta + 360) % 360);
+		}
+	}
+
+	function handleItemBottomSheetDelete(id: string) {
+		handleDeleteItem(id);
+	}
+
+	function handleItemBottomSheetDuplicate(id: string) {
+		handleDuplicateItem(id);
+		showItemBottomSheet = false;
+	}
+
+	function handleItemBottomSheetPlace(id: string) {
+		handlePlaceItem(id);
+		showItemBottomSheet = false;
+	}
+
+	function handleItemBottomSheetUnplace(id: string) {
+		handleUnplaceItem(id);
+	}
+
 	// Canvas actions
 	function handleItemSelect(id: string | null) {
 		selectedItemId = id;
@@ -441,26 +449,39 @@
 					<Share2 size={16} class="md:mr-1" />
 					<span class="hidden md:inline">Share</span>
 				</Button>
+				<Button variant="outline" size="icon-sm" onclick={refreshProject} disabled={isRefreshing}>
+					<RefreshCw size={16} class={isRefreshing ? 'animate-spin' : ''} />
+					<span class="sr-only">Refresh</span>
+				</Button>
 			{/if}
 			{#if authed}
 				<UserMenu />
 			{:else}
 				<LoginButton />
 			{/if}
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
-					{#snippet child({ props })}
-						<Button {...props} variant="outline" size="sm">
-							<Menu size={16} class="md:mr-1" />
-							<span class="hidden md:inline">Menu</span>
-						</Button>
-					{/snippet}
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content>
-					<DropdownMenu.Item onclick={handleExport}>Export JSON</DropdownMenu.Item>
-					<DropdownMenu.Item onclick={handleImport}>Import JSON</DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+			{#if project.floorplan && isMobile}
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" size="sm">
+								<Menu size={16} class="md:mr-1" />
+								<span class="hidden md:inline">Menu</span>
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content>
+						<DropdownMenu.Item onclick={handleRecalibrate}>Recalibrate Scale</DropdownMenu.Item>
+						<DropdownMenu.Item onclick={handleChangeFloorplan}>Change Floorplan</DropdownMenu.Item>
+						<DropdownMenu.Separator />
+						<DropdownMenu.Item onclick={() => showGrid = !showGrid}>
+							{showGrid ? 'Hide Grid' : 'Show Grid'}
+						</DropdownMenu.Item>
+						<DropdownMenu.Item onclick={() => snapToGrid = !snapToGrid}>
+							{snapToGrid ? 'Disable Snap' : 'Enable Snap'}
+						</DropdownMenu.Item>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			{/if}
 		</div>
 	</header>
 
@@ -490,7 +511,7 @@
 						{gridSize}
 						{showGrid}
 						{snapToGrid}
-						readonly={isMobile}
+						mobileMode={isMobile}
 						bind:viewportCenter={canvasViewportCenter}
 						onItemSelect={isMobile ? handleItemTap : handleItemSelect}
 						onItemMove={handleItemMove}
@@ -516,7 +537,18 @@
 
 		<aside
 			class="w-full md:w-80 min-h-0 {activeTab === 'items' ? 'flex' : 'hidden'} md:flex flex-col bg-white border-l border-slate-200"
+			ontouchstart={handleSwipeStart}
+			ontouchend={handleSwipeEnd}
 		>
+			{#if isRefreshing}
+				<div class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-slate-500">
+					<svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+					</svg>
+					Refreshing...
+				</div>
+			{/if}
 			<ItemList
 				{items}
 				{selectedItemId}
@@ -558,9 +590,31 @@
 		item={items.find((i) => i.id === selectedItemId) ?? null}
 		onEdit={handleItemBottomSheetEdit}
 		onClose={handleItemBottomSheetClose}
+		onRotate={handleItemBottomSheetRotate}
+		onDelete={handleItemBottomSheetDelete}
+		onDuplicate={handleItemBottomSheetDuplicate}
+		onPlace={handleItemBottomSheetPlace}
+		onUnplace={handleItemBottomSheetUnplace}
 	/>
 {:else}
-	<div class="flex-1 flex items-center justify-center">
-		<p class="text-slate-500">Loading...</p>
+	<!-- Loading skeleton -->
+	<div class="flex flex-col h-full">
+		<!-- Header skeleton -->
+		<header class="min-h-14 bg-white border-b border-slate-200 flex items-center px-4 py-3 gap-2">
+			<div class="w-8 h-8 rounded bg-slate-200 animate-pulse"></div>
+			<div class="w-px h-6 bg-slate-200"></div>
+			<div class="h-6 w-40 rounded bg-slate-200 animate-pulse"></div>
+			<div class="flex-1"></div>
+			<div class="h-8 w-20 rounded bg-slate-200 animate-pulse"></div>
+		</header>
+		<!-- Canvas skeleton -->
+		<main class="flex-1 flex flex-col md:flex-row overflow-hidden">
+			<div class="flex-1 m-2 md:m-4 rounded-lg bg-slate-200 animate-pulse"></div>
+			<aside class="hidden md:flex w-80 flex-col bg-white border-l border-slate-200 p-4 gap-3">
+				{#each Array(4) as _}
+					<div class="h-20 rounded bg-slate-200 animate-pulse"></div>
+				{/each}
+			</aside>
+		</main>
 	</div>
 {/if}

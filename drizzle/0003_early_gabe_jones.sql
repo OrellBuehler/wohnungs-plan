@@ -1,0 +1,1 @@
+ALTER TABLE "oauth_clients" ADD COLUMN "allowed_redirect_uris" text[] DEFAULT ARRAY[]::text[] NOT NULL;

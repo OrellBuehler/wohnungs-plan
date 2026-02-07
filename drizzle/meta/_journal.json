@@ -8,6 +8,48 @@
       "when": 1769992301721,
       "tag": "0000_sharp_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770161001693,
+      "tag": "0001_flawless_firebrand",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770161278830,
+      "tag": "0002_calm_krista_starr",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770163808363,
+      "tag": "0003_early_gabe_jones",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1770163999846,
+      "tag": "0004_tranquil_ezekiel_stane",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1770475298671,
+      "tag": "0005_purple_natasha_romanoff",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1770477787947,
+      "tag": "0006_lying_rogue",
+      "breakpoints": true
     }
   ]
 }

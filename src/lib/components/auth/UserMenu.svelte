@@ -1,8 +1,9 @@
 <script lang="ts">
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
-	import { LogOut } from 'lucide-svelte';
+	import { LogOut, Settings } from 'lucide-svelte';
 	import { getUser, logout } from '$lib/stores/auth.svelte';
+	import { goto } from '$app/navigation';
 
 	const user = $derived(getUser());
 
@@ -47,6 +48,11 @@
 					{/if}
 				</div>
 			</DropdownMenu.Label>
+			<DropdownMenu.Separator />
+			<DropdownMenu.Item onclick={() => goto('/settings')}>
+				<Settings class="mr-2 h-4 w-4" />
+				Settings
+			</DropdownMenu.Item>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item onclick={logout}>
 				<LogOut class="mr-2 h-4 w-4" />

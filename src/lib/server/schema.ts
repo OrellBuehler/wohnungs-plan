@@ -7,6 +7,7 @@ import {
 	real,
 	primaryKey,
 	index,
+	uniqueIndex,
 	check
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
@@ -147,6 +148,93 @@ export const projectInvites = pgTable(
 	]
 );
 
+// OAuth Clients - per-user or dynamically registered (RFC 7591)
+export const oauthClients = pgTable(
+	'oauth_clients',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+		clientId: text('client_id').unique().notNull(),
+		clientSecretHash: text('client_secret_hash').notNull(),
+		clientName: text('client_name'),
+		allowedRedirectUris: text('allowed_redirect_uris').array().notNull().default(sql`ARRAY[]::text[]`),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_oauth_clients_user_id').on(table.userId),
+		index('idx_oauth_clients_client_id').on(table.clientId)
+	]
+);
+
+// OAuth Authorizations - tracks which clients user has approved
+export const oauthAuthorizations = pgTable(
+	'oauth_authorizations',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		clientId: text('client_id')
+			.notNull()
+			.references(() => oauthClients.clientId, { onDelete: 'cascade' }),
+		approvedAt: timestamp('approved_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_oauth_authorizations_user_id').on(table.userId),
+		index('idx_oauth_authorizations_client_id').on(table.clientId),
+		uniqueIndex('idx_oauth_authorizations_user_client').on(table.userId, table.clientId)
+	]
+);
+
+// OAuth Tokens - access and refresh tokens
+export const oauthTokens = pgTable(
+	'oauth_tokens',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		clientId: text('client_id')
+			.notNull()
+			.references(() => oauthClients.clientId, { onDelete: 'cascade' }),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		accessTokenHash: text('access_token_hash').notNull(),
+		expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+		scopes: text('scopes').array().notNull().default(sql`ARRAY['mcp:access']::text[]`),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_oauth_tokens_client_id').on(table.clientId),
+		index('idx_oauth_tokens_user_id').on(table.userId),
+		index('idx_oauth_tokens_expires_at').on(table.expiresAt),
+		index('idx_oauth_tokens_access_token_hash').on(table.accessTokenHash)
+	]
+);
+
+// OAuth Authorization Codes - short-lived codes for PKCE flow
+export const oauthAuthorizationCodes = pgTable(
+	'oauth_authorization_codes',
+	{
+		code: text('code').primaryKey(),
+		clientId: text('client_id')
+			.notNull()
+			.references(() => oauthClients.clientId, { onDelete: 'cascade' }),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		redirectUri: text('redirect_uri').notNull(),
+		codeChallenge: text('code_challenge').notNull(),
+		codeChallengeMethod: text('code_challenge_method').notNull(),
+		expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+		usedAt: timestamp('used_at', { withTimezone: true }),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_oauth_codes_client_id').on(table.clientId),
+		index('idx_oauth_codes_expires_at').on(table.expiresAt),
+		check('oauth_codes_method_check', sql`code_challenge_method = 'S256'`)
+	]
+);
+
 // Type exports for use in application code
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -162,3 +250,11 @@ export type ProjectMember = typeof projectMembers.$inferSelect;
 export type NewProjectMember = typeof projectMembers.$inferInsert;
 export type ProjectInvite = typeof projectInvites.$inferSelect;
 export type NewProjectInvite = typeof projectInvites.$inferInsert;
+export type OAuthClient = typeof oauthClients.$inferSelect;
+export type NewOAuthClient = typeof oauthClients.$inferInsert;
+export type OAuthAuthorization = typeof oauthAuthorizations.$inferSelect;
+export type NewOAuthAuthorization = typeof oauthAuthorizations.$inferInsert;
+export type OAuthToken = typeof oauthTokens.$inferSelect;
+export type NewOAuthToken = typeof oauthTokens.$inferInsert;
+export type OAuthAuthorizationCode = typeof oauthAuthorizationCodes.$inferSelect;
+export type NewOAuthAuthorizationCode = typeof oauthAuthorizationCodes.$inferInsert;

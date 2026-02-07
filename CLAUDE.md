@@ -13,9 +13,10 @@ bun check        # Type-check with svelte-check
 ```bash
 bun db:generate  # Generate migrations
 bun db:migrate   # Run migrations
-bun db:push      # Push schema changes
 bun db:studio    # Open Drizzle Studio
 ```
+
+- **Never use `drizzle-kit push`** — migrations run automatically on dev server startup. Using push applies schema changes without recording them in the migrations table, causing migration failures on next startup.
 
 ## Package Manager
 

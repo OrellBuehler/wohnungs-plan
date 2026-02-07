@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import { Cloud, HardDrive, Users, MoreVertical, Trash2, Share2, Upload } from 'lucide-svelte';
+	import { Cloud, HardDrive, Users, MoreVertical, Trash2, Share2, Upload, Download } from 'lucide-svelte';
 	import { isAuthenticated } from '$lib/stores/auth.svelte';
 	import { getLocalFloorplanUrl } from '$lib/stores/project.svelte';
 	import { onMount } from 'svelte';
@@ -15,9 +15,10 @@
 		onDelete: (id: string) => void;
 		onShare: (id: string) => void;
 		onSync: (id: string) => void;
+		onExport: (id: string) => void;
 	}
 
-	let { project, onOpen, onDelete, onShare, onSync }: Props = $props();
+	let { project, onOpen, onDelete, onShare, onSync, onExport }: Props = $props();
 
 	let localThumbnailUrl = $state<string | null>(null);
 
@@ -130,6 +131,11 @@
 							Sync to cloud
 						</DropdownMenu.Item>
 					{/if}
+
+					<DropdownMenu.Item onclick={() => onExport(project.id)}>
+						<Download class="size-4" />
+						Export JSON
+					</DropdownMenu.Item>
 
 					<DropdownMenu.Separator />
 

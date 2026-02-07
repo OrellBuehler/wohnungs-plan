@@ -45,6 +45,24 @@ export const GET: RequestHandler = async ({ url, cookies, request }) => {
 			secure: isSecureRequest(url, request.headers)
 		});
 
+		// Check for pending OAuth flow
+		const oauthPending = cookies.get('oauth_pending');
+		if (oauthPending) {
+			cookies.delete('oauth_pending', { path: '/' });
+			const { clientId, redirectUri, state, codeChallenge, codeChallengeMethod, responseType } = JSON.parse(oauthPending);
+
+			// Redirect back to OAuth authorize endpoint
+			const authorizeUrl = new URL('/api/oauth/authorize', url.origin);
+			authorizeUrl.searchParams.set('response_type', responseType);
+			authorizeUrl.searchParams.set('client_id', clientId);
+			authorizeUrl.searchParams.set('redirect_uri', redirectUri);
+			authorizeUrl.searchParams.set('state', state);
+			authorizeUrl.searchParams.set('code_challenge', codeChallenge);
+			authorizeUrl.searchParams.set('code_challenge_method', codeChallengeMethod);
+
+			throw redirect(302, authorizeUrl.toString());
+		}
+
 		return new Response(null, {
 			status: 302,
 			headers: {

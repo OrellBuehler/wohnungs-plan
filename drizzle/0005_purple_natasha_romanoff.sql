@@ -1,0 +1,1 @@
+ALTER TABLE "oauth_tokens" DROP COLUMN "refresh_token_hash";
