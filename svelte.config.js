@@ -4,7 +4,16 @@ import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		// Allow all origins for CSRF protection (required for OAuth/MCP endpoints)
+		// This is safe because:
+		// 1. OAuth endpoints (/api/oauth/*) use PKCE + client credentials for auth, not cookies
+		// 2. MCP endpoints (/api/mcp) use Bearer tokens for auth, not cookies
+		// 3. Both are explicitly designed for cross-origin requests from unknown clients
+		// 4. Cookie-based routes still have SameSite protection
+		csrf: {
+			trustedOrigins: ['*']
+		}
 	},
 	plugins: [
 		SvelteKitPWA({

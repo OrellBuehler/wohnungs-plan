@@ -64,6 +64,15 @@ bun db:studio    # Open Drizzle Studio
 - Avoid `history.pushState()` and `history.replaceState()` as they conflict with SvelteKit's router
 - Use `pushState` and `replaceState` from `$app/navigation` instead
 
+## OAuth/MCP Integration
+
+- OAuth endpoints: `/api/oauth/authorize`, `/api/oauth/token`
+- MCP endpoint: `/api/mcp` (JSON-RPC 2.0 with Bearer token)
+- PKCE: S256 only, no plain method
+- **CSRF Protection**: Disabled in `svelte.config.js` (`csrf.trustedOrigins: ['*']`)
+  - Safe because OAuth/MCP endpoints use PKCE/Bearer tokens, not cookies
+  - Cookie-based routes still protected by SameSite attribute
+
 ## Git Commits
 
 - Always commit changes when work is complete
