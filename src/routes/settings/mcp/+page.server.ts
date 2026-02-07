@@ -1,33 +1,14 @@
-import { redirect, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
-import { getOrCreateOAuthClient, regenerateClientSecret, addAllowedRedirectUri, getOAuthClient } from '$lib/server/oauth';
+import { getOrCreateOAuthClient, regenerateClientSecret, addAllowedRedirectUri } from '$lib/server/oauth';
 import { getDB, oauthClients } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 import { config } from '$lib/server/env';
 
-/**
- * Load MCP settings - get or create OAuth credentials
- */
-export const load: PageServerLoad = async ({ request, url }) => {
-	// Check if user is authenticated
-	const sessionId = parseSessionCookie(request.headers.get('cookie'));
-	if (!sessionId) {
-		// Not authenticated - redirect to login
-		const loginUrl = new URL('/login', url.origin);
-		loginUrl.searchParams.set('redirect', url.pathname);
-		throw redirect(302, loginUrl.toString());
-	}
-
-	const sessionData = await getSessionWithUser(sessionId);
-	if (!sessionData) {
-		// Invalid session - redirect to login
-		const loginUrl = new URL('/login', url.origin);
-		loginUrl.searchParams.set('redirect', url.pathname);
-		throw redirect(302, loginUrl.toString());
-	}
-
-	const userId = sessionData.user.id;
+export const load: PageServerLoad = async ({ parent, url }) => {
+	const { user } = await parent();
+	const userId = user.id;
 
 	try {
 		// Get or create OAuth client for this user
@@ -40,9 +21,8 @@ export const load: PageServerLoad = async ({ request, url }) => {
 
 		return {
 			clientId: client.clientId,
-			clientSecret: secret, // Only present for newly created clients
+			clientSecret: secret,
 			serverUrl,
-			userName: sessionData.user.name,
 			allowedRedirectUris: client.allowedRedirectUris
 		};
 	} catch (error) {
@@ -86,8 +66,7 @@ export const actions = {
 				success: true,
 				clientId: client.clientId,
 				clientSecret: secret,
-				serverUrl,
-				userName: sessionData.user.name
+				serverUrl
 			};
 		} catch (error) {
 			console.error('Failed to regenerate client secret:', error);

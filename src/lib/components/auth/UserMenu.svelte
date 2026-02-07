@@ -49,9 +49,9 @@
 				</div>
 			</DropdownMenu.Label>
 			<DropdownMenu.Separator />
-			<DropdownMenu.Item onclick={() => goto('/settings/mcp')}>
+			<DropdownMenu.Item onclick={() => goto('/settings')}>
 				<Settings class="mr-2 h-4 w-4" />
-				MCP Integration
+				Settings
 			</DropdownMenu.Item>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item onclick={logout}>

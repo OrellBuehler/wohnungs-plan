@@ -43,18 +43,16 @@
 	<title>MCP Settings - Floorplanner</title>
 </svelte:head>
 
-<div class="h-full overflow-y-auto bg-slate-50 p-4 md:p-8">
-	<div class="max-w-3xl mx-auto space-y-6">
-		<!-- Header -->
-		<div>
-			<h1 class="text-3xl font-bold text-slate-900">MCP Settings</h1>
-			<p class="text-slate-600 mt-1">
-				Configure Model Context Protocol access for Claude Code and other AI assistants
-			</p>
-		</div>
+<div class="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
+	<div>
+		<h1 class="text-3xl font-bold text-slate-900">MCP Integration</h1>
+		<p class="text-slate-600 mt-1">
+			Configure Model Context Protocol access for Claude Code and other AI assistants
+		</p>
+	</div>
 
-		<!-- OAuth Credentials Card -->
-		<Card.Root>
+	<!-- OAuth Credentials Card -->
+	<Card.Root>
 			<Card.Header>
 				<Card.Title>OAuth Credentials</Card.Title>
 				<Card.Description>
@@ -325,11 +323,4 @@
 			</Card.Content>
 		</Card.Root>
 
-		<!-- Back to Home -->
-		<div class="flex justify-start">
-			<Button variant="outline" href="/">
-				Back to Projects
-			</Button>
-		</div>
-	</div>
 </div>
