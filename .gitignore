@@ -23,3 +23,6 @@ uploads/
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Local git worktrees
+.worktrees/
