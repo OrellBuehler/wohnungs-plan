@@ -5,6 +5,13 @@ import { upsertUser } from '$lib/server/users';
 import { createSession, createSessionCookie } from '$lib/server/session';
 import { isSecureRequest } from '$lib/server/http';
 
+function isSafeRedirectPath(value: string): boolean {
+	if (!value.startsWith('/')) return false;
+	if (value.startsWith('//')) return false;
+	if (value.includes('://')) return false;
+	return true;
+}
+
 export const GET: RequestHandler = async ({ url, cookies, request }) => {
 	const code = url.searchParams.get('code');
 	const state = url.searchParams.get('state');
@@ -63,10 +70,15 @@ export const GET: RequestHandler = async ({ url, cookies, request }) => {
 			throw redirect(302, authorizeUrl.toString());
 		}
 
+		const loginRedirect = cookies.get('login_redirect');
+		cookies.delete('login_redirect', { path: '/' });
+		const destination =
+			loginRedirect && isSafeRedirectPath(loginRedirect) ? loginRedirect : '/?login=success';
+
 		return new Response(null, {
 			status: 302,
 			headers: {
-				Location: '/?login=success',
+				Location: destination,
 				'Set-Cookie': cookie
 			}
 		});
