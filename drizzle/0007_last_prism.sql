@@ -1,0 +1,2 @@
+ALTER TABLE "oauth_clients" ALTER COLUMN "client_secret_hash" DROP NOT NULL;--> statement-breakpoint
+ALTER TABLE "oauth_clients" ADD COLUMN "token_endpoint_auth_method" text DEFAULT 'client_secret_post' NOT NULL;

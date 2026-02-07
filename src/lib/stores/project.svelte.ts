@@ -529,6 +529,7 @@ export async function renameProjectBranch(branchId: string, name: string): Promi
 
 export async function deleteProjectBranch(branchId: string): Promise<boolean> {
 	if (!currentProject) return false;
+	const projectRef = currentProject;
 	const previousActiveBranchId = getActiveBranchId(currentProject);
 	const remainingBranches = (currentProject.branches ?? []).filter((branch) => branch.id !== branchId);
 	if (remainingBranches.length === 0) return false;
@@ -543,19 +544,37 @@ export async function deleteProjectBranch(branchId: string): Promise<boolean> {
 	}
 
 	try {
-		const response = await fetch(`/api/projects/${currentProject.id}/branches/${branchId}`, {
+		const response = await fetch(`/api/projects/${projectRef.id}/branches/${branchId}`, {
 			method: 'DELETE'
 		});
 		if (!response.ok) throw new Error('Failed to delete branch');
 
-		currentProject.branches = remainingBranches;
 		if (previousActiveBranchId === branchId) {
 			const nextBranchId = remainingBranches[0].id;
-			await setActiveBranch(nextBranchId);
+			const switched = await setActiveBranch(nextBranchId);
+			if (!switched) {
+				throw new Error('Failed to switch to remaining branch');
+			}
 		}
+
+		if (!currentProject) {
+			throw new Error('Project state unavailable after branch deletion');
+		}
+		currentProject.branches = remainingBranches;
 		debounceAutoSave();
 		return true;
 	} catch (error) {
+		// Server deletion may have succeeded even if local switch failed: reload current project state.
+		const fallbackBranchId =
+			remainingBranches.find((branch) => branch.id !== branchId)?.id ??
+			previousActiveBranchId ??
+			undefined;
+		if (projectRef.id && fallbackBranchId) {
+			const reloaded = await loadProjectById(projectRef.id, fallbackBranchId);
+			if (reloaded) {
+				currentProject = reloaded;
+			}
+		}
 		console.error('Failed to delete branch:', error);
 		return false;
 	}

@@ -46,41 +46,6 @@ async function touchProject(projectId: string): Promise<void> {
 	await db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
 }
 
-async function cloneBranchItems(projectId: string, fromBranchId: string, toBranchId: string): Promise<void> {
-	const db = getDB();
-	const sourceItems = await db
-		.select()
-		.from(items)
-		.where(and(eq(items.projectId, projectId), eq(items.branchId, fromBranchId)));
-
-	if (sourceItems.length === 0) return;
-
-	const now = new Date();
-	const clonedItems = sourceItems.map((item) => ({
-		id: crypto.randomUUID(),
-		projectId: item.projectId,
-		branchId: toBranchId,
-		name: item.name,
-		width: item.width,
-		height: item.height,
-		x: item.x,
-		y: item.y,
-		rotation: item.rotation ?? 0,
-		color: item.color,
-		price: item.price,
-		priceCurrency: item.priceCurrency,
-		productUrl: item.productUrl,
-		shape: item.shape,
-		cutoutWidth: item.cutoutWidth,
-		cutoutHeight: item.cutoutHeight,
-		cutoutCorner: item.cutoutCorner,
-		createdAt: now,
-		updatedAt: now
-	})) satisfies Partial<Item>[];
-
-	await db.insert(items).values(clonedItems);
-}
-
 export async function ensureMainBranch(projectId: string, ownerId: string): Promise<Branch> {
 	const existing = await getMainBranch(projectId);
 	if (existing) return existing;
@@ -109,30 +74,68 @@ export async function createBranch(
 	if (!normalizedName) {
 		throw new Error('Branch name is required');
 	}
-	let forkFrom: Branch | null = null;
 
-	if (forkFromBranchId) {
-		forkFrom = await getBranchById(projectId, forkFromBranchId);
-		if (!forkFrom) {
-			throw new Error('Source branch not found');
+	const branch = await db.transaction(async (tx) => {
+		let forkFrom: Branch | null = null;
+		if (forkFromBranchId) {
+			const [source] = await tx
+				.select()
+				.from(branches)
+				.where(and(eq(branches.projectId, projectId), eq(branches.id, forkFromBranchId)));
+			if (!source) {
+				throw new Error('Source branch not found');
+			}
+			forkFrom = source;
 		}
-	}
 
-	const [branch] = await db
-		.insert(branches)
-		.values({
-			projectId,
-			name: normalizedName,
-			forkedFromId: forkFrom?.id ?? null,
-			createdBy
-		})
-		.returning();
+		const [createdBranch] = await tx
+			.insert(branches)
+			.values({
+				projectId,
+				name: normalizedName,
+				forkedFromId: forkFrom?.id ?? null,
+				createdBy
+			})
+			.returning();
 
-	if (forkFrom) {
-		await cloneBranchItems(projectId, forkFrom.id, branch.id);
-	}
+		if (forkFrom) {
+			const sourceItems = await tx
+				.select()
+				.from(items)
+				.where(and(eq(items.projectId, projectId), eq(items.branchId, forkFrom.id)));
 
-	await touchProject(projectId);
+			if (sourceItems.length > 0) {
+				const now = new Date();
+				const clonedItems = sourceItems.map((item) => ({
+					id: crypto.randomUUID(),
+					projectId: item.projectId,
+					branchId: createdBranch.id,
+					name: item.name,
+					width: item.width,
+					height: item.height,
+					x: item.x,
+					y: item.y,
+					rotation: item.rotation ?? 0,
+					color: item.color,
+					price: item.price,
+					priceCurrency: item.priceCurrency,
+					productUrl: item.productUrl,
+					shape: item.shape,
+					cutoutWidth: item.cutoutWidth,
+					cutoutHeight: item.cutoutHeight,
+					cutoutCorner: item.cutoutCorner,
+					createdAt: now,
+					updatedAt: now
+				})) satisfies Partial<Item>[];
+
+				await tx.insert(items).values(clonedItems);
+			}
+		}
+
+		await tx.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
+		return createdBranch;
+	});
+
 	return branch;
 }
 

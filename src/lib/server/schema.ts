@@ -214,9 +214,10 @@ export const oauthClients = pgTable(
 		id: uuid('id').primaryKey().defaultRandom(),
 		userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
 		clientId: text('client_id').unique().notNull(),
-		clientSecretHash: text('client_secret_hash').notNull(),
+		clientSecretHash: text('client_secret_hash'),
 		clientName: text('client_name'),
 		allowedRedirectUris: text('allowed_redirect_uris').array().notNull().default(sql`ARRAY[]::text[]`),
+		tokenEndpointAuthMethod: text('token_endpoint_auth_method').notNull().default('client_secret_post'),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 	},
 	(table) => [
