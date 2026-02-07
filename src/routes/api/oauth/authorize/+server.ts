@@ -43,7 +43,7 @@ function isValidRedirectUriFormat(uri: string): boolean {
  * - redirect_uri: Client's redirect URI
  * - state: Opaque value for CSRF protection
  * - code_challenge: PKCE code challenge
- * - code_challenge_method: "S256" or "plain"
+ * - code_challenge_method: Must be "S256"
  */
 export const GET: RequestHandler = async ({ url, request, cookies }) => {
 	// Parse OAuth parameters

@@ -199,7 +199,6 @@ export const oauthTokens = pgTable(
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
 		accessTokenHash: text('access_token_hash').notNull(),
-		refreshTokenHash: text('refresh_token_hash'),
 		expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 		scopes: text('scopes').array().notNull().default(sql`ARRAY['mcp:access']::text[]`),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()

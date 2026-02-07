@@ -65,6 +65,7 @@
 
 			<div class="flex gap-3 px-6">
 				<form method="POST" action="?/deny" class="flex-1">
+					<input type="hidden" name="client_id" value={data.clientId} />
 					<input type="hidden" name="redirect_uri" value={data.redirectUri} />
 					<input type="hidden" name="state" value={data.state} />
 					<Button type="submit" variant="outline" class="w-full">

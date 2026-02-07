@@ -82,6 +82,10 @@ export const POST: RequestHandler = async ({ request }) => {
 	// Verify client credentials
 	const client = await verifyOAuthClient(clientId, clientSecret);
 	if (!client) {
+		console.error('[SECURITY] Failed client authentication', {
+			clientId,
+			ip: request.headers.get('x-forwarded-for') || 'unknown'
+		});
 		return json(
 			{
 				error: 'invalid_client',
@@ -95,6 +99,10 @@ export const POST: RequestHandler = async ({ request }) => {
 	const userId = await consumeAuthorizationCode(code, clientId, redirectUri, codeVerifier);
 
 	if (!userId) {
+		console.error('[SECURITY] Failed authorization code exchange', {
+			clientId,
+			ip: request.headers.get('x-forwarded-for') || 'unknown'
+		});
 		return json(
 			{
 				error: 'invalid_grant',

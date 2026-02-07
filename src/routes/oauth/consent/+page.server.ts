@@ -1,7 +1,13 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
-import { getOAuthClient, createAuthorization, createAuthorizationCode } from '$lib/server/oauth';
+import {
+	getOAuthClient,
+	createAuthorization,
+	createAuthorizationCode,
+	validateRedirectUri,
+	isValidCodeChallengeS256
+} from '$lib/server/oauth';
 
 /**
  * Load consent screen - verify authentication and client
@@ -42,6 +48,20 @@ export const load: PageServerLoad = async ({ url, request }) => {
 		throw redirect(302, '/?error=invalid_client');
 	}
 
+	// Validate redirect URI is registered for this client
+	if (!validateRedirectUri(client, redirectUri)) {
+		throw redirect(302, '/?error=invalid_redirect_uri');
+	}
+
+	// Validate PKCE parameters
+	if (codeChallengeMethod !== 'S256') {
+		throw redirect(302, '/?error=invalid_code_challenge_method');
+	}
+
+	if (!isValidCodeChallengeS256(codeChallenge)) {
+		throw redirect(302, '/?error=invalid_code_challenge');
+	}
+
 	// Return data needed for consent screen
 	return {
 		clientId,
@@ -73,9 +93,14 @@ export const actions = {
 			return fail(400, { error: 'Missing required parameters' });
 		}
 
-		// Verify code challenge method
-		if (codeChallengeMethod !== 'S256' && codeChallengeMethod !== 'plain') {
-			return fail(400, { error: 'Invalid code_challenge_method' });
+		// Verify code challenge method - only S256 is allowed
+		if (codeChallengeMethod !== 'S256') {
+			return fail(400, { error: 'Invalid code_challenge_method. Only S256 is supported' });
+		}
+
+		// Validate code_challenge format per RFC 7636
+		if (!isValidCodeChallengeS256(codeChallenge)) {
+			return fail(400, { error: 'Invalid code_challenge format' });
 		}
 
 		// Get current user
@@ -95,6 +120,11 @@ export const actions = {
 		const client = await getOAuthClient(clientId);
 		if (!client) {
 			return fail(400, { error: 'Invalid client' });
+		}
+
+		// Validate redirect URI is registered for this client
+		if (!validateRedirectUri(client, redirectUri)) {
+			return fail(400, { error: 'Invalid redirect_uri for this client' });
 		}
 
 		try {
@@ -126,22 +156,26 @@ export const actions = {
 	 * User denied the authorization request
 	 */
 	deny: async ({ request, cookies }) => {
-		// Get redirect_uri from form data
+		// Get parameters from form data
 		const formData = await request.formData();
+		const clientId = formData.get('client_id')?.toString();
 		const redirectUri = formData.get('redirect_uri')?.toString();
 		const state = formData.get('state')?.toString();
 
-		// If we have redirect_uri and state, redirect back to client with error
-		if (redirectUri && state) {
-			const callbackUrl = new URL(redirectUri);
-			callbackUrl.searchParams.set('error', 'access_denied');
-			callbackUrl.searchParams.set('error_description', 'User denied authorization');
-			callbackUrl.searchParams.set('state', state);
+		// Validate redirect URI against client before redirecting
+		if (clientId && redirectUri && state) {
+			const client = await getOAuthClient(clientId);
+			if (client && validateRedirectUri(client, redirectUri)) {
+				const callbackUrl = new URL(redirectUri);
+				callbackUrl.searchParams.set('error', 'access_denied');
+				callbackUrl.searchParams.set('error_description', 'User denied authorization');
+				callbackUrl.searchParams.set('state', state);
 
-			throw redirect(302, callbackUrl.toString());
+				throw redirect(302, callbackUrl.toString());
+			}
 		}
 
-		// Otherwise redirect to home
+		// If redirect URI is invalid or missing, go home
 		throw redirect(302, '/');
 	}
 } satisfies Actions;
