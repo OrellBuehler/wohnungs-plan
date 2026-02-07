@@ -1,4 +1,6 @@
 import { randomUUID } from 'crypto';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import type { RequestHandler } from './$types';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
@@ -6,7 +8,7 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { config } from '$lib/server/env';
 import { validateAccessToken } from '$lib/server/oauth';
-import { getProjectRole, getUserProjects } from '$lib/server/projects';
+import { getProjectFloorplan, getProjectRole, getUserProjects } from '$lib/server/projects';
 import {
 	createItem,
 	deleteItem,
@@ -15,6 +17,18 @@ import {
 	updateItem
 } from '$lib/server/items';
 import { createBranch, getBranchById, getDefaultBranch, listProjectBranches } from '$lib/server/branches';
+import { getFloorplanPath } from '$lib/server/floorplans';
+import {
+	getItemImages,
+	createItemImage,
+	saveItemImageFile,
+	generateThumbnail,
+	deleteItemImage,
+	getImagesByItems
+} from '$lib/server/item-images';
+import { EXT_BY_MIME } from '$lib/server/image-utils';
+import { downloadImageFromUrl } from '$lib/server/url-download';
+import { checkRateLimit } from '$lib/server/rate-limit';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
 const MCP_SERVER_VERSION = '2.0.0';
@@ -375,7 +389,7 @@ function createMcpServer(userId: string): McpServer {
 	server.registerTool(
 		'list_furniture_items',
 		{
-			description: 'List furniture items for a specific project branch.',
+			description: 'List furniture items for a specific project branch, including image data for each item.',
 			inputSchema: {
 				project_id: z.string().uuid(),
 				branch_id: z.string().uuid()
@@ -385,29 +399,234 @@ function createMcpServer(userId: string): McpServer {
 			await ensureProjectRole(project_id, 'viewer');
 			await ensureBranch(project_id, branch_id);
 			const branchItems = await getBranchItems(project_id, branch_id);
+
+			const itemIds = branchItems.map((i) => i.id);
+			const imageMap = await getImagesByItems(project_id, itemIds);
+
 			return asText(
-				branchItems.map((item) => ({
-					id: item.id,
-					project_id: item.projectId,
-					branch_id: item.branchId,
-					name: item.name,
-					width: item.width,
-					height: item.height,
-					x: item.x,
-					y: item.y,
-					rotation: item.rotation,
-					color: item.color,
-					price: item.price,
-					price_currency: item.priceCurrency,
-					product_url: item.productUrl,
-					shape: item.shape,
-					cutout_width: item.cutoutWidth,
-					cutout_height: item.cutoutHeight,
-					cutout_corner: item.cutoutCorner,
-					created_at: item.createdAt?.toISOString(),
-					updated_at: item.updatedAt?.toISOString()
+				branchItems.map((item) => {
+					const imgs = imageMap.get(item.id) ?? [];
+					return {
+						id: item.id,
+						project_id: item.projectId,
+						branch_id: item.branchId,
+						name: item.name,
+						width: item.width,
+						height: item.height,
+						x: item.x,
+						y: item.y,
+						rotation: item.rotation,
+						color: item.color,
+						price: item.price,
+						price_currency: item.priceCurrency,
+						product_url: item.productUrl,
+						shape: item.shape,
+						cutout_width: item.cutoutWidth,
+						cutout_height: item.cutoutHeight,
+						cutout_corner: item.cutoutCorner,
+						created_at: item.createdAt?.toISOString(),
+						updated_at: item.updatedAt?.toISOString(),
+						image_count: imgs.length,
+						images: imgs.map((img) => ({
+							id: img.id,
+							filename: img.originalName,
+							thumb_url: `/api/projects/${project_id}/branches/${item.branchId}/items/${item.id}/images/${img.id}/thumbnail`
+						}))
+					};
+				})
+			);
+		}
+	);
+
+	server.registerTool(
+		'get_project_preview',
+		{
+			description:
+				'Get a visual preview of the project layout. Returns the project thumbnail (rendered canvas snapshot) or the floorplan image if no thumbnail exists yet. Useful for understanding the current spatial layout.',
+			inputSchema: {
+				project_id: z.string().uuid()
+			}
+		},
+		async ({ project_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+
+			// Try thumbnail first
+			const thumbPath = join(config.uploads.dir, 'thumbnails', `${project_id}.png`);
+			try {
+				const data = await readFile(thumbPath);
+				return {
+					content: [
+						{
+							type: 'text' as const,
+							text: 'Project thumbnail (rendered canvas snapshot):'
+						},
+						{
+							type: 'image' as const,
+							data: data.toString('base64'),
+							mimeType: 'image/png'
+						}
+					]
+				};
+			} catch {
+				// No thumbnail, try floorplan
+			}
+
+			// Try floorplan
+			const floorplan = await getProjectFloorplan(project_id);
+			if (floorplan) {
+				const floorplanFilePath = getFloorplanPath(project_id, floorplan.filename);
+				try {
+					const data = await readFile(floorplanFilePath);
+					return {
+						content: [
+							{
+								type: 'text' as const,
+								text: 'Floorplan image (no rendered thumbnail available yet — thumbnail generates when a user views the project in browser):'
+							},
+							{
+								type: 'image' as const,
+								data: data.toString('base64'),
+								mimeType: floorplan.mimeType
+							}
+						]
+					};
+				} catch {
+					// File missing on disk
+				}
+			}
+
+			return asText({
+				message:
+					'No preview available. The project has no thumbnail yet (it generates when a user views the project in the browser) and no floorplan has been uploaded.'
+			});
+		}
+	);
+
+	server.registerTool(
+		'add_item_image_from_url',
+		{
+			description:
+				'Download an image from an HTTPS URL and attach it to a furniture item. Useful for adding product photos. The image is downloaded server-side with security protections (HTTPS only, no private IPs, max 5MB).',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				item_id: z.string().uuid(),
+				image_url: z.string().url()
+			}
+		},
+		async ({ project_id, branch_id, item_id, image_url }) => {
+			await ensureProjectRole(project_id, 'editor');
+			await ensureBranch(project_id, branch_id);
+
+			const item = await getItemById(project_id, branch_id, item_id);
+			if (!item) {
+				throw new Error('Item not found in this branch.');
+			}
+
+			if (!checkRateLimit(`mcp-download:${userId}`)) {
+				throw new Error('Rate limit exceeded. Max 5 image downloads per 15 minutes.');
+			}
+
+			const result = await downloadImageFromUrl(image_url);
+
+			const ext = EXT_BY_MIME[result.mimeType];
+			const filename = `${randomUUID()}.${ext}`;
+
+			await saveItemImageFile(project_id, item_id, filename, result.buffer);
+			await generateThumbnail(project_id, item_id, filename);
+
+			// Extract display name from URL path
+			let originalName = 'image.' + ext;
+			try {
+				const urlPath = new URL(image_url).pathname;
+				const lastSegment = urlPath.split('/').pop();
+				if (lastSegment && lastSegment.includes('.')) {
+					originalName = decodeURIComponent(lastSegment);
+				}
+			} catch {
+				// keep default
+			}
+
+			const image = await createItemImage(project_id, item_id, {
+				filename,
+				originalName,
+				mimeType: result.mimeType,
+				sizeBytes: result.sizeBytes
+			});
+
+			return asText({
+				id: image.id,
+				item_id: item_id,
+				filename: image.originalName,
+				mime_type: image.mimeType,
+				size_bytes: image.sizeBytes,
+				url: `/api/projects/${project_id}/branches/${branch_id}/items/${item_id}/images/${image.id}`,
+				thumb_url: `/api/projects/${project_id}/branches/${branch_id}/items/${item_id}/images/${image.id}/thumbnail`
+			});
+		}
+	);
+
+	server.registerTool(
+		'list_item_images',
+		{
+			description: 'List all images attached to a furniture item.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				item_id: z.string().uuid()
+			}
+		},
+		async ({ project_id, branch_id, item_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const item = await getItemById(project_id, branch_id, item_id);
+			if (!item) {
+				throw new Error('Item not found in this branch.');
+			}
+
+			const images = await getItemImages(item_id);
+			return asText(
+				images.map((img) => ({
+					id: img.id,
+					filename: img.originalName,
+					mime_type: img.mimeType,
+					size_bytes: img.sizeBytes,
+					sort_order: img.sortOrder,
+					url: `/api/projects/${project_id}/branches/${branch_id}/items/${item_id}/images/${img.id}`,
+					thumb_url: `/api/projects/${project_id}/branches/${branch_id}/items/${item_id}/images/${img.id}/thumbnail`,
+					created_at: img.createdAt?.toISOString()
 				}))
 			);
+		}
+	);
+
+	server.registerTool(
+		'delete_item_image',
+		{
+			description: 'Delete an image from a furniture item.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				item_id: z.string().uuid(),
+				image_id: z.string().uuid()
+			}
+		},
+		async ({ project_id, branch_id, item_id, image_id }) => {
+			await ensureProjectRole(project_id, 'editor');
+			await ensureBranch(project_id, branch_id);
+
+			const item = await getItemById(project_id, branch_id, item_id);
+			if (!item) {
+				throw new Error('Item not found in this branch.');
+			}
+
+			const deleted = await deleteItemImage(project_id, item_id, image_id);
+			if (!deleted) {
+				throw new Error('Image not found for this item.');
+			}
+
+			return asText({ success: true, image_id });
 		}
 	);
 
