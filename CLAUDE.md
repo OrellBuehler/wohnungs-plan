@@ -69,9 +69,9 @@ bun db:studio    # Open Drizzle Studio
 - OAuth endpoints: `/api/oauth/authorize`, `/api/oauth/token`
 - MCP endpoint: `/api/mcp` (JSON-RPC 2.0 with Bearer token)
 - PKCE: S256 only, no plain method
-- **CSRF Protection**: Disabled in `svelte.config.js` (`csrf.trustedOrigins: ['*']`)
-  - Safe because OAuth/MCP endpoints use PKCE/Bearer tokens, not cookies
-  - Cookie-based routes still protected by SameSite attribute
+- **CSRF Protection**: SvelteKit's built-in check disabled (`csrf.trustedOrigins: ['*']`)
+  - Manual origin checking in `hooks.server.ts` protects non-exempt routes
+  - OAuth/MCP endpoints are exempt (use PKCE/Bearer tokens, not cookies)
 
 ## Git Commits
 
