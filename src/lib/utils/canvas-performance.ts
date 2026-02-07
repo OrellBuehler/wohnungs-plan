@@ -25,6 +25,12 @@ export interface DistanceIndicatorVisibilityInput {
   isDraggingItem: boolean;
 }
 
+export interface ItemLayerListeningInput {
+  isInteractionActive: boolean;
+  isDraggingItem: boolean;
+  isLongPressDragging: boolean;
+}
+
 export interface CanvasLabelFontSizeInput {
   rootFontPx: number;
   mobileMode: boolean;
@@ -134,5 +140,10 @@ export function resolveItemDisplayPosition(
 
 export function shouldShowDistanceIndicators(input: DistanceIndicatorVisibilityInput): boolean {
   if (input.isDraggingItem) return true;
+  return !input.isInteractionActive;
+}
+
+export function shouldEnableItemLayerListening(input: ItemLayerListeningInput): boolean {
+  if (input.isDraggingItem || input.isLongPressDragging) return true;
   return !input.isInteractionActive;
 }

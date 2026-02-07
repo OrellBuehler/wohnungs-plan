@@ -19,6 +19,7 @@
     getItemShadowStyle,
     getGridStepCount,
     resolveItemDisplayPosition,
+    shouldEnableItemLayerListening,
     shouldShowDistanceIndicators,
     shouldRenderGrid,
     shouldRenderItemLabels
@@ -759,6 +760,13 @@
   });
   const gridVisible = $derived(shouldRenderGrid(showGrid, isInteractionActive));
   const itemShadowStyle = $derived(getItemShadowStyle(isInteractionActive));
+  const itemLayerListening = $derived.by(() =>
+    shouldEnableItemLayerListening({
+      isInteractionActive,
+      isDraggingItem: draggingItemId !== null,
+      isLongPressDragging,
+    })
+  );
 
   function drawGridScene(context: Context, shape: KonvaShape) {
     const step = Math.max(1, gridSize);
@@ -947,7 +955,7 @@
       {/if}
     </Layer>
 
-    <Layer>
+    <Layer listening={itemLayerListening}>
       <!-- Furniture items -->
       {#each placedItems as item (item.id)}
         {@const isOverlapping = overlappingIds.has(item.id)}
@@ -1041,7 +1049,7 @@
 
     <!-- Distance indicators -->
     {#if distanceIndicators.length > 0}
-      <Layer>
+      <Layer listening={false}>
         {#each distanceIndicators as indicator}
           {@const dx = indicator.pointB.x - indicator.pointA.x}
           {@const dy = indicator.pointB.y - indicator.pointA.y}
@@ -1121,7 +1129,7 @@
 
     <!-- Alignment guides -->
     {#if alignmentGuides.length > 0}
-      <Layer>
+      <Layer listening={false}>
         {#each alignmentGuides as guide}
           {#if guide.type === 'v'}
             <Line

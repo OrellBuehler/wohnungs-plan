@@ -6,6 +6,7 @@ import {
   getGridStepCount,
   remToPx,
   resolveItemDisplayPosition,
+  shouldEnableItemLayerListening,
   shouldShowDistanceIndicators,
   shouldRenderGrid,
   shouldRenderItemLabels,
@@ -122,6 +123,45 @@ describe('shouldShowDistanceIndicators', () => {
   it('keeps indicators visible while dragging an item', () => {
     expect(
       shouldShowDistanceIndicators({ isInteractionActive: true, isDraggingItem: true })
+    ).toBe(true);
+  });
+});
+
+describe('shouldEnableItemLayerListening', () => {
+  it('enables listening when idle', () => {
+    expect(
+      shouldEnableItemLayerListening({
+        isInteractionActive: false,
+        isDraggingItem: false,
+        isLongPressDragging: false,
+      })
+    ).toBe(true);
+  });
+
+  it('disables listening during pan/zoom interaction', () => {
+    expect(
+      shouldEnableItemLayerListening({
+        isInteractionActive: true,
+        isDraggingItem: false,
+        isLongPressDragging: false,
+      })
+    ).toBe(false);
+  });
+
+  it('keeps listening enabled while dragging items', () => {
+    expect(
+      shouldEnableItemLayerListening({
+        isInteractionActive: true,
+        isDraggingItem: true,
+        isLongPressDragging: false,
+      })
+    ).toBe(true);
+    expect(
+      shouldEnableItemLayerListening({
+        isInteractionActive: true,
+        isDraggingItem: false,
+        isLongPressDragging: true,
+      })
     ).toBe(true);
   });
 });
