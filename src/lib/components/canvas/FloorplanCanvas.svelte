@@ -13,6 +13,7 @@
   import {
     getItemShadowStyle,
     resolveItemDisplayPosition,
+    shouldShowDistanceIndicators,
     shouldRenderGrid,
     shouldRenderItemLabels
   } from '$lib/utils/canvas-performance';
@@ -764,6 +765,13 @@
 
   // Distance indicators - show distances to 2 nearest items within 4m
   const distanceIndicators = $derived.by(() => {
+    if (!shouldShowDistanceIndicators({
+      isInteractionActive,
+      isDraggingItem: draggingItemId !== null
+    })) {
+      return [];
+    }
+
     // Get the active item (selected or being dragged)
     const activeItemId = draggingItemId ?? selectedItemId;
     if (!activeItemId || !floorplan?.scale) return [];

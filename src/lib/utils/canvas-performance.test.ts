@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getItemShadowStyle,
   resolveItemDisplayPosition,
+  shouldShowDistanceIndicators,
   shouldRenderGrid,
   shouldRenderItemLabels,
 } from '$lib/utils/canvas-performance';
@@ -98,5 +99,25 @@ describe('resolveItemDisplayPosition', () => {
     });
 
     expect(pos).toEqual({ x: 40, y: 60 });
+  });
+});
+
+describe('shouldShowDistanceIndicators', () => {
+  it('shows indicators when idle', () => {
+    expect(
+      shouldShowDistanceIndicators({ isInteractionActive: false, isDraggingItem: false })
+    ).toBe(true);
+  });
+
+  it('hides indicators during pan/zoom interaction', () => {
+    expect(
+      shouldShowDistanceIndicators({ isInteractionActive: true, isDraggingItem: false })
+    ).toBe(false);
+  });
+
+  it('keeps indicators visible while dragging an item', () => {
+    expect(
+      shouldShowDistanceIndicators({ isInteractionActive: true, isDraggingItem: true })
+    ).toBe(true);
   });
 });

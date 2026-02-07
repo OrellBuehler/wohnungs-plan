@@ -20,6 +20,11 @@ export interface ResolveItemDisplayPositionInput {
   naturalToDisplay: (naturalX: number, naturalY: number) => { x: number; y: number };
 }
 
+export interface DistanceIndicatorVisibilityInput {
+  isInteractionActive: boolean;
+  isDraggingItem: boolean;
+}
+
 export function shouldRenderGrid(showGrid: boolean, isInteractionActive: boolean): boolean {
   return showGrid && !isInteractionActive;
 }
@@ -55,4 +60,9 @@ export function resolveItemDisplayPosition(
   }
 
   return input.naturalToDisplay(input.naturalX, input.naturalY);
+}
+
+export function shouldShowDistanceIndicators(input: DistanceIndicatorVisibilityInput): boolean {
+  if (input.isDraggingItem) return true;
+  return !input.isInteractionActive;
 }
