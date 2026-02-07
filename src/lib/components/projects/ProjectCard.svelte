@@ -101,7 +101,7 @@
 
 		<!-- Overflow menu -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" onclick={stopPropagation} onkeydown={stopPropagation}>
+		<div class="absolute top-2 right-2 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity" onclick={stopPropagation} onkeydown={stopPropagation}>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
