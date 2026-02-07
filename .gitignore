@@ -29,3 +29,9 @@ kirchhaldenstrasse-*.json
 
 # Local git worktrees
 .worktrees/
+
+# Playwright MCP
+.playwright-mcp/
+/mobile-*.png
+/desktop-*.png
+/page-*.png
