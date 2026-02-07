@@ -3,7 +3,7 @@
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
   import { getOverlappingItems, getItemShapePoints, getRotatedBoundingBox, getMinEdgeDistance, type BoundingBox } from '$lib/utils/geometry';
-  import { clampZoom, clientToContainer, zoomTowardPoint } from '$lib/utils/canvas-math';
+  import { clampZoom, clientToContainer, getViewportCenterWorld, zoomTowardPoint } from '$lib/utils/canvas-math';
   import { Button } from '$lib/components/ui/button';
   import { Plus, Minus, RotateCcw, RotateCw, Lock, Unlock, RefreshCw, MapPinOff } from 'lucide-svelte';
 
@@ -15,7 +15,6 @@
     showGrid: boolean;
     snapToGrid: boolean;
     mobileMode?: boolean;
-    viewportCenter?: { x: number; y: number };
     onItemSelect: (id: string | null) => void;
     onItemMove: (id: string, x: number, y: number) => void;
     onItemRotate: (id: string, rotation: number) => void;
@@ -31,7 +30,6 @@
     showGrid = true,
     snapToGrid = true,
     mobileMode = false,
-    viewportCenter = $bindable({ x: 100, y: 100 }),
     onItemSelect,
     onItemMove,
     onItemRotate,
@@ -123,15 +121,6 @@
   const distanceLabelFontSize = $derived(
     remToPx(BASE_DISTANCE_LABEL_REM) * (mobileMode ? MOBILE_SCALE_FACTOR : 1) / zoom
   );
-
-  // Update viewport center for item placement (in natural image coordinates)
-  $effect(() => {
-    const displayCenterX = (stageWidth / 2 - panX) / zoom;
-    const displayCenterY = (stageHeight / 2 - panY) / zoom;
-    // Convert to natural coordinates so placed items are stored screen-independently
-    const natural = displayToNatural(displayCenterX, displayCenterY);
-    viewportCenter = { x: Math.round(natural.x), y: Math.round(natural.y) };
-  });
 
   // Load floorplan image
   $effect(() => {
@@ -654,6 +643,15 @@
     return {
       x: (displayX - imageDimensions.x) / displayScale,
       y: (displayY - imageDimensions.y) / displayScale
+    };
+  }
+
+  export function getViewportCenterNatural(): { x: number; y: number } {
+    const worldCenter = getViewportCenterWorld(stageWidth, stageHeight, zoom, panX, panY);
+    const natural = displayToNatural(worldCenter.x, worldCenter.y);
+    return {
+      x: Math.round(natural.x),
+      y: Math.round(natural.y),
     };
   }
 

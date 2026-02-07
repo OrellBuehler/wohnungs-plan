@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   clampZoom,
   clientToContainer,
+  getViewportCenterWorld,
   screenToWorld,
   worldToScreen,
   zoomTowardPoint,
@@ -102,6 +103,30 @@ describe('clientToContainer', () => {
   it('converts viewport coordinates to container-relative coordinates', () => {
     const point = clientToContainer(460, 315, { left: 200, top: 100 });
     expect(point).toEqual({ x: 260, y: 215 });
+  });
+});
+
+describe('getViewportCenterWorld', () => {
+  it('returns the world coordinate at the viewport center', () => {
+    const center = getViewportCenterWorld(800, 600, 2, -100, 50);
+    expect(center.x).toBeCloseTo(250, 8);
+    expect(center.y).toBeCloseTo(125, 8);
+  });
+
+  it('matches screenToWorld at stage midpoint across scenarios', () => {
+    const scenarios = [
+      { stageWidth: 1024, stageHeight: 768, zoom: 1, panX: 0, panY: 0 },
+      { stageWidth: 1200, stageHeight: 900, zoom: 0.75, panX: 140, panY: -60 },
+      { stageWidth: 640, stageHeight: 480, zoom: 3, panX: -220, panY: 95 },
+    ];
+
+    for (const s of scenarios) {
+      const expected = screenToWorld(s.stageWidth / 2, s.stageHeight / 2, s.zoom, s.panX, s.panY);
+      const actual = getViewportCenterWorld(s.stageWidth, s.stageHeight, s.zoom, s.panX, s.panY);
+
+      expect(actual.x).toBeCloseTo(expected.x, 8);
+      expect(actual.y).toBeCloseTo(expected.y, 8);
+    }
   });
 });
 

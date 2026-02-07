@@ -60,6 +60,16 @@ export function worldToScreen(
   };
 }
 
+export function getViewportCenterWorld(
+  stageWidth: number,
+  stageHeight: number,
+  zoom: number,
+  panX: number,
+  panY: number
+): { x: number; y: number } {
+  return screenToWorld(stageWidth / 2, stageHeight / 2, zoom, panX, panY);
+}
+
 export function clientToContainer(
   clientX: number,
   clientY: number,

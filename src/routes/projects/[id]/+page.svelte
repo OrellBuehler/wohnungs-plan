@@ -67,7 +67,7 @@
 	let selectedItemId = $state<string | null>(null);
 	let showGrid = $state(true);
 	let snapToGrid = $state(true);
-	let canvasViewportCenter = $state({ x: 200, y: 200 });
+	let canvasRef = $state<{ getViewportCenterNatural: () => { x: number; y: number } } | null>(null);
 
 	// Dialog state
 	let showItemForm = $state(false);
@@ -671,7 +671,8 @@
 	}
 
 	function handlePlaceItem(id: string) {
-		updateItem(id, { position: { x: canvasViewportCenter.x, y: canvasViewportCenter.y } });
+		const center = canvasRef?.getViewportCenterNatural() ?? { x: 200, y: 200 };
+		updateItem(id, { position: { x: center.x, y: center.y } });
 		activeTab = 'plan';
 	}
 
@@ -903,19 +904,19 @@
 					/>
 				{:else if !project.floorplan}
 					<FloorplanUpload onUpload={handleFloorplanUpload} />
-				{:else}
-					<FloorplanCanvas
-						floorplan={project.floorplan}
-						{items}
-						{selectedItemId}
-						{gridSize}
-						{showGrid}
-						{snapToGrid}
-						mobileMode={isMobile}
-						bind:viewportCenter={canvasViewportCenter}
-						onItemSelect={isMobile ? handleItemTap : handleItemSelect}
-						onItemMove={handleItemMove}
-						onItemRotate={handleItemRotate}
+					{:else}
+						<FloorplanCanvas
+							bind:this={canvasRef}
+							floorplan={project.floorplan}
+							{items}
+							{selectedItemId}
+							{gridSize}
+							{showGrid}
+							{snapToGrid}
+							mobileMode={isMobile}
+							onItemSelect={isMobile ? handleItemTap : handleItemSelect}
+							onItemMove={handleItemMove}
+							onItemRotate={handleItemRotate}
 						onItemUnplace={handleUnplaceItem}
 						onThumbnailReady={handleThumbnailReady}
 					/>
