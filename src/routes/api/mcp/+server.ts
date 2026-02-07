@@ -14,7 +14,7 @@ import {
 	getItemById,
 	updateItem
 } from '$lib/server/items';
-import { createBranch, getBranchById, listProjectBranches } from '$lib/server/branches';
+import { createBranch, getBranchById, getDefaultBranch, listProjectBranches } from '$lib/server/branches';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
 const MCP_SERVER_VERSION = '2.0.0';
@@ -197,19 +197,29 @@ function createMcpServer(userId: string): McpServer {
 	server.registerTool(
 		'create_branch',
 		{
-			description: 'Create a new branch for a project, optionally forked from an existing branch.',
+			description:
+				'Create a new branch for a project. By default, copies all items from the main branch. Use fork_from_branch_id to fork from a different branch, or set fork_from_branch_id to null to create an empty branch.',
 			inputSchema: {
 				project_id: z.string().uuid(),
 				name: z.string().min(1),
-				fork_from_branch_id: z.string().uuid().optional()
+				fork_from_branch_id: z.string().uuid().nullable().optional()
 			}
 		},
 		async ({ project_id, name, fork_from_branch_id }) => {
 			await ensureProjectRole(project_id, 'editor');
-			if (fork_from_branch_id) {
+
+			let forkId: string | null;
+			if (fork_from_branch_id === null) {
+				forkId = null;
+			} else if (fork_from_branch_id) {
 				await ensureBranch(project_id, fork_from_branch_id);
+				forkId = fork_from_branch_id;
+			} else {
+				const defaultBranch = await getDefaultBranch(project_id);
+				forkId = defaultBranch?.id ?? null;
 			}
-			const branch = await createBranch(project_id, userId, name, fork_from_branch_id ?? null);
+
+			const branch = await createBranch(project_id, userId, name, forkId);
 			return asText({
 				id: branch.id,
 				project_id: branch.projectId,
