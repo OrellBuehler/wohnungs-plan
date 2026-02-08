@@ -430,7 +430,12 @@ export function intersectsWall(
 }
 
 /**
- * Check if a rectangular item blocks a door (overlaps with door swing arc)
+ * Check if a rectangular item blocks a door (overlaps with door swing area)
+ *
+ * Uses full circle check because door swing direction is not in the data model.
+ * This is intentionally conservative — items near any side of a door hinge
+ * will trigger a collision warning. To make this more precise, add a
+ * `swing_angle` field to the Door type specifying the start angle of the 90° arc.
  */
 export function blocksDoor(
 	itemX: number,
@@ -442,35 +447,65 @@ export function blocksDoor(
 	const doorRadius = door.width || 30;
 	const [dx, dy] = door.position;
 
-	// Check if item rectangle overlaps with door swing circle
 	return circleIntersectsRect(dx, dy, doorRadius, itemX, itemY, itemWidth, itemHeight);
 }
 
 /**
- * Check if a rectangular item blocks a window
+ * Check if a rectangular item blocks a window.
+ * Infers window orientation from associated wall if available,
+ * otherwise uses a square collision zone.
  */
 export function blocksWindow(
 	itemX: number,
 	itemY: number,
 	itemWidth: number,
 	itemHeight: number,
-	window: Window
+	window: Window,
+	walls?: Wall[]
 ): boolean {
 	const windowWidth = window.width || 20;
 	const [wx, wy] = window.position;
+	const WINDOW_DEPTH = 10; // collision depth perpendicular to window
 
-	// Windows are represented as double lines, check if item overlaps
-	const windowLeft = wx - windowWidth / 2;
-	const windowRight = wx + windowWidth / 2;
-	const windowTop = wy - 5;
-	const windowBottom = wy + 5;
+	let windowLeft: number;
+	let windowRight: number;
+	let windowTop: number;
+	let windowBottom: number;
+
+	// Try to infer orientation from associated wall
+	const wall = walls && window.wall_id ? walls.find((w) => w.id === window.wall_id) : null;
+	if (wall) {
+		const dx = Math.abs(wall.end[0] - wall.start[0]);
+		const dy = Math.abs(wall.end[1] - wall.start[1]);
+		const isVerticalWall = dy > dx;
+
+		if (isVerticalWall) {
+			// Window on vertical wall: narrow in X, wide in Y
+			windowLeft = wx - WINDOW_DEPTH / 2;
+			windowRight = wx + WINDOW_DEPTH / 2;
+			windowTop = wy - windowWidth / 2;
+			windowBottom = wy + windowWidth / 2;
+		} else {
+			// Window on horizontal wall: wide in X, narrow in Y
+			windowLeft = wx - windowWidth / 2;
+			windowRight = wx + windowWidth / 2;
+			windowTop = wy - WINDOW_DEPTH / 2;
+			windowBottom = wy + WINDOW_DEPTH / 2;
+		}
+	} else {
+		// No wall reference: use square zone as fallback
+		const halfSize = windowWidth / 2;
+		windowLeft = wx - halfSize;
+		windowRight = wx + halfSize;
+		windowTop = wy - halfSize;
+		windowBottom = wy + halfSize;
+	}
 
 	const rectLeft = itemX;
 	const rectRight = itemX + itemWidth;
 	const rectTop = itemY;
 	const rectBottom = itemY + itemHeight;
 
-	// Rectangle overlap check
 	return !(
 		rectRight < windowLeft ||
 		rectLeft > windowRight ||
@@ -513,9 +548,10 @@ export function checkWindowCollisions(
 	itemY: number,
 	itemWidth: number,
 	itemHeight: number,
-	windows: Window[]
+	windows: Window[],
+	walls?: Wall[]
 ): boolean {
-	return windows.some((window) => blocksWindow(itemX, itemY, itemWidth, itemHeight, window));
+	return windows.some((window) => blocksWindow(itemX, itemY, itemWidth, itemHeight, window, walls));
 }
 
 /**
@@ -533,7 +569,7 @@ export function hasArchitecturalCollision(
 	return (
 		checkWallCollisions(itemX, itemY, itemWidth, itemHeight, walls) ||
 		checkDoorCollisions(itemX, itemY, itemWidth, itemHeight, doors) ||
-		checkWindowCollisions(itemX, itemY, itemWidth, itemHeight, windows)
+		checkWindowCollisions(itemX, itemY, itemWidth, itemHeight, windows, walls)
 	);
 }
 

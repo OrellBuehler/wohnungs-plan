@@ -46,7 +46,7 @@ export type FloorplanAnalysisData = {
 
 /**
  * Save or update floorplan analysis for a project.
- * If analysis already exists, it will be updated.
+ * Uses atomic upsert via ON CONFLICT to avoid race conditions.
  */
 export async function saveFloorplanAnalysis(
 	projectId: string,
@@ -55,33 +55,20 @@ export async function saveFloorplanAnalysis(
 ): Promise<FloorplanAnalysis> {
 	const db = getDB();
 
-	// Check if analysis already exists
-	const [existing] = await db
-		.select()
-		.from(floorplanAnalyses)
-		.where(eq(floorplanAnalyses.projectId, projectId));
-
-	if (existing) {
-		// Update existing
-		const [updated] = await db
-			.update(floorplanAnalyses)
-			.set({
-				data: data as unknown as Record<string, unknown>,
-				analyzedBy: userId,
-				updatedAt: new Date()
-			})
-			.where(eq(floorplanAnalyses.projectId, projectId))
-			.returning();
-		return updated;
-	}
-
-	// Create new
 	const [analysis] = await db
 		.insert(floorplanAnalyses)
 		.values({
 			projectId,
 			analyzedBy: userId,
 			data: data as unknown as Record<string, unknown>
+		})
+		.onConflictDoUpdate({
+			target: floorplanAnalyses.projectId,
+			set: {
+				data: data as unknown as Record<string, unknown>,
+				analyzedBy: userId,
+				updatedAt: new Date()
+			}
 		})
 		.returning();
 

@@ -1387,6 +1387,7 @@ export function hasFloorplanAnalysis(): boolean {
 		floorplanAnalysis.loaded &&
 		(floorplanAnalysis.walls.length > 0 ||
 			floorplanAnalysis.doors.length > 0 ||
+			floorplanAnalysis.windows.length > 0 ||
 			floorplanAnalysis.rooms.length > 0)
 	);
 }

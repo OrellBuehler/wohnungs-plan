@@ -665,9 +665,9 @@ function createMcpServer(userId: string): McpServer {
 							z.object({
 								id: z.string(),
 								type: z.string(),
-								polygon: z.array(z.tuple([z.number(), z.number()])),
-								area_sqm: z.number().optional(),
-								dimensions: z.object({ width: z.number(), height: z.number() }).optional(),
+								polygon: z.array(z.tuple([z.number().min(-10000).max(100000), z.number().min(-10000).max(100000)])),
+								area_sqm: z.number().min(0).max(10000).optional(),
+								dimensions: z.object({ width: z.number().min(0).max(100000), height: z.number().min(0).max(100000) }).optional(),
 								label: z.string().optional()
 							})
 						)
@@ -676,9 +676,9 @@ function createMcpServer(userId: string): McpServer {
 						.array(
 							z.object({
 								id: z.string(),
-								start: z.tuple([z.number(), z.number()]),
-								end: z.tuple([z.number(), z.number()]),
-								thickness: z.number().optional()
+								start: z.tuple([z.number().min(-10000).max(100000), z.number().min(-10000).max(100000)]),
+								end: z.tuple([z.number().min(-10000).max(100000), z.number().min(-10000).max(100000)]),
+								thickness: z.number().min(0).max(1000).optional()
 							})
 						)
 						.describe('Array of wall segments'),
@@ -687,23 +687,23 @@ function createMcpServer(userId: string): McpServer {
 							z.object({
 								id: z.string(),
 								type: z.enum(['door', 'window']),
-								position: z.tuple([z.number(), z.number()]),
-								width: z.number().optional(),
+								position: z.tuple([z.number().min(-10000).max(100000), z.number().min(-10000).max(100000)]),
+								width: z.number().min(0).max(10000).optional(),
 								wall_id: z.string().optional()
 							})
 						)
 						.describe('Array of doors and windows'),
 					scale: z
 						.object({
-							pixels_per_meter: z.number(),
-							reference_length: z.number().optional(),
+							pixels_per_meter: z.number().min(0.01).max(10000),
+							reference_length: z.number().min(0).optional(),
 							unit: z.string().optional()
 						})
 						.optional()
 						.describe('Scale information for converting pixels to real-world units'),
 					metadata: z
 						.object({
-							confidence: z.number().optional(),
+							confidence: z.number().min(0).max(1).optional(),
 							notes: z.string().optional(),
 							analyzed_with: z.string().optional()
 						})

@@ -351,11 +351,13 @@
       const finalX = node.x();
       const finalY = node.y();
 
+      // Use rotated bounding box so collision accounts for item rotation
+      const collisionBox = getRotatedBoundingBox(finalX, finalY, dragW, dragH, draggedItem.rotation);
       const hasCollision = hasArchitecturalCollision(
-        finalX,
-        finalY,
-        dragW,
-        dragH,
+        collisionBox.minX,
+        collisionBox.minY,
+        collisionBox.maxX - collisionBox.minX,
+        collisionBox.maxY - collisionBox.minY,
         analysis.walls,
         analysis.doors,
         analysis.windows
