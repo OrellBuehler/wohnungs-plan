@@ -26,11 +26,11 @@
   const hasNext = $derived(currentIndex < images.length - 1);
 
   function prev() {
-    if (hasPrev) currentIndex--;
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
   }
 
   function next() {
-    if (hasNext) currentIndex++;
+    currentIndex = (currentIndex + 1) % images.length;
   }
 
   function handleKeydown(e: KeyboardEvent) {
