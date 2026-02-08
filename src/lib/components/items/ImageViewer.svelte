@@ -89,7 +89,7 @@
       <Button
         variant="ghost"
         size="icon-sm"
-        class="absolute top-3 right-3 text-white hover:bg-white/20"
+        class="absolute top-3 right-3 text-white bg-black/50 hover:bg-black/70"
         onclick={handleClose}
       >
         <X size={20} />
@@ -101,7 +101,7 @@
           <Button
             variant="ghost"
             size="icon-sm"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-10 w-10"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-white bg-black/50 hover:bg-black/70 h-10 w-10"
             onclick={prev}
           >
             <ChevronLeft size={24} />
@@ -111,7 +111,7 @@
           <Button
             variant="ghost"
             size="icon-sm"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-10 w-10"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-white bg-black/50 hover:bg-black/70 h-10 w-10"
             onclick={next}
           >
             <ChevronRight size={24} />
