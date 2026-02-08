@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		throw error(401, 'Authentication required');
 	}
 
-	if (!checkRateLimit(`thumbnail:${locals.user.id}`, 30)) {
+	if (!checkRateLimit(`thumbnail:${locals.user.id}`, 120)) {
 		throw error(429, 'Too many thumbnail uploads. Try again later.');
 	}
 

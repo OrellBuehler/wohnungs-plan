@@ -1,5 +1,5 @@
 const DEFAULT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const DEFAULT_MAX_ATTEMPTS = 5;
+const DEFAULT_MAX_ATTEMPTS = 20;
 
 interface Bucket {
 	count: number;
