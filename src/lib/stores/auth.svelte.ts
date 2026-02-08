@@ -61,10 +61,12 @@ export function login(): void {
 export async function logout(): Promise<void> {
 	try {
 		await fetch('/api/auth/logout', { method: 'POST' });
-		state.user = null;
-		state.isAuthenticated = false;
 	} catch (error) {
 		console.error('Logout failed:', error);
+	} finally {
+		// Always clear user state, even if API call fails
+		state.user = null;
+		state.isAuthenticated = false;
 	}
 }
 
