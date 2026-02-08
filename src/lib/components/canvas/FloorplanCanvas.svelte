@@ -888,6 +888,7 @@
   function generateThumbnail() {
     const stage = stageRef?.node;
     if (!stage || !onThumbnailReady) return;
+    if (!stage.width() || !stage.height()) return;
 
     // Reset view temporarily for consistent thumbnail
     const originalScale = { x: stage.scaleX(), y: stage.scaleY() };
@@ -896,7 +897,14 @@
     stage.scale({ x: 1, y: 1 });
     stage.position({ x: 0, y: 0 });
 
-    const dataUrl = stage.toDataURL({ pixelRatio: 0.5 });
+    let dataUrl: string;
+    try {
+      dataUrl = stage.toDataURL({ pixelRatio: 0.5 });
+    } catch {
+      stage.scale(originalScale);
+      stage.position(originalPos);
+      return;
+    }
 
     // Restore view
     stage.scale(originalScale);
