@@ -4,6 +4,7 @@
   import type Konva from 'konva';
   import type { Context } from 'konva/lib/Context';
   import type { Shape as KonvaShape } from 'konva/lib/Shape';
+  import WallsDoorsLayer from './WallsDoorsLayer.svelte';
   import {
     getMinEdgeDistance,
     getOverlappingItems,
@@ -995,6 +996,9 @@
           opacity={0.8}
         />
       {/if}
+
+      <!-- Walls & Doors Layer (AI-extracted architectural elements) -->
+      <WallsDoorsLayer />
     </Layer>
 
     <Layer listening={itemLayerListening} hitGraphEnabled={itemLayerListening}>
