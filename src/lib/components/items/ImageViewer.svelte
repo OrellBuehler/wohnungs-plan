@@ -42,6 +42,27 @@
     open = false;
     onClose();
   }
+
+  // Swipe gesture
+  let touchStartX = 0;
+  let touchStartY = 0;
+  const SWIPE_THRESHOLD = 50;
+  const MAX_VERTICAL = 80;
+
+  function handleTouchStart(e: TouchEvent) {
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }
+
+  function handleTouchEnd(e: TouchEvent) {
+    if (e.changedTouches.length !== 1) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+    if (dy > MAX_VERTICAL) return;
+    if (dx < -SWIPE_THRESHOLD) next();
+    else if (dx > SWIPE_THRESHOLD) prev();
+  }
 </script>
 
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleClose()}>
@@ -49,7 +70,12 @@
     class="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-black/95 overflow-hidden"
     onkeydown={handleKeydown}
   >
-    <div class="relative flex items-center justify-center w-full h-[85vh]">
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="relative flex items-center justify-center w-full h-[85vh]"
+      ontouchstart={handleTouchStart}
+      ontouchend={handleTouchEnd}
+    >
       {#if currentImage}
         <img
           src={currentImage.url}
