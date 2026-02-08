@@ -447,6 +447,10 @@ export async function loadProjectById(id: string, branchId?: string): Promise<Pr
 		);
 		project.isLocal = false;
 		await saveLocalProject(project);
+
+		// Load floorplan analysis in parallel (don't block project load)
+		void loadFloorplanAnalysis(id);
+
 		return project;
 	} catch (error) {
 		console.error('Failed to load remote project:', error);
@@ -1222,4 +1226,167 @@ export function setGridSize(gridSize: number) {
 			});
 		}
 	}
+}
+
+// ============================================================================
+// Floorplan Analysis (Walls & Doors)
+// ============================================================================
+
+export type Wall = {
+	id: string;
+	start: [number, number];
+	end: [number, number];
+	thickness?: number;
+};
+
+export type Door = {
+	id: string;
+	type: 'door';
+	position: [number, number];
+	width: number;
+	wall_id?: string;
+};
+
+export type Window = {
+	id: string;
+	type: 'window';
+	position: [number, number];
+	width: number;
+	wall_id?: string;
+};
+
+export type Room = {
+	id: string;
+	type: string;
+	polygon: [number, number][];
+	area_sqm?: number;
+	dimensions?: { width: number; height: number };
+	label?: string;
+};
+
+export type Scale = {
+	pixels_per_meter: number;
+	reference_length?: number;
+	unit?: string;
+};
+
+type FloorplanAnalysisState = {
+	loaded: boolean;
+	walls: Wall[];
+	doors: Door[];
+	windows: Window[];
+	rooms: Room[];
+	scale: Scale | null;
+	visible: boolean;
+};
+
+let floorplanAnalysis = $state<FloorplanAnalysisState>({
+	loaded: false,
+	walls: [],
+	doors: [],
+	windows: [],
+	rooms: [],
+	scale: null,
+	visible: true
+});
+
+/**
+ * Load floorplan analysis data from API
+ */
+export async function loadFloorplanAnalysis(projectId: string): Promise<void> {
+	try {
+		const response = await fetch(`/api/projects/${projectId}/floorplan-analysis`);
+		if (!response.ok) {
+			console.warn('Failed to load floorplan analysis:', response.statusText);
+			floorplanAnalysis = {
+				loaded: true,
+				walls: [],
+				doors: [],
+				windows: [],
+				rooms: [],
+				scale: null,
+				visible: false
+			};
+			return;
+		}
+
+		const result = await response.json();
+
+		if (result.exists && result.data) {
+			floorplanAnalysis = {
+				loaded: true,
+				walls: result.data.walls || [],
+				doors: result.data.doors || [],
+				windows: result.data.windows || [],
+				rooms: result.data.rooms || [],
+				scale: result.data.scale || null,
+				visible: true
+			};
+			console.log(
+				`[FloorplanAnalysis] Loaded: ${result.summary?.walls_count || 0} walls, ${result.summary?.doors_count || 0} doors`
+			);
+		} else {
+			floorplanAnalysis = {
+				loaded: true,
+				walls: [],
+				doors: [],
+				windows: [],
+				rooms: [],
+				scale: null,
+				visible: false
+			};
+			console.log('[FloorplanAnalysis] No analysis data available');
+		}
+	} catch (err) {
+		console.error('[FloorplanAnalysis] Failed to load:', err);
+		floorplanAnalysis = {
+			loaded: true,
+			walls: [],
+			doors: [],
+			windows: [],
+			rooms: [],
+			scale: null,
+			visible: false
+		};
+	}
+}
+
+/**
+ * Get current floorplan analysis state
+ */
+export function getFloorplanAnalysis(): FloorplanAnalysisState {
+	return floorplanAnalysis;
+}
+
+/**
+ * Check if walls/doors layer is visible
+ */
+export function isWallsDoorsVisible(): boolean {
+	return floorplanAnalysis.visible && floorplanAnalysis.loaded;
+}
+
+/**
+ * Toggle walls/doors layer visibility
+ */
+export function toggleWallsDoors(): void {
+	floorplanAnalysis.visible = !floorplanAnalysis.visible;
+}
+
+/**
+ * Set walls/doors layer visibility
+ */
+export function setWallsDoorsVisible(visible: boolean): void {
+	floorplanAnalysis.visible = visible;
+}
+
+/**
+ * Check if floorplan analysis data is available
+ */
+export function hasFloorplanAnalysis(): boolean {
+	return (
+		floorplanAnalysis.loaded &&
+		(floorplanAnalysis.walls.length > 0 ||
+			floorplanAnalysis.doors.length > 0 ||
+			floorplanAnalysis.rooms.length > 0)
+	);
 }
