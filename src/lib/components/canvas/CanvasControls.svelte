@@ -4,6 +4,11 @@
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
   import { Separator } from '$lib/components/ui/separator';
+  import {
+    getFloorplanAnalysis,
+    toggleWallsDoors,
+    hasFloorplanAnalysis
+  } from '$lib/stores/project.svelte';
 
   interface Props {
     showGrid: boolean;
@@ -25,6 +30,11 @@
     onRecalibrate,
   }: Props = $props();
 
+  // Floorplan analysis state
+  const floorplanAnalysis = $derived(getFloorplanAnalysis());
+  const hasAnalysis = $derived(hasFloorplanAnalysis());
+  const showWallsDoors = $derived(floorplanAnalysis.visible);
+
   function handleGridSizeInput(e: Event) {
     const value = parseInt((e.target as HTMLInputElement).value, 10);
     if (!isNaN(value)) {
@@ -44,6 +54,19 @@
     Snap
   </Label>
 
+  {#if hasAnalysis}
+    <Label
+      class="flex items-center gap-2 text-slate-600 cursor-pointer"
+      title="Show/hide AI-detected walls and doors"
+    >
+      <Checkbox
+        checked={showWallsDoors}
+        onchange={() => toggleWallsDoors()}
+      />
+      Walls & Doors
+    </Label>
+  {/if}
+
   <Separator orientation="vertical" class="h-6" />
 
   <Label class="flex items-center gap-2 text-slate-600">
@@ -61,6 +84,13 @@
   </Label>
 
   <div class="flex-1"></div>
+
+  {#if hasAnalysis && showWallsDoors}
+    <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+      {floorplanAnalysis.walls.length} walls,
+      {floorplanAnalysis.doors.length} doors
+    </span>
+  {/if}
 
   <span class="text-xs text-slate-400 font-mono">
     {scale.toFixed(2)} px/cm
