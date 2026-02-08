@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { readFile, unlink } from 'node:fs/promises';
+import { readFile, unlink, access } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { RequestHandler } from './$types';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -31,6 +31,10 @@ import {
 import { EXT_BY_MIME } from '$lib/server/image-utils';
 import { downloadImageFromUrl } from '$lib/server/url-download';
 import { checkRateLimit } from '$lib/server/rate-limit';
+import {
+	getThumbnailPath,
+	generateAndSaveThumbnail
+} from '$lib/server/thumbnails';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
 const MCP_SERVER_VERSION = '2.0.0';
@@ -444,7 +448,7 @@ function createMcpServer(userId: string): McpServer {
 		'get_project_preview',
 		{
 			description:
-				'Get a visual preview of the project layout. Returns the project thumbnail (rendered canvas snapshot) or the floorplan image if no thumbnail exists yet. Useful for understanding the current spatial layout.',
+				'Get a visual preview of the project layout. Returns the project thumbnail (rendered canvas snapshot). If no thumbnail exists, one will be automatically generated from the floorplan and placed items. Useful for understanding the current spatial layout. The image is returned as base64-encoded data that AI clients can display.',
 			inputSchema: {
 				project_id: z.string().uuid()
 			}
@@ -452,55 +456,58 @@ function createMcpServer(userId: string): McpServer {
 		async ({ project_id }) => {
 			await ensureProjectRole(project_id, 'viewer');
 
-			// Try thumbnail first
-			const thumbPath = join(config.uploads.dir, 'thumbnails', `${project_id}.png`);
-			try {
-				const data = await readFile(thumbPath);
-				return {
-					content: [
-						{
-							type: 'text' as const,
-							text: 'Project thumbnail (rendered canvas snapshot):'
-						},
-						{
-							type: 'image' as const,
-							data: data.toString('base64'),
-							mimeType: 'image/png'
-						}
-					]
-				};
-			} catch {
-				// No thumbnail, try floorplan
-			}
+			const thumbPath = getThumbnailPath(project_id);
+			let thumbnailData: Buffer | null = null;
+			let wasGenerated = false;
 
-			// Try floorplan
-			const floorplan = await getProjectFloorplan(project_id);
-			if (floorplan) {
-				const floorplanFilePath = getFloorplanPath(project_id, floorplan.filename);
+			// Try to load existing thumbnail
+			try {
+				await access(thumbPath);
+				thumbnailData = await readFile(thumbPath);
+				console.log(`[MCP] Loaded existing thumbnail for ${project_id}`);
+			} catch {
+				// Thumbnail doesn't exist - generate it
+				console.log(`[MCP] Generating thumbnail for ${project_id}...`);
 				try {
-					const data = await readFile(floorplanFilePath);
-					return {
-						content: [
-							{
-								type: 'text' as const,
-								text: 'Floorplan image (no rendered thumbnail available yet — thumbnail generates when a user views the project in browser):'
-							},
-							{
-								type: 'image' as const,
-								data: data.toString('base64'),
-								mimeType: floorplan.mimeType
-							}
-						]
-					};
-				} catch {
-					// File missing on disk
+					await generateAndSaveThumbnail(project_id);
+					thumbnailData = await readFile(thumbPath);
+					wasGenerated = true;
+					console.log(`[MCP] Successfully generated thumbnail for ${project_id}`);
+				} catch (err) {
+					console.error(`[MCP] Failed to generate thumbnail for ${project_id}:`, err);
+					return asText({
+						error: 'Could not generate preview',
+						message:
+							err instanceof Error
+								? err.message
+								: 'Failed to generate thumbnail. The project may not have a floorplan or any placed items.'
+					});
 				}
 			}
 
-			return asText({
-				message:
-					'No preview available. The project has no thumbnail yet (it generates when a user views the project in the browser) and no floorplan has been uploaded.'
-			});
+			if (!thumbnailData) {
+				return asText({
+					error: 'No preview available',
+					message: 'Unable to load or generate project thumbnail.'
+				});
+			}
+
+			const base64 = thumbnailData.toString('base64');
+			const source = wasGenerated ? 'Generated from floorplan and items' : 'Cached thumbnail';
+
+			return {
+				content: [
+					{
+						type: 'text' as const,
+						text: `Project preview (${source})\nSize: ${thumbnailData.length} bytes`
+					},
+					{
+						type: 'image' as const,
+						data: base64,
+						mimeType: 'image/png'
+					}
+				]
+			};
 		}
 	);
 
