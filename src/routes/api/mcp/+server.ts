@@ -35,6 +35,7 @@ import {
 	getThumbnailPath,
 	generateAndSaveThumbnail
 } from '$lib/server/thumbnails';
+import { analyzeFloorplanFile } from '$lib/server/floorplan-analysis';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
 const MCP_SERVER_VERSION = '2.0.0';
@@ -644,6 +645,52 @@ function createMcpServer(userId: string): McpServer {
 			}
 
 			return asText({ success: true, image_id });
+		}
+	);
+
+	server.registerTool(
+		'analyze_floorplan',
+		{
+			description:
+				'Analyze the floorplan image using AI vision to extract structured data about rooms, walls, doors, windows, and dimensions. Returns detailed JSON with room boundaries, wall positions, openings, and scale information. Useful for understanding the spatial layout before placing furniture. Requires ANTHROPIC_API_KEY to be configured.',
+			inputSchema: {
+				project_id: z.string().uuid()
+			}
+		},
+		async ({ project_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+
+			const floorplan = await getProjectFloorplan(project_id);
+			if (!floorplan) {
+				throw new Error(
+					'No floorplan found for this project. Please upload a floorplan image first.'
+				);
+			}
+
+			const floorplanPath = getFloorplanPath(project_id, floorplan.filename);
+
+			try {
+				console.log(`[MCP] Analyzing floorplan for project ${project_id}...`);
+				const analysis = await analyzeFloorplanFile(floorplanPath, floorplan.mimeType);
+				console.log(`[MCP] Floorplan analysis complete. Found ${analysis.rooms.length} rooms.`);
+
+				return asText({
+					success: true,
+					analysis,
+					summary: {
+						rooms_detected: analysis.rooms.length,
+						walls_detected: analysis.walls.length,
+						openings_detected: analysis.openings.length,
+						has_scale: !!analysis.scale,
+						confidence: analysis.metadata?.confidence
+					}
+				});
+			} catch (err) {
+				console.error(`[MCP] Floorplan analysis failed:`, err);
+				throw new Error(
+					`Failed to analyze floorplan: ${err instanceof Error ? err.message : String(err)}`
+				);
+			}
 		}
 	);
 
