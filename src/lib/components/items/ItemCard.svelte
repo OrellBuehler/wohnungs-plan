@@ -6,6 +6,7 @@
   import * as Card from '$lib/components/ui/card';
   import { Separator } from '$lib/components/ui/separator';
   import { Pencil, MapPin, MapPinOff, Copy, Trash2, ExternalLink } from 'lucide-svelte';
+  import ImageViewer from './ImageViewer.svelte';
 
   interface Props {
     item: Item;
@@ -58,6 +59,14 @@
     pathParts.push('Z');
     return pathParts.join(' ');
   });
+
+  let showImageViewer = $state(false);
+  let imageViewerIndex = $state(0);
+
+  function openImageViewer(index: number) {
+    imageViewerIndex = index;
+    showImageViewer = true;
+  }
 
   function withStopPropagation(handler: () => void) {
     return (e: MouseEvent) => {
@@ -121,6 +130,20 @@
     </div>
 
     {#if isSelected}
+      {#if item.images && item.images.length > 0}
+        <Separator class="my-3" />
+        <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory">
+          {#each item.images as img, i (img.id)}
+            <button
+              type="button"
+              class="flex-shrink-0 w-20 h-16 rounded border border-slate-200 overflow-hidden snap-start hover:border-blue-400 transition-colors"
+              onclick={withStopPropagation(() => openImageViewer(i))}
+            >
+              <img src={img.thumbUrl} alt={img.originalName ?? 'Item image'} class="w-full h-full object-cover" />
+            </button>
+          {/each}
+        </div>
+      {/if}
       <Separator class="my-3" />
       <div class="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" class="min-h-[44px]" onclick={withStopPropagation(onEdit)}>
@@ -147,3 +170,12 @@
     {/if}
   </Card.Content>
 </Card.Root>
+
+{#if item.images && item.images.length > 0}
+  <ImageViewer
+    images={item.images}
+    initialIndex={imageViewerIndex}
+    bind:open={showImageViewer}
+    onClose={() => (showImageViewer = false)}
+  />
+{/if}
