@@ -365,6 +365,54 @@ export const oauthAuthorizationCodes = pgTable(
 	]
 );
 
+// Comments (canvas pins and item-attached threads)
+export const comments = pgTable(
+	'comments',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		projectId: uuid('project_id')
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
+		branchId: uuid('branch_id')
+			.notNull()
+			.references(() => branches.id, { onDelete: 'cascade' }),
+		authorId: uuid('author_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		type: text('type').notNull(), // 'canvas' or 'item'
+		itemId: uuid('item_id').references(() => items.id, { onDelete: 'cascade' }),
+		x: real('x'),
+		y: real('y'),
+		resolved: integer('resolved').notNull().default(0), // 0=false, 1=true
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_comments_project_branch').on(table.projectId, table.branchId),
+		index('idx_comments_item_id').on(table.itemId),
+		check('comments_type_check', sql`${table.type} IN ('canvas', 'item')`)
+	]
+);
+
+// Comment replies (threaded messages)
+export const commentReplies = pgTable(
+	'comment_replies',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		commentId: uuid('comment_id')
+			.notNull()
+			.references(() => comments.id, { onDelete: 'cascade' }),
+		authorId: uuid('author_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		body: text('body').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_comment_replies_comment_id').on(table.commentId)
+	]
+);
+
 // Type exports for use in application code
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -398,3 +446,7 @@ export type OAuthToken = typeof oauthTokens.$inferSelect;
 export type NewOAuthToken = typeof oauthTokens.$inferInsert;
 export type OAuthAuthorizationCode = typeof oauthAuthorizationCodes.$inferSelect;
 export type NewOAuthAuthorizationCode = typeof oauthAuthorizationCodes.$inferInsert;
+export type Comment = typeof comments.$inferSelect;
+export type NewComment = typeof comments.$inferInsert;
+export type CommentReply = typeof commentReplies.$inferSelect;
+export type NewCommentReply = typeof commentReplies.$inferInsert;
