@@ -11,8 +11,10 @@
     getItemShapePoints,
     getRotatedBoundingBox,
     selectNearestByDistance,
+    hasArchitecturalCollision,
     type BoundingBox
   } from '$lib/utils/geometry';
+  import { getFloorplanAnalysis, isWallsDoorsVisible } from '$lib/stores/project.svelte';
   import {
     buildDimensionMap,
     buildIdMap,
@@ -126,6 +128,9 @@
   let alignmentGuides = $state<{ type: 'h' | 'v'; pos: number }[]>([]);
   let draggingItemId = $state<string | null>(null);
   let dragPosition = $state<{ x: number; y: number } | null>(null);
+
+  // Architectural collision state (walls, doors, windows)
+  let architecturalCollisionItemId = $state<string | null>(null);
 
   // Context menu state
   let contextMenuOpen = $state(false);
@@ -253,6 +258,7 @@
     draggingItemId = null;
     dragPosition = null;
     alignmentGuides = [];
+    architecturalCollisionItemId = null;
   }
 
   function handleDragStart(itemId: string) {
@@ -338,6 +344,27 @@
     if (snapY !== null) node.y(snapY);
 
     alignmentGuides = guides;
+
+    // Check for architectural collisions (walls, doors, windows)
+    if (isWallsDoorsVisible()) {
+      const analysis = getFloorplanAnalysis();
+      const finalX = node.x();
+      const finalY = node.y();
+
+      const hasCollision = hasArchitecturalCollision(
+        finalX,
+        finalY,
+        dragW,
+        dragH,
+        analysis.walls,
+        analysis.doors,
+        analysis.windows
+      );
+
+      architecturalCollisionItemId = hasCollision ? itemId : null;
+    } else {
+      architecturalCollisionItemId = null;
+    }
   }
 
   function handleRotate(itemId: string, direction: 'cw' | 'ccw') {
@@ -1005,11 +1032,12 @@
       <!-- Furniture items -->
       {#each placedItems as item (item.id)}
         {@const isOverlapping = overlappingIds.has(item.id)}
+        {@const hasArchCollision = architecturalCollisionItemId === item.id}
         {@const itemDimensions = itemDimensionsPxById.get(item.id)}
         {@const itemWidthPx = itemDimensions?.widthPx ?? item.width * effectiveScale}
         {@const itemHeightPx = itemDimensions?.heightPx ?? item.height * effectiveScale}
-        {@const showStroke = longPressItemId === item.id || selectedItemId === item.id || isOverlapping}
-        {@const strokeColor = longPressItemId === item.id ? '#3B82F6' : (selectedItemId === item.id ? '#60A5FA' : '#DC2626')}
+        {@const showStroke = longPressItemId === item.id || selectedItemId === item.id || isOverlapping || hasArchCollision}
+        {@const strokeColor = longPressItemId === item.id ? '#3B82F6' : (selectedItemId === item.id ? '#60A5FA' : (hasArchCollision ? '#EA580C' : '#DC2626'))}
         {@const strokeWidth = longPressItemId === item.id ? 3 : 2}
         {@const displayPos = resolveItemDisplayPosition({
           itemId: item.id,
@@ -1040,8 +1068,8 @@
             <Line
               points={getItemShapePoints(item, effectiveScale)}
               closed={true}
-              fill={isOverlapping ? '#F87171' : item.color}
-              opacity={isOverlapping ? 0.7 : 1}
+              fill={hasArchCollision ? '#FB923C' : (isOverlapping ? '#F87171' : item.color)}
+              opacity={hasArchCollision || isOverlapping ? 0.7 : 1}
               shadowColor="black"
               shadowBlur={itemShadowStyle.blur}
               shadowOpacity={itemShadowStyle.opacity}
@@ -1057,8 +1085,8 @@
             <Rect
               width={itemWidthPx}
               height={itemHeightPx}
-              fill={isOverlapping ? '#F87171' : item.color}
-              opacity={isOverlapping ? 0.7 : 1}
+              fill={hasArchCollision ? '#FB923C' : (isOverlapping ? '#F87171' : item.color)}
+              opacity={hasArchCollision || isOverlapping ? 0.7 : 1}
               shadowColor="black"
               shadowBlur={itemShadowStyle.blur}
               shadowOpacity={itemShadowStyle.opacity}

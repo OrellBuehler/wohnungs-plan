@@ -399,3 +399,243 @@ export function getOverlappingItems(items: Item[], scale: number): Set<string> {
 
   return overlapping;
 }
+
+// ============================================================================
+// Architectural Collision Detection (Walls, Doors, Windows)
+// ============================================================================
+
+import type { Wall, Door, Window } from '$lib/stores/project.svelte';
+
+/**
+ * Check if a rectangular item intersects with a wall (line segment)
+ */
+export function intersectsWall(
+	itemX: number,
+	itemY: number,
+	itemWidth: number,
+	itemHeight: number,
+	wall: Wall
+): boolean {
+	const [x1, y1] = wall.start;
+	const [x2, y2] = wall.end;
+
+	// Item bounding box
+	const rectLeft = itemX;
+	const rectRight = itemX + itemWidth;
+	const rectTop = itemY;
+	const rectBottom = itemY + itemHeight;
+
+	// Check if line segment intersects with rectangle
+	return lineIntersectsRect(x1, y1, x2, y2, rectLeft, rectTop, rectRight, rectBottom);
+}
+
+/**
+ * Check if a rectangular item blocks a door (overlaps with door swing arc)
+ */
+export function blocksDoor(
+	itemX: number,
+	itemY: number,
+	itemWidth: number,
+	itemHeight: number,
+	door: Door
+): boolean {
+	const doorRadius = door.width || 30;
+	const [dx, dy] = door.position;
+
+	// Check if item rectangle overlaps with door swing circle
+	return circleIntersectsRect(dx, dy, doorRadius, itemX, itemY, itemWidth, itemHeight);
+}
+
+/**
+ * Check if a rectangular item blocks a window
+ */
+export function blocksWindow(
+	itemX: number,
+	itemY: number,
+	itemWidth: number,
+	itemHeight: number,
+	window: Window
+): boolean {
+	const windowWidth = window.width || 20;
+	const [wx, wy] = window.position;
+
+	// Windows are represented as double lines, check if item overlaps
+	const windowLeft = wx - windowWidth / 2;
+	const windowRight = wx + windowWidth / 2;
+	const windowTop = wy - 5;
+	const windowBottom = wy + 5;
+
+	const rectLeft = itemX;
+	const rectRight = itemX + itemWidth;
+	const rectTop = itemY;
+	const rectBottom = itemY + itemHeight;
+
+	// Rectangle overlap check
+	return !(
+		rectRight < windowLeft ||
+		rectLeft > windowRight ||
+		rectBottom < windowTop ||
+		rectTop > windowBottom
+	);
+}
+
+/**
+ * Check if any walls are intersected by the item
+ */
+export function checkWallCollisions(
+	itemX: number,
+	itemY: number,
+	itemWidth: number,
+	itemHeight: number,
+	walls: Wall[]
+): boolean {
+	return walls.some((wall) => intersectsWall(itemX, itemY, itemWidth, itemHeight, wall));
+}
+
+/**
+ * Check if any doors are blocked by the item
+ */
+export function checkDoorCollisions(
+	itemX: number,
+	itemY: number,
+	itemWidth: number,
+	itemHeight: number,
+	doors: Door[]
+): boolean {
+	return doors.some((door) => blocksDoor(itemX, itemY, itemWidth, itemHeight, door));
+}
+
+/**
+ * Check if any windows are blocked by the item
+ */
+export function checkWindowCollisions(
+	itemX: number,
+	itemY: number,
+	itemWidth: number,
+	itemHeight: number,
+	windows: Window[]
+): boolean {
+	return windows.some((window) => blocksWindow(itemX, itemY, itemWidth, itemHeight, window));
+}
+
+/**
+ * Check if item has any architectural collisions (walls, doors, or windows)
+ */
+export function hasArchitecturalCollision(
+	itemX: number,
+	itemY: number,
+	itemWidth: number,
+	itemHeight: number,
+	walls: Wall[],
+	doors: Door[],
+	windows: Window[]
+): boolean {
+	return (
+		checkWallCollisions(itemX, itemY, itemWidth, itemHeight, walls) ||
+		checkDoorCollisions(itemX, itemY, itemWidth, itemHeight, doors) ||
+		checkWindowCollisions(itemX, itemY, itemWidth, itemHeight, windows)
+	);
+}
+
+// ============================================================================
+// Internal helper functions for architectural collision
+// ============================================================================
+
+/**
+ * Check if a line segment intersects with a rectangle
+ */
+function lineIntersectsRect(
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+	rectLeft: number,
+	rectTop: number,
+	rectRight: number,
+	rectBottom: number
+): boolean {
+	// Check if either endpoint is inside the rectangle
+	if (pointInRect(x1, y1, rectLeft, rectTop, rectRight, rectBottom)) return true;
+	if (pointInRect(x2, y2, rectLeft, rectTop, rectRight, rectBottom)) return true;
+
+	// Check if line intersects any of the rectangle's edges
+	// Top edge
+	if (lineIntersectsLine(x1, y1, x2, y2, rectLeft, rectTop, rectRight, rectTop)) return true;
+	// Right edge
+	if (lineIntersectsLine(x1, y1, x2, y2, rectRight, rectTop, rectRight, rectBottom)) return true;
+	// Bottom edge
+	if (lineIntersectsLine(x1, y1, x2, y2, rectLeft, rectBottom, rectRight, rectBottom))
+		return true;
+	// Left edge
+	if (lineIntersectsLine(x1, y1, x2, y2, rectLeft, rectTop, rectLeft, rectBottom)) return true;
+
+	return false;
+}
+
+/**
+ * Check if a point is inside a rectangle
+ */
+function pointInRect(
+	px: number,
+	py: number,
+	rectLeft: number,
+	rectTop: number,
+	rectRight: number,
+	rectBottom: number
+): boolean {
+	return px >= rectLeft && px <= rectRight && py >= rectTop && py <= rectBottom;
+}
+
+/**
+ * Check if two line segments intersect
+ */
+function lineIntersectsLine(
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+	x3: number,
+	y3: number,
+	x4: number,
+	y4: number
+): boolean {
+	// Calculate direction vectors
+	const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+
+	// Lines are parallel
+	if (denom === 0) return false;
+
+	const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+	const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+
+	// Intersection point is within both line segments
+	return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
+}
+
+/**
+ * Check if a circle intersects with a rectangle
+ */
+function circleIntersectsRect(
+	cx: number,
+	cy: number,
+	radius: number,
+	rectLeft: number,
+	rectTop: number,
+	rectWidth: number,
+	rectHeight: number
+): boolean {
+	const rectRight = rectLeft + rectWidth;
+	const rectBottom = rectTop + rectHeight;
+
+	// Find closest point on rectangle to circle center
+	const closestX = Math.max(rectLeft, Math.min(cx, rectRight));
+	const closestY = Math.max(rectTop, Math.min(cy, rectBottom));
+
+	// Calculate distance from circle center to closest point
+	const distX = cx - closestX;
+	const distY = cy - closestY;
+	const distanceSquared = distX * distX + distY * distY;
+
+	// Check if distance is less than radius
+	return distanceSquared < radius * radius;
+}

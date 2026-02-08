@@ -313,7 +313,7 @@ function createMcpServer(userId: string): McpServer {
 	server.registerTool(
 		'update_furniture_item',
 		{
-			description: 'Update an existing furniture item in a project branch.',
+			description: 'Update an existing furniture item in a project branch. When setting position (x, y), first check get_floorplan_analysis for architectural constraints. The UI will show orange highlighting if items collide with walls/doors/windows. Avoid placing items that block doorways (respect door swing areas) or intersect walls. Position coordinates are in canvas pixels.',
 			inputSchema: {
 				project_id: z.string().uuid(),
 				branch_id: z.string().uuid(),
@@ -453,7 +453,7 @@ function createMcpServer(userId: string): McpServer {
 		'get_project_preview',
 		{
 			description:
-				'Get a visual preview of the project layout. Returns the project thumbnail (rendered canvas snapshot). If no thumbnail exists, one will be automatically generated from the floorplan and placed items. Useful for understanding the current spatial layout. The image is returned as base64-encoded data that AI clients can display.',
+				'Get a visual preview of the project layout. Returns the project thumbnail (rendered canvas snapshot) showing the floorplan, placed items, and architectural elements (walls/doors/windows if analysis exists). If no thumbnail exists, one will be automatically generated. The image is returned as base64-encoded data that AI clients can display. Use this first to see the current layout before suggesting changes.',
 			inputSchema: {
 				project_id: z.string().uuid()
 			}
@@ -656,7 +656,7 @@ function createMcpServer(userId: string): McpServer {
 		'save_floorplan_analysis',
 		{
 			description:
-				'Save structured floorplan analysis data extracted from the floorplan image. This data helps AI understand room layouts, wall positions, doors, and windows for better furniture placement. The AI agent should first get the floorplan image using get_project_preview, analyze it themselves (using their own vision capabilities), and then save the structured data here. This costs the user nothing extra since they are already paying for their AI usage.',
+				'Save structured floorplan analysis data extracted from the floorplan image. This data enables intelligent furniture placement by detecting collisions with walls, doors, and windows. When saved, the UI will automatically show architectural elements as a visual layer and prevent users from placing furniture in invalid positions (e.g., blocking doorways, intersecting walls). The AI agent should first get the floorplan image using get_project_preview, analyze it using their vision capabilities, then save the structured data here. This approach costs the user nothing extra since they are already paying for their AI usage. IMPORTANT: Provide accurate door positions and widths - the system uses door swing radius for collision detection.',
 			inputSchema: {
 				project_id: z.string().uuid(),
 				analysis: z.object({
@@ -737,7 +737,7 @@ function createMcpServer(userId: string): McpServer {
 		'get_floorplan_analysis',
 		{
 			description:
-				'Retrieve previously saved floorplan analysis data. Returns structured information about rooms, walls, doors, and windows that was extracted from the floorplan image. Use this to understand the spatial layout before suggesting furniture placement.',
+				'Retrieve previously saved floorplan analysis data. Returns structured information about rooms, walls, doors, and windows that was extracted from the floorplan image. Use this to understand the spatial layout before suggesting furniture placement. When architectural data exists, the UI provides real-time collision detection: items turn orange when dragged over walls/doors/windows, helping users avoid invalid placements. Consider door swing areas (typically 90-degree arcs) when suggesting furniture positions - avoid placing items that would block door operation.',
 			inputSchema: {
 				project_id: z.string().uuid()
 			}
