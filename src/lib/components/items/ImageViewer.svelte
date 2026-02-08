@@ -68,6 +68,7 @@
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleClose()}>
   <Dialog.Content
     class="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-black/95 overflow-hidden"
+    showCloseButton={false}
     onkeydown={handleKeydown}
   >
     <!-- svelte-ignore a11y_no_static_element_interactions -->
