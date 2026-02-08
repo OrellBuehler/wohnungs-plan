@@ -38,13 +38,17 @@ This PR implements the testing infrastructure planned to prevent the race condit
 - Executes `bun test` and blocks deployment on failures
 - Build job now depends on test job passing
 
-### ⏭️ Phase 2 & 3: Deferred
+### ✅ Phase 2: Store Decision Logic Tests (Complete)
 
-**Store Decision Logic Tests** - Requires Svelte 5 rune support in test environment
-- Created comprehensive test files for `auth.svelte.ts` and `project.svelte.ts`
-- Tests cover the critical auth/online/isLocal state matrix
-- **Issue**: Svelte 5's `$state` rune not available in Vitest/Bun test environment
-- **Resolution**: Deferred pending Svelte testing utilities for Svelte 5
+**Store Decision Logic Tests** - Successfully implemented with Svelte 5 rune support
+- ✅ Created `auth.svelte.test.ts` (12 tests) - auth state management
+- ✅ Created `project.svelte.test.ts` (8 tests) - critical decision logic
+- ✅ Tests cover the auth/online/isLocal state matrix
+- ✅ **Critical test**: Branch switching fetches from API when authenticated + online
+- **Key discovery**: Test files must use `.svelte.test.ts` naming to support runes
+- **Solution**: Use `vitest` directly (via `bun run test`) instead of `bun test`
+
+### ⏭️ Phase 3: Deferred
 
 **Server Pure Function Tests** - Requires SvelteKit environment mocking
 - Created OAuth pure function tests (`oauth.test.ts`)
@@ -55,18 +59,23 @@ This PR implements the testing infrastructure planned to prevent the race condit
 ## Current Test Status
 
 ```bash
-$ bun test
- 46 pass
+$ bun run test
+ 66 pass
  0 fail
- 85 expect() calls
-Ran 46 tests across 4 files.
+Ran 66 tests across 6 files.
 ```
 
-All existing utility tests pass:
-- `src/lib/utils/branch-sync.test.ts` (5 tests)
-- `src/lib/utils/canvas-math.test.ts` (several tests)
-- `src/lib/utils/canvas-performance.test.ts` (several tests)
-- `src/lib/utils/geometry.test.ts` (several tests)
+**Test Breakdown:**
+- **46 utility tests** (existing - all passing)
+  - `src/lib/utils/branch-sync.test.ts` (5 tests)
+  - `src/lib/utils/canvas-math.test.ts`
+  - `src/lib/utils/canvas-performance.test.ts`
+  - `src/lib/utils/geometry.test.ts`
+- **12 auth store tests** (new - auth state management)
+  - `src/lib/stores/auth.svelte.test.ts`
+- **8 project store tests** (new - critical decision logic)
+  - `src/lib/stores/project.svelte.test.ts`
+  - **Includes critical bug prevention test**: Branch switching with auth+online
 
 ## Dependencies Added
 
@@ -115,10 +124,20 @@ new:        src/lib/test-utils/mocks/env.ts
 
 ## Impact
 
-- ✅ **Zero Risk**: All existing tests still pass
+- ✅ **Zero Risk**: All existing tests still pass (46 tests)
 - ✅ **CI Protection**: Tests now run before deployment
 - ✅ **Foundation Ready**: Infrastructure in place for comprehensive test suite
-- ⏭️ **Store Tests**: Deferred pending Svelte 5 test tooling
+- ✅ **Store Tests Complete**: 20 new tests covering auth/online/isLocal decision matrix
+- ✅ **Bug Prevention**: Critical test prevents race condition in branch switching
+- ✅ **Bug Fix**: logout() now clears state even on API failure
 - ⏭️ **Server Tests**: Deferred pending SvelteKit test environment
 
-This PR successfully implements the testing infrastructure and CI integration while deferring the more complex Svelte 5 and SvelteKit-specific tests until proper testing utilities are available.
+## Key Discovery: Svelte 5 Testing
+
+The official Svelte 5 docs (https://svelte.dev/docs/svelte/testing) provide the solution:
+- Test files must include `.svelte` in the filename (e.g., `auth.svelte.test.ts`)
+- Vitest processes `.svelte` files with the Svelte compiler
+- This enables use of runes (`$state`, `$derived`, `$effect`) in tests
+- Use `vitest` (via `bun run test`) instead of `bun test` runner
+
+This PR successfully implements comprehensive store testing with full Svelte 5 rune support.
