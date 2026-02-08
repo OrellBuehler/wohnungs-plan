@@ -27,7 +27,11 @@ type WSMessage =
 	| { type: 'select_item'; itemId: string | null }
 	| { type: 'item_updated'; item: unknown; branchId?: string }
 	| { type: 'item_created'; item: unknown; branchId?: string }
-	| { type: 'item_deleted'; itemId: string; branchId?: string };
+	| { type: 'item_deleted'; itemId: string; branchId?: string }
+	| { type: 'comment_created'; comment: unknown }
+	| { type: 'reply_created'; commentId: string; reply: unknown }
+	| { type: 'comment_resolved'; commentId: string; resolved: boolean }
+	| { type: 'comment_deleted'; commentId: string };
 
 const projectConnections = new Map<string, Set<ServerWebSocket<WSData>>>();
 
@@ -165,6 +169,13 @@ export function handleWSMessage(ws: ServerWebSocket<WSData>, message: string): v
 			case 'item_created':
 			case 'item_deleted':
 				// Broadcast to others (the sender already has the update)
+				broadcastToProject(roomId, { ...msg, branchId }, connectionId);
+				break;
+
+			case 'comment_created':
+			case 'reply_created':
+			case 'comment_resolved':
+			case 'comment_deleted':
 				broadcastToProject(roomId, { ...msg, branchId }, connectionId);
 				break;
 		}

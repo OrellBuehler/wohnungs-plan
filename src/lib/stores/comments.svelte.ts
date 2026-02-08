@@ -1,3 +1,10 @@
+import {
+	sendCommentCreated,
+	sendReplyCreated,
+	sendCommentResolved,
+	sendCommentDeleted
+} from './collaboration.svelte';
+
 // Client-side types (no server imports)
 export interface ClientComment {
 	id: string;
@@ -154,6 +161,7 @@ export async function createCanvasComment(
 		state.comments = [...state.comments, comment];
 		state.activeCommentId = comment.id;
 		state.placementMode = false;
+		sendCommentCreated(data.comment);
 		return comment;
 	} catch (err) {
 		console.error('Failed to create canvas comment:', err);
@@ -181,6 +189,7 @@ export async function createItemComment(
 		const comment: ClientComment = data.comment;
 		state.comments = [...state.comments, comment];
 		state.activeCommentId = comment.id;
+		sendCommentCreated(data.comment);
 		return comment;
 	} catch (err) {
 		console.error('Failed to create item comment:', err);
@@ -208,6 +217,7 @@ export async function addReplyToComment(
 		state.comments = state.comments.map((c) =>
 			c.id === commentId ? { ...c, replies: [...c.replies, reply] } : c
 		);
+		sendReplyCreated(commentId, data.reply);
 		return reply;
 	} catch (err) {
 		console.error('Failed to add reply:', err);
@@ -220,16 +230,18 @@ export async function toggleResolve(projectId: string, commentId: string): Promi
 	if (!comment) return;
 
 	const previousResolved = comment.resolved;
+	const newResolved = !previousResolved;
 	// Optimistic update
 	state.comments = state.comments.map((c) =>
-		c.id === commentId ? { ...c, resolved: !previousResolved } : c
+		c.id === commentId ? { ...c, resolved: newResolved } : c
 	);
+	sendCommentResolved(commentId, newResolved);
 
 	try {
 		const res = await fetch(`/api/projects/${projectId}/comments/${commentId}`, {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ resolved: !previousResolved })
+			body: JSON.stringify({ resolved: newResolved })
 		});
 		if (!res.ok) {
 			// Revert on failure
@@ -254,6 +266,7 @@ export async function removeComment(projectId: string, commentId: string): Promi
 	if (state.activeCommentId === commentId) {
 		state.activeCommentId = null;
 	}
+	sendCommentDeleted(commentId);
 
 	try {
 		const res = await fetch(`/api/projects/${projectId}/comments/${commentId}`, {

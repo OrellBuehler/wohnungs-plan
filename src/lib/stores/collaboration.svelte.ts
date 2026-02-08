@@ -1,4 +1,10 @@
 import { isAuthenticated } from './auth.svelte';
+import {
+	handleRemoteCommentCreated,
+	handleRemoteReplyCreated,
+	handleRemoteCommentResolved,
+	handleRemoteCommentDeleted
+} from './comments.svelte';
 
 interface RemoteUser {
 	id: string;
@@ -158,6 +164,22 @@ function handleMessage(msg: unknown): void {
 		case 'item_unlocked':
 			state.lockedItems.delete(message.itemId as string);
 			break;
+
+		case 'comment_created':
+			handleRemoteCommentCreated(message.comment as Parameters<typeof handleRemoteCommentCreated>[0]);
+			break;
+		case 'reply_created':
+			handleRemoteReplyCreated(
+				message.commentId as string,
+				message.reply as Parameters<typeof handleRemoteReplyCreated>[1]
+			);
+			break;
+		case 'comment_resolved':
+			handleRemoteCommentResolved(message.commentId as string, message.resolved as boolean);
+			break;
+		case 'comment_deleted':
+			handleRemoteCommentDeleted(message.commentId as string);
+			break;
 	}
 }
 
@@ -197,4 +219,24 @@ export function sendItemCreated(item: unknown): void {
 export function sendItemDeleted(itemId: string): void {
 	if (!ws || ws.readyState !== WebSocket.OPEN) return;
 	ws.send(JSON.stringify({ type: 'item_deleted', itemId }));
+}
+
+export function sendCommentCreated(comment: unknown): void {
+	if (!ws || ws.readyState !== WebSocket.OPEN) return;
+	ws.send(JSON.stringify({ type: 'comment_created', comment }));
+}
+
+export function sendReplyCreated(commentId: string, reply: unknown): void {
+	if (!ws || ws.readyState !== WebSocket.OPEN) return;
+	ws.send(JSON.stringify({ type: 'reply_created', commentId, reply }));
+}
+
+export function sendCommentResolved(commentId: string, resolved: boolean): void {
+	if (!ws || ws.readyState !== WebSocket.OPEN) return;
+	ws.send(JSON.stringify({ type: 'comment_resolved', commentId, resolved }));
+}
+
+export function sendCommentDeleted(commentId: string): void {
+	if (!ws || ws.readyState !== WebSocket.OPEN) return;
+	ws.send(JSON.stringify({ type: 'comment_deleted', commentId }));
 }
