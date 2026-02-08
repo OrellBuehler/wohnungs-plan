@@ -12,6 +12,11 @@ let state = $state<AuthState>({
 	isAuthenticated: false
 });
 
+let authReadyResolve: (() => void) | null = null;
+const authReadyPromise = new Promise<void>((resolve) => {
+	authReadyResolve = resolve;
+});
+
 export function getAuthState(): AuthState {
 	return state;
 }
@@ -41,7 +46,12 @@ export async function fetchUser(): Promise<void> {
 		state.isAuthenticated = false;
 	} finally {
 		state.isLoading = false;
+		authReadyResolve?.();
 	}
+}
+
+export function waitForAuth(): Promise<void> {
+	return authReadyPromise;
 }
 
 export function login(): void {

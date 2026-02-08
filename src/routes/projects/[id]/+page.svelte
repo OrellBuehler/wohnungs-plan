@@ -11,7 +11,7 @@
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
-	import { isAuthenticated } from '$lib/stores/auth.svelte';
+	import { isAuthenticated, waitForAuth } from '$lib/stores/auth.svelte';
 	import { registerProjectContext, clearProjectContext } from '$lib/stores/sidebar.svelte';
 	import type { ProjectActionGroup, BranchContext } from '$lib/stores/sidebar.svelte';
 	import type { PageData } from './$types';
@@ -496,6 +496,7 @@
 			goto('/');
 			return;
 		}
+		await waitForAuth();
 		const branchParam = $page.url.searchParams.get('branch') ?? undefined;
 		const loaded = await loadProjectById(id, branchParam);
 		if (loaded) {

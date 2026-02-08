@@ -459,33 +459,33 @@ export async function setActiveBranch(branchId: string): Promise<boolean> {
 	if (!currentProject) return false;
 	if (!currentProject.branches?.some((branch) => branch.id === branchId)) return false;
 
-	if (currentProject.isLocal || !shouldSyncProject()) {
-		currentProject.activeBranchId = branchId;
-		debounceAutoSave();
-		return true;
-	}
-
-	try {
-		const response = await fetch(
-			`/api/projects/${currentProject.id}/branches/${branchId}/items`
-		);
-		if (!response.ok) {
-			throw new Error('Failed to load branch items');
+	// Try cloud path if authenticated and online (even if project was loaded as local)
+	if (useRemote()) {
+		try {
+			const response = await fetch(
+				`/api/projects/${currentProject.id}/branches/${branchId}/items`
+			);
+			if (response.ok) {
+				const data = await response.json();
+				// Reassign entire object to guarantee Svelte 5 reactivity propagation
+				currentProject = {
+					...currentProject,
+					items: (data.items ?? []).map(mapApiItem),
+					activeBranchId: branchId,
+					isLocal: false
+				};
+				await saveLocalProject(currentProject);
+				return true;
+			}
+		} catch (error) {
+			console.error('Failed to load branch items from cloud:', error);
 		}
-
-		const data = await response.json();
-		// Reassign entire object to guarantee Svelte 5 reactivity propagation
-		currentProject = {
-			...currentProject,
-			items: (data.items ?? []).map(mapApiItem),
-			activeBranchId: branchId
-		};
-		await saveLocalProject(currentProject);
-		return true;
-	} catch (error) {
-		console.error('Failed to switch branch:', error);
-		return false;
 	}
+
+	// Fallback: local-only branch switch (no items reload)
+	currentProject.activeBranchId = branchId;
+	debounceAutoSave();
+	return true;
 }
 
 export async function createProjectBranch(
