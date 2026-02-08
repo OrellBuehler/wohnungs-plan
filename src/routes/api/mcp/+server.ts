@@ -35,7 +35,11 @@ import {
 	getThumbnailPath,
 	generateAndSaveThumbnail
 } from '$lib/server/thumbnails';
-import { analyzeFloorplanFile } from '$lib/server/floorplan-analysis';
+import {
+	saveFloorplanAnalysis,
+	getFloorplanAnalysis,
+	type FloorplanAnalysisData
+} from '$lib/server/floorplan-analyses';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
 const MCP_SERVER_VERSION = '2.0.0';
@@ -649,10 +653,91 @@ function createMcpServer(userId: string): McpServer {
 	);
 
 	server.registerTool(
-		'analyze_floorplan',
+		'save_floorplan_analysis',
 		{
 			description:
-				'Analyze the floorplan image using AI vision to extract structured data about rooms, walls, doors, windows, and dimensions. Returns detailed JSON with room boundaries, wall positions, openings, and scale information. Useful for understanding the spatial layout before placing furniture. Requires ANTHROPIC_API_KEY to be configured.',
+				'Save structured floorplan analysis data extracted from the floorplan image. This data helps AI understand room layouts, wall positions, doors, and windows for better furniture placement. The AI agent should first get the floorplan image using get_project_preview, analyze it themselves (using their own vision capabilities), and then save the structured data here. This costs the user nothing extra since they are already paying for their AI usage.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				analysis: z.object({
+					rooms: z
+						.array(
+							z.object({
+								id: z.string(),
+								type: z.string(),
+								polygon: z.array(z.tuple([z.number(), z.number()])),
+								area_sqm: z.number().optional(),
+								dimensions: z.object({ width: z.number(), height: z.number() }).optional(),
+								label: z.string().optional()
+							})
+						)
+						.describe('Array of room objects with boundaries and metadata'),
+					walls: z
+						.array(
+							z.object({
+								id: z.string(),
+								start: z.tuple([z.number(), z.number()]),
+								end: z.tuple([z.number(), z.number()]),
+								thickness: z.number().optional()
+							})
+						)
+						.describe('Array of wall segments'),
+					openings: z
+						.array(
+							z.object({
+								id: z.string(),
+								type: z.enum(['door', 'window']),
+								position: z.tuple([z.number(), z.number()]),
+								width: z.number().optional(),
+								wall_id: z.string().optional()
+							})
+						)
+						.describe('Array of doors and windows'),
+					scale: z
+						.object({
+							pixels_per_meter: z.number(),
+							reference_length: z.number().optional(),
+							unit: z.string().optional()
+						})
+						.optional()
+						.describe('Scale information for converting pixels to real-world units'),
+					metadata: z
+						.object({
+							confidence: z.number().optional(),
+							notes: z.string().optional(),
+							analyzed_with: z.string().optional()
+						})
+						.passthrough()
+						.optional()
+						.describe('Optional metadata about the analysis')
+				})
+			}
+		},
+		async ({ project_id, analysis }) => {
+			await ensureProjectRole(project_id, 'editor');
+
+			const saved = await saveFloorplanAnalysis(
+				project_id,
+				userId,
+				analysis as FloorplanAnalysisData
+			);
+
+			return asText({
+				success: true,
+				analysis_id: saved.id,
+				rooms_saved: analysis.rooms.length,
+				walls_saved: analysis.walls.length,
+				openings_saved: analysis.openings.length,
+				message: 'Floorplan analysis saved successfully. Future furniture placement can use this spatial data.'
+			});
+		}
+	);
+
+	server.registerTool(
+		'get_floorplan_analysis',
+		{
+			description:
+				'Retrieve previously saved floorplan analysis data. Returns structured information about rooms, walls, doors, and windows that was extracted from the floorplan image. Use this to understand the spatial layout before suggesting furniture placement.',
 			inputSchema: {
 				project_id: z.string().uuid()
 			}
@@ -660,37 +745,26 @@ function createMcpServer(userId: string): McpServer {
 		async ({ project_id }) => {
 			await ensureProjectRole(project_id, 'viewer');
 
-			const floorplan = await getProjectFloorplan(project_id);
-			if (!floorplan) {
-				throw new Error(
-					'No floorplan found for this project. Please upload a floorplan image first.'
-				);
-			}
+			const analysis = await getFloorplanAnalysis(project_id);
 
-			const floorplanPath = getFloorplanPath(project_id, floorplan.filename);
-
-			try {
-				console.log(`[MCP] Analyzing floorplan for project ${project_id}...`);
-				const analysis = await analyzeFloorplanFile(floorplanPath, floorplan.mimeType);
-				console.log(`[MCP] Floorplan analysis complete. Found ${analysis.rooms.length} rooms.`);
-
+			if (!analysis) {
 				return asText({
-					success: true,
-					analysis,
-					summary: {
-						rooms_detected: analysis.rooms.length,
-						walls_detected: analysis.walls.length,
-						openings_detected: analysis.openings.length,
-						has_scale: !!analysis.scale,
-						confidence: analysis.metadata?.confidence
-					}
+					success: false,
+					message:
+						'No floorplan analysis found. Use get_project_preview to view the floorplan image, analyze it with your vision capabilities, then save the structured data with save_floorplan_analysis.'
 				});
-			} catch (err) {
-				console.error(`[MCP] Floorplan analysis failed:`, err);
-				throw new Error(
-					`Failed to analyze floorplan: ${err instanceof Error ? err.message : String(err)}`
-				);
 			}
+
+			return asText({
+				success: true,
+				analysis,
+				summary: {
+					rooms_count: analysis.rooms.length,
+					walls_count: analysis.walls.length,
+					openings_count: analysis.openings.length,
+					has_scale: !!analysis.scale
+				}
+			});
 		}
 	);
 

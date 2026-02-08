@@ -9,7 +9,8 @@ import {
 	primaryKey,
 	index,
 	uniqueIndex,
-	check
+	check,
+	jsonb
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -101,6 +102,27 @@ export const floorplans = pgTable(
 		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
 	},
 	(table) => [index('idx_floorplans_project_id').on(table.projectId)]
+);
+
+// Floorplan Analyses (AI-extracted structured data)
+export const floorplanAnalyses = pgTable(
+	'floorplan_analyses',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		projectId: uuid('project_id')
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
+		data: jsonb('data').notNull(), // Structured analysis: rooms, walls, openings, scale
+		analyzedBy: uuid('analyzed_by')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+	},
+	(table) => [
+		index('idx_floorplan_analyses_project_id').on(table.projectId),
+		uniqueIndex('idx_floorplan_analyses_unique_project').on(table.projectId)
+	]
 );
 
 // Items (furniture)
@@ -354,6 +376,8 @@ export type Branch = typeof branches.$inferSelect;
 export type NewBranch = typeof branches.$inferInsert;
 export type Floorplan = typeof floorplans.$inferSelect;
 export type NewFloorplan = typeof floorplans.$inferInsert;
+export type FloorplanAnalysis = typeof floorplanAnalyses.$inferSelect;
+export type NewFloorplanAnalysis = typeof floorplanAnalyses.$inferInsert;
 export type Item = typeof items.$inferSelect;
 export type NewItem = typeof items.$inferInsert;
 export type ItemImage = typeof itemImages.$inferSelect;
