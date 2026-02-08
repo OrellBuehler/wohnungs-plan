@@ -7,7 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair } from 'lucide-svelte';
+	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair, MessageSquarePlus } from 'lucide-svelte';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
@@ -47,6 +47,9 @@
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
+	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, exitPlacementMode, isPlacementMode } from '$lib/stores/comments.svelte';
+	import CommentPanel from '$lib/components/comments/CommentPanel.svelte';
+	import PlacementOverlay from '$lib/components/comments/PlacementOverlay.svelte';
 
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
 	import FloorplanCanvas from '$lib/components/canvas/FloorplanCanvas.svelte';
@@ -516,6 +519,10 @@
 			if (authed && loaded.floorplan?.imageData?.startsWith('/api/')) {
 				isLocalProject = false;
 			}
+			// Load comments for this project
+			if (loaded.activeBranchId) {
+				loadComments(loaded.id, loaded.activeBranchId);
+			}
 		} else {
 			goto('/');
 		}
@@ -541,6 +548,7 @@
 
 	onDestroy(() => {
 		clearProjectContext();
+		resetComments();
 	});
 
 	// Register project context for sidebar
@@ -843,6 +851,23 @@
 		handleUnplaceItem(id);
 	}
 
+	// Comment actions
+	async function handleCommentPlace(x: number, y: number) {
+		const pid = projectId;
+		const branchId = activeBranch?.id;
+		if (!pid || !branchId) return;
+		await createCanvasComment(pid, branchId, x, y, 'New comment');
+	}
+
+	async function handlePlaceCommentMobile(_screenX: number, _screenY: number) {
+		const center = canvasRef?.getViewportCenterNatural();
+		if (!center) return;
+		const pid = projectId;
+		const branchId = activeBranch?.id;
+		if (!pid || !branchId) return;
+		await createCanvasComment(pid, branchId, center.x, center.y, 'New comment');
+	}
+
 	// Canvas actions
 	function handleItemSelect(id: string | null) {
 		selectedItemId = id;
@@ -1014,6 +1039,7 @@
 							onItemRotate={handleItemRotate}
 						onItemUnplace={handleUnplaceItem}
 						onThumbnailReady={handleThumbnailReady}
+						onCommentPlace={handleCommentPlace}
 					/>
 				{/if}
 			</div>
@@ -1028,6 +1054,21 @@
 					onGridSizeChange={handleGridSizeChange}
 					onRecalibrate={handleRecalibrate}
 				/>
+			{/if}
+
+			<!-- Add Comment button (floating over canvas area) -->
+			{#if project.floorplan && !pendingImageData && !isRecalibrating && !isPlacementMode()}
+				<div class="absolute bottom-16 md:bottom-14 left-4 md:left-6 z-10">
+					<Button
+						variant="outline"
+						size="sm"
+						class="bg-white shadow-md hover:bg-indigo-50 text-indigo-600 border-indigo-200"
+						onclick={() => enterPlacementMode()}
+					>
+						<MessageSquarePlus size={16} class="mr-1.5" />
+						{#if !isMobile}Add Comment{/if}
+					</Button>
+				</div>
 			{/if}
 		</div>
 
@@ -1063,6 +1104,9 @@
 			/>
 		</aside>
 
+		<!-- Comment panel (desktop: side panel, mobile: bottom sheet) -->
+		<CommentPanel projectId={project.id} canEdit={true} {isMobile} />
+
 		{#if isBranchSwitching}
 			<div class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
 				<div class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
@@ -1071,6 +1115,9 @@
 			</div>
 		{/if}
 	</main>
+
+	<!-- Comment placement overlay -->
+	<PlacementOverlay {isMobile} onPlace={handlePlaceCommentMobile} />
 
 	{#if showHistory}
 		<div class="fixed inset-0 z-50 flex items-end justify-center md:items-center">

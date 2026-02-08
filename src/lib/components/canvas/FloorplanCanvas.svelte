@@ -5,6 +5,8 @@
   import type { Context } from 'konva/lib/Context';
   import type { Shape as KonvaShape } from 'konva/lib/Shape';
   import WallsDoorsLayer from './WallsDoorsLayer.svelte';
+  import CommentsLayer from './CommentsLayer.svelte';
+  import { isPlacementMode } from '$lib/stores/comments.svelte';
   import {
     getMinEdgeDistance,
     getOverlappingItems,
@@ -50,6 +52,7 @@
     onItemRotate: (id: string, rotation: number) => void;
     onItemUnplace: (id: string) => void;
     onThumbnailReady?: (dataUrl: string) => void;
+    onCommentPlace?: (x: number, y: number) => void;
   }
 
   let {
@@ -65,6 +68,7 @@
     onItemRotate,
     onItemUnplace,
     onThumbnailReady,
+    onCommentPlace,
   }: Props = $props();
 
   let containerEl: HTMLDivElement;
@@ -241,6 +245,19 @@
   }
 
   function handleStageClick(e: { target: Konva.Node }) {
+    if (isPlacementMode()) {
+      const stage = stageRef?.node;
+      if (!stage) return;
+      const pointer = stage.getPointerPosition();
+      if (!pointer) return;
+      // Convert screen pointer to canvas coordinates (undo zoom+pan)
+      const canvasX = (pointer.x - panX) / zoom;
+      const canvasY = (pointer.y - panY) / zoom;
+      // Convert display coords to natural coords for storage
+      const natural = displayToNatural(canvasX, canvasY);
+      onCommentPlace?.(natural.x, natural.y);
+      return;
+    }
     if (e.target.getClassName() === 'Stage') {
       onItemSelect(null);
     }
@@ -1130,6 +1147,13 @@
           {/if}
         </Group>
       {/each}
+    </Layer>
+
+    <!-- Comments Layer -->
+    <Layer listening={!isPlacementMode()}>
+      <Group x={imageDimensions.x} y={imageDimensions.y} scaleX={displayScale} scaleY={displayScale}>
+        <CommentsLayer isMobile={mobileMode} />
+      </Group>
     </Layer>
 
     <!-- Distance indicators -->
