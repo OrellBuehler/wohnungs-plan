@@ -4,17 +4,15 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
-	resolve: {
-		alias: {
-			'$env/dynamic/private': new URL('./src/lib/test-utils/mocks/env.ts', import.meta.url)
-				.pathname
-		}
-	},
 	test: {
 		include: ['src/**/*.test.ts', 'src/**/*.svelte.test.ts'],
 		setupFiles: ['src/lib/test-utils/setup.ts'],
 		globals: true,
 		environment: 'jsdom',
+		alias: {
+			'$env/dynamic/private': new URL('./src/lib/test-utils/mocks/env.ts', import.meta.url)
+				.pathname
+		},
 		coverage: {
 			provider: 'v8',
 			include: ['src/lib/**'],
