@@ -24,6 +24,10 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		throw error(400, 'Reply body is required');
 	}
 
+	if (body.body.length > 10000) {
+		throw error(400, 'Reply body is too long (max 10,000 characters)');
+	}
+
 	const reply = await addReply({
 		commentId: params.commentId,
 		authorId: locals.user.id,

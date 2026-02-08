@@ -47,7 +47,7 @@
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
-	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead } from '$lib/stores/comments.svelte';
+	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead, setPendingComment, getPendingComment } from '$lib/stores/comments.svelte';
 	import CommentPanel from '$lib/components/comments/CommentPanel.svelte';
 	import PlacementOverlay from '$lib/components/comments/PlacementOverlay.svelte';
 
@@ -212,6 +212,8 @@
 				await syncBranchUrl(branchId);
 				didSyncUrl = true;
 			}
+			// Reload comments for the new branch
+			if (projectId) loadComments(projectId, branchId);
 			return true;
 		} finally {
 			if (pendingBranchUrlSyncId === branchId) {
@@ -852,20 +854,28 @@
 	}
 
 	// Comment actions
-	async function handleCommentPlace(x: number, y: number) {
-		const pid = projectId;
-		const branchId = activeBranch?.id;
-		if (!pid || !branchId) return;
-		await createCanvasComment(pid, branchId, x, y, 'New comment');
+	function handleCommentPlace(x: number, y: number) {
+		setPendingComment({ x, y });
 	}
 
-	async function handlePlaceCommentMobile(_screenX: number, _screenY: number) {
+	function handlePlaceCommentMobile(_screenX: number, _screenY: number) {
 		const center = canvasRef?.getViewportCenterNatural();
 		if (!center) return;
+		setPendingComment({ x: center.x, y: center.y });
+	}
+
+	async function handleSubmitPendingComment(body: string) {
+		const pending = getPendingComment();
+		if (!pending) return;
 		const pid = projectId;
 		const branchId = activeBranch?.id;
 		if (!pid || !branchId) return;
-		await createCanvasComment(pid, branchId, center.x, center.y, 'New comment');
+		await createCanvasComment(pid, branchId, pending.x, pending.y, body);
+		setPendingComment(null);
+	}
+
+	function handleCancelPendingComment() {
+		setPendingComment(null);
 	}
 
 	// Canvas actions
@@ -1113,7 +1123,13 @@
 		</aside>
 
 		<!-- Comment panel (desktop: side panel, mobile: bottom sheet) -->
-		<CommentPanel projectId={project.id} canEdit={true} {isMobile} />
+		<CommentPanel
+			projectId={project.id}
+			canEdit={true}
+			{isMobile}
+			onSubmitPending={handleSubmitPendingComment}
+			onCancelPending={handleCancelPendingComment}
+		/>
 
 		{#if isBranchSwitching}
 			<div class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">

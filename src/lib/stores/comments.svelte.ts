@@ -33,6 +33,11 @@ export interface ClientReply {
 	createdAt: string | null;
 }
 
+export interface PendingComment {
+	x: number;
+	y: number;
+}
+
 interface CommentsState {
 	comments: ClientComment[];
 	loading: boolean;
@@ -41,6 +46,7 @@ interface CommentsState {
 	activeCommentId: string | null;
 	placementMode: boolean;
 	lastSeenAt: string | null;
+	pendingComment: PendingComment | null;
 }
 
 let currentProjectId: string | null = null;
@@ -52,7 +58,8 @@ let state = $state<CommentsState>({
 	showResolved: false,
 	activeCommentId: null,
 	placementMode: false,
-	lastSeenAt: null
+	lastSeenAt: null,
+	pendingComment: null
 });
 
 // --- Getters ---
@@ -127,6 +134,18 @@ export function enterPlacementMode(): void {
 
 export function exitPlacementMode(): void {
 	state.placementMode = false;
+	state.pendingComment = null;
+}
+
+export function getPendingComment(): PendingComment | null {
+	return state.pendingComment;
+}
+
+export function setPendingComment(coords: PendingComment | null): void {
+	state.pendingComment = coords;
+	if (coords) {
+		state.placementMode = false;
+	}
 }
 
 export function markAllRead(): void {
@@ -346,5 +365,6 @@ export function resetComments(): void {
 	state.activeCommentId = null;
 	state.placementMode = false;
 	state.lastSeenAt = null;
+	state.pendingComment = null;
 	currentProjectId = null;
 }
