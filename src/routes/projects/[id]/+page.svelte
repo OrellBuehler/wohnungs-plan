@@ -47,7 +47,7 @@
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
-	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, exitPlacementMode, isPlacementMode } from '$lib/stores/comments.svelte';
+	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead } from '$lib/stores/comments.svelte';
 	import CommentPanel from '$lib/components/comments/CommentPanel.svelte';
 	import PlacementOverlay from '$lib/components/comments/PlacementOverlay.svelte';
 
@@ -1058,16 +1058,24 @@
 
 			<!-- Add Comment button (floating over canvas area) -->
 			{#if project.floorplan && !pendingImageData && !isRecalibrating && !isPlacementMode()}
+				{@const unreadCount = getUnreadCount()}
 				<div class="absolute bottom-16 md:bottom-14 left-4 md:left-6 z-10">
-					<Button
-						variant="outline"
-						size="sm"
-						class="bg-white shadow-md hover:bg-indigo-50 text-indigo-600 border-indigo-200"
-						onclick={() => enterPlacementMode()}
-					>
-						<MessageSquarePlus size={16} class="mr-1.5" />
-						{#if !isMobile}Add Comment{/if}
-					</Button>
+					<div class="relative">
+						<Button
+							variant="outline"
+							size="sm"
+							class="bg-white shadow-md hover:bg-indigo-50 text-indigo-600 border-indigo-200"
+							onclick={() => { markAllRead(); enterPlacementMode(); }}
+						>
+							<MessageSquarePlus size={16} class="mr-1.5" />
+							{#if !isMobile}Add Comment{/if}
+						</Button>
+						{#if unreadCount > 0}
+							<span class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1">
+								{unreadCount}
+							</span>
+						{/if}
+					</div>
 				</div>
 			{/if}
 		</div>

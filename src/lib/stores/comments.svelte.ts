@@ -40,7 +40,10 @@ interface CommentsState {
 	showResolved: boolean;
 	activeCommentId: string | null;
 	placementMode: boolean;
+	lastSeenAt: string | null;
 }
+
+let currentProjectId: string | null = null;
 
 let state = $state<CommentsState>({
 	comments: [],
@@ -48,7 +51,8 @@ let state = $state<CommentsState>({
 	visible: true,
 	showResolved: false,
 	activeCommentId: null,
-	placementMode: false
+	placementMode: false,
+	lastSeenAt: null
 });
 
 // --- Getters ---
@@ -96,6 +100,13 @@ export function isCommentsLoading(): boolean {
 	return state.loading;
 }
 
+export function getUnreadCount(): number {
+	if (!state.lastSeenAt) return state.comments.length;
+	return state.comments.filter(
+		(c) => c.updatedAt && c.updatedAt > state.lastSeenAt!
+	).length;
+}
+
 // --- Setters ---
 
 export function setActiveComment(id: string | null): void {
@@ -118,9 +129,19 @@ export function exitPlacementMode(): void {
 	state.placementMode = false;
 }
 
+export function markAllRead(): void {
+	state.lastSeenAt = new Date().toISOString();
+	if (currentProjectId) {
+		try {
+			localStorage.setItem(`comments-seen-${currentProjectId}`, state.lastSeenAt);
+		} catch {}
+	}
+}
+
 // --- API calls ---
 
 export async function loadComments(projectId: string, branchId: string): Promise<void> {
+	currentProjectId = projectId;
 	state.loading = true;
 	try {
 		const res = await fetch(
@@ -132,6 +153,9 @@ export async function loadComments(projectId: string, branchId: string): Promise
 		}
 		const data = await res.json();
 		state.comments = data.comments;
+		try {
+			state.lastSeenAt = localStorage.getItem(`comments-seen-${projectId}`) ?? null;
+		} catch {}
 	} catch (err) {
 		console.error('Failed to load comments:', err);
 	} finally {
@@ -321,4 +345,6 @@ export function resetComments(): void {
 	state.showResolved = false;
 	state.activeCommentId = null;
 	state.placementMode = false;
+	state.lastSeenAt = null;
+	currentProjectId = null;
 }

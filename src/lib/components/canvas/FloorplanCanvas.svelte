@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { Stage, Layer, Shape, Image as KonvaImage, Rect, Line, Text, Group } from 'svelte-konva';
+  import { Stage, Layer, Shape, Image as KonvaImage, Rect, Line, Text, Group, Circle } from 'svelte-konva';
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
   import type { Context } from 'konva/lib/Context';
   import type { Shape as KonvaShape } from 'konva/lib/Shape';
   import WallsDoorsLayer from './WallsDoorsLayer.svelte';
   import CommentsLayer from './CommentsLayer.svelte';
-  import { isPlacementMode } from '$lib/stores/comments.svelte';
+  import { isPlacementMode, getItemCommentCount, isCommentsVisible } from '$lib/stores/comments.svelte';
   import {
     getMinEdgeDistance,
     getOverlappingItems,
@@ -1142,6 +1142,32 @@
               fill="#475569"
               align="center"
               width={itemWidthPx}
+              listening={false}
+            />
+          {/if}
+          {#if isCommentsVisible() && getItemCommentCount(item.id) > 0}
+            {@const badgeRadius = 8}
+            {@const badgeCount = getItemCommentCount(item.id)}
+            <Circle
+              x={itemWidthPx - badgeRadius / 2}
+              y={-badgeRadius / 2}
+              radius={badgeRadius}
+              fill="#6366f1"
+              stroke="#fff"
+              strokeWidth={1}
+              listening={false}
+            />
+            <Text
+              x={itemWidthPx - badgeRadius / 2 - badgeRadius}
+              y={-badgeRadius / 2 - badgeRadius}
+              width={badgeRadius * 2}
+              height={badgeRadius * 2}
+              text={String(badgeCount)}
+              fontSize={10}
+              fill="#fff"
+              fontStyle="bold"
+              align="center"
+              verticalAlign="middle"
               listening={false}
             />
           {/if}
