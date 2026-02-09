@@ -264,3 +264,56 @@ export function checkPlacement(
 		room_id: roomId
 	};
 }
+
+/** Suggest a valid placement for an item in a room using grid search */
+export function suggestPlacement(
+	roomId: string,
+	width: number,
+	height: number,
+	existingItems: Item[],
+	analysis: FloorplanAnalysisData,
+	gridStep: number = 20
+): { x: number; y: number; rotation: number } | null {
+	const room = analysis.rooms.find((r) => r.id === roomId);
+	if (!room) return null;
+
+	// Get room bounding box
+	let minX = Infinity,
+		minY = Infinity,
+		maxX = -Infinity,
+		maxY = -Infinity;
+	for (const [px, py] of room.polygon) {
+		if (px < minX) minX = px;
+		if (py < minY) minY = py;
+		if (px > maxX) maxX = px;
+		if (py > maxY) maxY = py;
+	}
+
+	// Add margin from walls
+	const margin = 15;
+	minX += margin;
+	minY += margin;
+	maxX -= margin;
+	maxY -= margin;
+
+	// Try placing along walls first (common furniture placement)
+	// Then try interior positions
+	for (const rotation of [0, 90, 180, 270]) {
+		const effectiveW = rotation % 180 === 0 ? width : height;
+		const effectiveH = rotation % 180 === 0 ? height : width;
+
+		for (let y = minY; y + effectiveH <= maxY; y += gridStep) {
+			for (let x = minX; x + effectiveW <= maxX; x += gridStep) {
+				const center: Point = [x + effectiveW / 2, y + effectiveH / 2];
+				if (!pointInPolygon(center, room.polygon)) continue;
+
+				const check = checkPlacement(x, y, effectiveW, effectiveH, 0, existingItems, analysis);
+				if (check.valid) {
+					return { x, y, rotation };
+				}
+			}
+		}
+	}
+
+	return null;
+}

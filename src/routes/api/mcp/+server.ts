@@ -43,7 +43,8 @@ import {
 import {
 	getItemsInRoom,
 	getRoomAvailableSpace,
-	checkPlacement
+	checkPlacement,
+	suggestPlacement
 } from '$lib/server/spatial-queries';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
@@ -1017,6 +1018,48 @@ function createMcpServer(userId: string): McpServer {
 
 			const result = checkPlacement(x, y, width, height, rotation, filteredItems, analysis);
 			return asText(result);
+		}
+	);
+
+	server.registerTool(
+		'suggest_placement',
+		{
+			description:
+				'Find a valid position for a furniture item within a specific room. Uses grid search to find a spot that avoids walls, doors, and existing items. Returns suggested x, y, rotation or null if no valid position found. Requires floorplan analysis.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				room_id: z.string(),
+				width: z.number().positive(),
+				height: z.number().positive()
+			}
+		},
+		async ({ project_id, branch_id, room_id, width, height }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			if (!analysis) {
+				throw new Error('No floorplan analysis found. Run save_floorplan_analysis first.');
+			}
+
+			const branchItems = await getBranchItems(project_id, branch_id);
+			const suggestion = suggestPlacement(room_id, width, height, branchItems, analysis);
+
+			if (!suggestion) {
+				return asText({
+					found: false,
+					message: `No valid position found for a ${width}x${height} item in room "${room_id}". The room may be too full.`
+				});
+			}
+
+			return asText({
+				found: true,
+				x: suggestion.x,
+				y: suggestion.y,
+				rotation: suggestion.rotation,
+				message: `Suggested position: (${suggestion.x}, ${suggestion.y}) with rotation ${suggestion.rotation}°`
+			});
 		}
 	);
 

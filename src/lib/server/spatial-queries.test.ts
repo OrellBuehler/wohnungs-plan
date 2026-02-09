@@ -3,7 +3,8 @@ import {
 	getItemsInRoom,
 	getRoomAvailableSpace,
 	checkPlacement,
-	getItemRoom
+	getItemRoom,
+	suggestPlacement
 } from './spatial-queries';
 import type { FloorplanAnalysisData } from './floorplan-analyses';
 import type { Item } from './db';
@@ -145,5 +146,43 @@ describe('checkPlacement', () => {
 		const result = checkPlacement(200, 200, 100, 50, 0, [], null);
 		expect(result.valid).toBe(true);
 		expect(result.room_id).toBeNull();
+	});
+});
+
+describe('suggestPlacement', () => {
+	it('finds valid position in empty room', () => {
+		const result = suggestPlacement('room-1', 100, 50, [], analysis, 20);
+		expect(result).not.toBeNull();
+		expect(result!.x).toBeGreaterThanOrEqual(0);
+		expect(result!.y).toBeGreaterThanOrEqual(0);
+	});
+
+	it('returns null for unknown room', () => {
+		expect(suggestPlacement('nonexistent', 100, 50, [], analysis)).toBeNull();
+	});
+
+	it('returns null when room is too small', () => {
+		const tinyAnalysis: FloorplanAnalysisData = {
+			rooms: [
+				{
+					id: 'tiny',
+					type: 'closet',
+					polygon: [
+						[0, 0],
+						[30, 0],
+						[30, 30],
+						[0, 30]
+					]
+				}
+			],
+			walls: [
+				{ id: 'w1', start: [0, 0], end: [30, 0], thickness: 10 },
+				{ id: 'w2', start: [30, 0], end: [30, 30], thickness: 10 },
+				{ id: 'w3', start: [30, 30], end: [0, 30], thickness: 10 },
+				{ id: 'w4', start: [0, 30], end: [0, 0], thickness: 10 }
+			],
+			openings: []
+		};
+		expect(suggestPlacement('tiny', 100, 50, [], tinyAnalysis)).toBeNull();
 	});
 });
