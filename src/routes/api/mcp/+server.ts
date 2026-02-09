@@ -398,6 +398,130 @@ function createMcpServer(userId: string): McpServer {
 	);
 
 	server.registerTool(
+		'batch_add_items',
+		{
+			description:
+				'Add multiple furniture items to a project branch in one call. Each item is added to the inventory (not placed on canvas unless x/y provided). Max 50 items per call.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				items: z
+					.array(
+						z.object({
+							name: z.string().min(1),
+							width: z.number().positive(),
+							height: z.number().positive(),
+							x: z.number().nullable().optional(),
+							y: z.number().nullable().optional(),
+							rotation: z.number().optional(),
+							color: z
+								.string()
+								.regex(/^#[0-9a-fA-F]{6}$/)
+								.optional(),
+							price: z.number().positive().optional(),
+							priceCurrency: z.string().optional(),
+							productUrl: z.string().url().optional(),
+							shape: z.enum(['rectangle', 'l-shape']).optional(),
+							cutoutWidth: z.number().positive().optional(),
+							cutoutHeight: z.number().positive().optional(),
+							cutoutCorner: z
+								.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
+								.optional()
+						})
+					)
+					.min(1)
+					.max(50)
+			}
+		},
+		async ({ project_id, branch_id, items: itemsInput }) => {
+			await ensureProjectRole(project_id, 'editor');
+			await ensureBranch(project_id, branch_id);
+
+			const created = [];
+			for (const itemData of itemsInput) {
+				const item = await createItem(project_id, branch_id, userId, {
+					...itemData,
+					x: itemData.x ?? null,
+					y: itemData.y ?? null
+				});
+				created.push({
+					id: item.id,
+					name: item.name,
+					width: item.width,
+					height: item.height,
+					x: item.x,
+					y: item.y
+				});
+			}
+
+			return asText({
+				created_count: created.length,
+				items: created
+			});
+		}
+	);
+
+	server.registerTool(
+		'batch_update_items',
+		{
+			description:
+				'Update multiple furniture items in a single call. Useful for repositioning multiple items at once (e.g., rearranging a room). Max 50 items per call.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				updates: z
+					.array(
+						z.object({
+							item_id: z.string().uuid(),
+							name: z.string().min(1).optional(),
+							width: z.number().positive().optional(),
+							height: z.number().positive().optional(),
+							x: z.number().nullable().optional(),
+							y: z.number().nullable().optional(),
+							rotation: z.number().optional(),
+							color: z
+								.string()
+								.regex(/^#[0-9a-fA-F]{6}$/)
+								.optional(),
+							price: z.number().positive().nullable().optional(),
+							priceCurrency: z.string().optional(),
+							productUrl: z.string().url().nullable().optional()
+						})
+					)
+					.min(1)
+					.max(50)
+			}
+		},
+		async ({ project_id, branch_id, updates }) => {
+			await ensureProjectRole(project_id, 'editor');
+			await ensureBranch(project_id, branch_id);
+
+			const results = [];
+			for (const { item_id, ...data } of updates) {
+				const item = await updateItem(project_id, branch_id, item_id, userId, data);
+				if (!item) {
+					results.push({ item_id, success: false, error: 'Item not found' });
+				} else {
+					results.push({
+						item_id: item.id,
+						success: true,
+						name: item.name,
+						x: item.x,
+						y: item.y,
+						rotation: item.rotation
+					});
+				}
+			}
+
+			return asText({
+				updated_count: results.filter((r) => r.success).length,
+				failed_count: results.filter((r) => !r.success).length,
+				results
+			});
+		}
+	);
+
+	server.registerTool(
 		'list_furniture_items',
 		{
 			description: 'List furniture items for a specific project branch, including image data for each item.',
