@@ -31,7 +31,7 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	const reply = await addReply({
 		commentId: params.commentId,
 		authorId: locals.user.id,
-		body: body.body
+		body: body.body.trim()
 	});
 
 	return json({ reply }, { status: 201 });

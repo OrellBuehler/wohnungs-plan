@@ -13,7 +13,7 @@
 		projectId: string;
 		canEdit: boolean;
 		isMobile: boolean;
-		onSubmitPending?: (body: string) => void;
+		onSubmitPending?: (body: string) => void | Promise<void>;
 		onCancelPending?: () => void;
 	}
 
@@ -37,9 +37,12 @@
 	async function handleSubmitPending() {
 		if (!pendingText.trim() || pendingSubmitting) return;
 		pendingSubmitting = true;
-		onSubmitPending?.(pendingText.trim());
-		pendingText = '';
-		pendingSubmitting = false;
+		try {
+			await onSubmitPending?.(pendingText.trim());
+			pendingText = '';
+		} finally {
+			pendingSubmitting = false;
+		}
 	}
 
 	function handlePendingKeydown(e: KeyboardEvent) {

@@ -147,33 +147,36 @@ export async function createComment(data: {
 }): Promise<CommentWithReplies> {
 	const db = getDB();
 
-	const [comment] = await db
-		.insert(comments)
-		.values({
-			projectId: data.projectId,
-			branchId: data.branchId,
-			authorId: data.authorId,
-			type: data.type,
-			itemId: data.itemId ?? null,
-			x: data.x ?? null,
-			y: data.y ?? null
-		})
-		.returning();
+	const { comment, reply, author } = await db.transaction(async (tx) => {
+		const [c] = await tx
+			.insert(comments)
+			.values({
+				projectId: data.projectId,
+				branchId: data.branchId,
+				authorId: data.authorId,
+				type: data.type,
+				itemId: data.itemId ?? null,
+				x: data.x ?? null,
+				y: data.y ?? null
+			})
+			.returning();
 
-	const [reply] = await db
-		.insert(commentReplies)
-		.values({
-			commentId: comment.id,
-			authorId: data.authorId,
-			body: data.body
-		})
-		.returning();
+		const [r] = await tx
+			.insert(commentReplies)
+			.values({
+				commentId: c.id,
+				authorId: data.authorId,
+				body: data.body
+			})
+			.returning();
 
-	// Fetch author info
-	const [author] = await db
-		.select({ name: users.name, avatarUrl: users.avatarUrl })
-		.from(users)
-		.where(eq(users.id, data.authorId));
+		const [a] = await tx
+			.select({ name: users.name, avatarUrl: users.avatarUrl })
+			.from(users)
+			.where(eq(users.id, data.authorId));
+
+		return { comment: c, reply: r, author: a };
+	});
 
 	return {
 		id: comment.id,

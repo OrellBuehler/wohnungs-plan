@@ -257,8 +257,9 @@ export async function addReplyToComment(
 		}
 		const data = await res.json();
 		const reply: ClientReply = data.reply;
+		const now = new Date().toISOString();
 		state.comments = state.comments.map((c) =>
-			c.id === commentId ? { ...c, replies: [...c.replies, reply] } : c
+			c.id === commentId ? { ...c, replies: [...c.replies, reply], updatedAt: now } : c
 		);
 		sendReplyCreated(commentId, data.reply);
 		return reply;
@@ -278,7 +279,6 @@ export async function toggleResolve(projectId: string, commentId: string): Promi
 	state.comments = state.comments.map((c) =>
 		c.id === commentId ? { ...c, resolved: newResolved } : c
 	);
-	sendCommentResolved(commentId, newResolved);
 
 	try {
 		const res = await fetch(`/api/projects/${projectId}/comments/${commentId}`, {
@@ -287,14 +287,14 @@ export async function toggleResolve(projectId: string, commentId: string): Promi
 			body: JSON.stringify({ resolved: newResolved })
 		});
 		if (!res.ok) {
-			// Revert on failure
 			state.comments = state.comments.map((c) =>
 				c.id === commentId ? { ...c, resolved: previousResolved } : c
 			);
 			console.error('Failed to toggle resolve:', res.status);
+			return;
 		}
+		sendCommentResolved(commentId, newResolved);
 	} catch (err) {
-		// Revert on failure
 		state.comments = state.comments.map((c) =>
 			c.id === commentId ? { ...c, resolved: previousResolved } : c
 		);
@@ -309,19 +309,18 @@ export async function removeComment(projectId: string, commentId: string): Promi
 	if (state.activeCommentId === commentId) {
 		state.activeCommentId = null;
 	}
-	sendCommentDeleted(commentId);
 
 	try {
 		const res = await fetch(`/api/projects/${projectId}/comments/${commentId}`, {
 			method: 'DELETE'
 		});
 		if (!res.ok) {
-			// Revert on failure
 			state.comments = previous;
 			console.error('Failed to delete comment:', res.status);
+			return;
 		}
+		sendCommentDeleted(commentId);
 	} catch (err) {
-		// Revert on failure
 		state.comments = previous;
 		console.error('Failed to delete comment:', err);
 	}

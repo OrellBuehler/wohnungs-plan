@@ -4,6 +4,7 @@
 	import {
 		addReplyToComment,
 		toggleResolve,
+		removeComment,
 		type ClientComment
 	} from '$lib/stores/comments.svelte';
 
@@ -59,14 +60,24 @@
 			{comment.type === 'canvas' ? 'Pin comment' : 'Item comment'}
 		</span>
 		{#if canEdit}
-			<Button
-				variant="ghost"
-				size="sm"
-				class="h-6 text-xs {comment.resolved ? 'text-green-600' : 'text-slate-500'}"
-				onclick={() => toggleResolve(projectId, comment.id)}
-			>
-				{comment.resolved ? 'Resolved' : 'Resolve'}
-			</Button>
+			<div class="flex items-center gap-1">
+				<Button
+					variant="ghost"
+					size="sm"
+					class="h-6 text-xs {comment.resolved ? 'text-green-600' : 'text-slate-500'}"
+					onclick={() => toggleResolve(projectId, comment.id)}
+				>
+					{comment.resolved ? 'Resolved' : 'Resolve'}
+				</Button>
+				<Button
+					variant="ghost"
+					size="sm"
+					class="h-6 text-xs text-red-500 hover:text-red-700"
+					onclick={() => removeComment(projectId, comment.id)}
+				>
+					Delete
+				</Button>
+			</div>
 		{/if}
 	</div>
 
