@@ -73,6 +73,11 @@ bun db:studio    # Open Drizzle Studio
   - Manual origin checking in `hooks.server.ts` protects non-exempt routes
   - OAuth/MCP endpoints are exempt (use PKCE/Bearer tokens, not cookies)
 
+## Plans
+
+- Implementation plans are stored in `docs/plans/`
+- Write plans to `docs/plans/<feature-name>.md` before implementing non-trivial features
+
 ## Git Commits
 
 - Always commit changes when work is complete
