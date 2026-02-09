@@ -17,7 +17,8 @@ import {
 
 // Constants
 export const SALT_ROUNDS = 10;
-export const ACCESS_TOKEN_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+export const ACCESS_TOKEN_LIFETIME_MS = 60 * 60 * 1000; // 1 hour
+export const REFRESH_TOKEN_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 export const AUTH_CODE_LIFETIME_MS = 10 * 60 * 1000; // 10 minutes
 
 /**
@@ -451,30 +452,65 @@ function hashAccessToken(token: string): string {
 }
 
 /**
- * Create an access token for a user/client pair
+ * Create an access token + refresh token pair for a user/client
  * @param userId User ID
  * @param clientId Client ID
- * @returns Access token (plaintext)
+ * @returns Access token and refresh token (plaintext)
  */
-export async function createAccessToken(userId: string, clientId: string): Promise<string> {
+export async function createAccessToken(
+	userId: string,
+	clientId: string
+): Promise<{ accessToken: string; refreshToken: string }> {
 	const db = getDB();
 
-	// Generate access token
-	const token = generateToken(32);
-	// Use SHA-256 for fast lookup (indexed in database)
-	const accessTokenHash = hashAccessToken(token);
+	const accessToken = generateToken(32);
+	const refreshToken = generateToken(32);
+	const accessTokenHash = hashAccessToken(accessToken);
+	const refreshTokenHash = hashAccessToken(refreshToken);
 
-	// Calculate expiration time
 	const expiresAt = new Date(Date.now() + ACCESS_TOKEN_LIFETIME_MS);
+	const refreshTokenExpiresAt = new Date(Date.now() + REFRESH_TOKEN_LIFETIME_MS);
 
 	await db.insert(oauthTokens).values({
 		accessTokenHash,
+		refreshTokenHash,
 		clientId,
 		userId,
-		expiresAt
+		expiresAt,
+		refreshTokenExpiresAt
 	});
 
-	return token;
+	return { accessToken, refreshToken };
+}
+
+/**
+ * Exchange a refresh token for a new access token + refresh token pair.
+ * The old token row is deleted and a new one is created (rotation).
+ */
+export async function refreshAccessToken(
+	refreshToken: string,
+	clientId: string
+): Promise<{ accessToken: string; refreshToken: string; userId: string } | undefined> {
+	const db = getDB();
+	const tokenHash = hashAccessToken(refreshToken);
+	const now = new Date();
+
+	const tokenRecord = await db.query.oauthTokens.findFirst({
+		where: and(
+			eq(oauthTokens.refreshTokenHash, tokenHash),
+			eq(oauthTokens.clientId, clientId),
+			gt(oauthTokens.refreshTokenExpiresAt, now)
+		)
+	});
+
+	if (!tokenRecord) return undefined;
+
+	// Delete old token (rotation — prevents reuse)
+	await db.delete(oauthTokens).where(eq(oauthTokens.id, tokenRecord.id));
+
+	// Issue new pair
+	const result = await createAccessToken(tokenRecord.userId, clientId);
+	return { ...result, userId: tokenRecord.userId };
 }
 
 /**

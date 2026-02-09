@@ -92,6 +92,13 @@
       "when": 1770578442833,
       "tag": "0012_wet_shaman",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1770673647403,
+      "tag": "0013_black_rawhide_kid",
+      "breakpoints": true
     }
   ]
 }
