@@ -7,7 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair, MessageSquarePlus } from 'lucide-svelte';
+	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair, MessageSquare } from 'lucide-svelte';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
@@ -47,7 +47,7 @@
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
-	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead, setPendingComment, getPendingComment } from '$lib/stores/comments.svelte';
+	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, createComment, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead, setPendingComment, getPendingComment, setActiveComment, getActiveComment } from '$lib/stores/comments.svelte';
 	import CommentPanel from '$lib/components/comments/CommentPanel.svelte';
 	import PlacementOverlay from '$lib/components/comments/PlacementOverlay.svelte';
 
@@ -69,7 +69,8 @@
 	const authed = $derived(isAuthenticated());
 
 	// App state
-	let activeTab = $state<'plan' | 'items'>('plan');
+	let activeTab = $state<'plan' | 'items' | 'comments'>('plan');
+	let showCommentsPanel = $state(false);
 	let selectedItemId = $state<string | null>(null);
 	let showGrid = $state(true);
 	let snapToGrid = $state(true);
@@ -158,10 +159,12 @@
 
 		if (dy > SWIPE_MAX_Y) return; // Too much vertical movement
 
-		if (dx < -SWIPE_THRESHOLD && activeTab === 'plan') {
-			activeTab = 'items';
-		} else if (dx > SWIPE_THRESHOLD && activeTab === 'items') {
-			activeTab = 'plan';
+		if (dx < -SWIPE_THRESHOLD) {
+			if (activeTab === 'plan') activeTab = 'items';
+			else if (activeTab === 'items') activeTab = 'comments';
+		} else if (dx > SWIPE_THRESHOLD) {
+			if (activeTab === 'comments') activeTab = 'items';
+			else if (activeTab === 'items') activeTab = 'plan';
 		}
 	}
 
@@ -878,6 +881,28 @@
 		setPendingComment(null);
 	}
 
+	async function handleCreateComment(body: string) {
+		const pid = projectId;
+		const branchId = activeBranch?.id;
+		if (!pid || !branchId) return;
+		await createComment(pid, branchId, body);
+	}
+
+	function handlePlaceOnMap() {
+		activeTab = 'plan';
+		enterPlacementMode();
+	}
+
+	function handleCloseCommentsPanel() {
+		showCommentsPanel = false;
+	}
+
+	// Derive unread count for header badge
+	const unreadCount = $derived(getUnreadCount());
+
+	// Derive whether comment panel should be open on desktop
+	const commentsPanelOpen = $derived(showCommentsPanel || getPendingComment() !== null || getActiveComment() !== null);
+
 	// Canvas actions
 	function handleItemSelect(id: string | null) {
 		selectedItemId = id;
@@ -1012,6 +1037,20 @@
 					<span class="sr-only">Refresh</span>
 				</Button>
 			{/if}
+			<Button
+				variant="outline"
+				size="sm"
+				class="hidden md:inline-flex relative"
+				onclick={() => { showCommentsPanel = !showCommentsPanel; markAllRead(); }}
+			>
+				<MessageSquare size={16} class="mr-1" />
+				Comments
+				{#if unreadCount > 0}
+					<span class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1">
+						{unreadCount}
+					</span>
+				{/if}
+			</Button>
 			<SidebarTrigger />
 		</div>
 	</header>
@@ -1066,28 +1105,6 @@
 				/>
 			{/if}
 
-			<!-- Add Comment button (floating over canvas area) -->
-			{#if project.floorplan && !pendingImageData && !isRecalibrating && !isPlacementMode()}
-				{@const unreadCount = getUnreadCount()}
-				<div class="absolute bottom-16 md:bottom-14 left-4 md:left-6 z-10">
-					<div class="relative">
-						<Button
-							variant="outline"
-							size="sm"
-							class="bg-white shadow-md hover:bg-indigo-50 text-indigo-600 border-indigo-200"
-							onclick={() => { markAllRead(); enterPlacementMode(); }}
-						>
-							<MessageSquarePlus size={16} class="mr-1.5" />
-							{#if !isMobile}Add Comment{/if}
-						</Button>
-						{#if unreadCount > 0}
-							<span class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1">
-								{unreadCount}
-							</span>
-						{/if}
-					</div>
-				</div>
-			{/if}
 		</div>
 
 		<aside
@@ -1122,14 +1139,40 @@
 			/>
 		</aside>
 
-		<!-- Comment panel (desktop: side panel, mobile: bottom sheet) -->
-		<CommentPanel
-			projectId={project.id}
-			canEdit={true}
-			{isMobile}
-			onSubmitPending={handleSubmitPendingComment}
-			onCancelPending={handleCancelPendingComment}
-		/>
+		<!-- Mobile: Comments tab content -->
+		{#if isMobile}
+			<div
+				class="w-full min-h-0 {activeTab === 'comments' ? 'flex' : 'hidden'} flex-col bg-white"
+				ontouchstart={handleSwipeStart}
+				ontouchend={handleSwipeEnd}
+			>
+				<CommentPanel
+					projectId={project.id}
+					canEdit={true}
+					{isMobile}
+					open={activeTab === 'comments' || getPendingComment() !== null}
+					branchId={activeBranch?.id ?? null}
+					onSubmitPending={handleSubmitPendingComment}
+					onCancelPending={handleCancelPendingComment}
+					onPlaceOnMap={handlePlaceOnMap}
+					onCreateComment={handleCreateComment}
+				/>
+			</div>
+		{:else}
+			<!-- Desktop: Side panel -->
+			<CommentPanel
+				projectId={project.id}
+				canEdit={true}
+				{isMobile}
+				open={commentsPanelOpen}
+				branchId={activeBranch?.id ?? null}
+				onSubmitPending={handleSubmitPendingComment}
+				onCancelPending={handleCancelPendingComment}
+				onClose={handleCloseCommentsPanel}
+				onPlaceOnMap={handlePlaceOnMap}
+				onCreateComment={handleCreateComment}
+			/>
+		{/if}
 
 		{#if isBranchSwitching}
 			<div class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
@@ -1224,7 +1267,7 @@
 		</div>
 	{/if}
 
-	<MobileNav {activeTab} onTabChange={(tab) => (activeTab = tab)} />
+	<MobileNav {activeTab} onTabChange={(tab) => { activeTab = tab; if (tab === 'comments') markAllRead(); }} {unreadCount} />
 
 	<ItemForm
 		bind:open={showItemForm}

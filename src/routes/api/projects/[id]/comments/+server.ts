@@ -75,8 +75,12 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	if (body.type === 'canvas') {
-		if (typeof body.x !== 'number' || typeof body.y !== 'number') {
-			throw error(400, 'Canvas comments require x and y coordinates');
+		// x,y are optional for canvas comments (positionless comments allowed)
+		if (body.x !== undefined && typeof body.x !== 'number') {
+			throw error(400, 'Canvas comment x must be a number');
+		}
+		if (body.y !== undefined && typeof body.y !== 'number') {
+			throw error(400, 'Canvas comment y must be a number');
 		}
 	}
 
@@ -92,8 +96,8 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		authorId: locals.user.id,
 		type: body.type,
 		itemId: body.type === 'item' ? body.itemId : null,
-		x: body.type === 'canvas' ? body.x : null,
-		y: body.type === 'canvas' ? body.y : null,
+		x: body.type === 'canvas' ? (body.x ?? null) : null,
+		y: body.type === 'canvas' ? (body.y ?? null) : null,
 		body: body.body.trim()
 	});
 

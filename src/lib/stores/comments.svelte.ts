@@ -182,6 +182,33 @@ export async function loadComments(projectId: string, branchId: string): Promise
 	}
 }
 
+export async function createComment(
+	projectId: string,
+	branchId: string,
+	body: string
+): Promise<ClientComment | null> {
+	try {
+		const res = await fetch(`/api/projects/${projectId}/comments`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ type: 'canvas', branchId, body })
+		});
+		if (!res.ok) {
+			console.error('Failed to create comment:', res.status);
+			return null;
+		}
+		const data = await res.json();
+		const comment: ClientComment = data.comment;
+		state.comments = [...state.comments, comment];
+		state.activeCommentId = comment.id;
+		sendCommentCreated(data.comment);
+		return comment;
+	} catch (err) {
+		console.error('Failed to create comment:', err);
+		return null;
+	}
+}
+
 export async function createCanvasComment(
 	projectId: string,
 	branchId: string,

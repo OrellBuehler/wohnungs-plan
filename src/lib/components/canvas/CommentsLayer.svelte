@@ -36,8 +36,7 @@
 					x={comment.x}
 					y={comment.y}
 					listening={true}
-					on:click={() => handlePinClick(comment)}
-					on:tap={() => handlePinClick(comment)}
+					onpointerclick={() => handlePinClick(comment)}
 				>
 					<Circle
 						x={0}

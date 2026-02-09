@@ -60,7 +60,7 @@
 
 	const token = $derived($page.params.token);
 
-	let activeTab = $state<'plan' | 'items'>('plan');
+	let activeTab = $state<'plan' | 'items' | 'comments'>('plan');
 	let isMobile = $state(false);
 	let isInvalid = $state(false);
 	let requiresPassword = $state(false);
