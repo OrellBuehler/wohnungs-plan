@@ -1017,7 +1017,7 @@
 	</header>
 
 	<main class="relative flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
-		<div class="flex-1 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
+		<div class="flex-1 min-w-0 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
 			<div class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden">
 				{#if pendingImageData}
 					<ScaleCalibration
