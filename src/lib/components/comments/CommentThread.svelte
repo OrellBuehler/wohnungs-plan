@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
 	import {
 		addReplyToComment,
 		toggleResolve,
@@ -105,16 +104,16 @@
 
 	<!-- Reply input -->
 	{#if canEdit}
-		<div class="flex gap-2">
-			<Input
+		<div class="flex flex-col gap-2">
+			<textarea
 				bind:value={replyText}
 				placeholder="Reply..."
-				class="flex-1 h-8 text-sm"
+				class="min-h-[48px] max-h-32 resize-y rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-0"
 				onkeydown={handleKeydown}
-			/>
+			></textarea>
 			<Button
 				size="sm"
-				class="h-8"
+				class="h-8 self-end"
 				disabled={!replyText.trim() || submitting}
 				onclick={handleSubmitReply}
 			>

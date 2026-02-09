@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
 	import CommentThread from './CommentThread.svelte';
 	import {
 		getActiveComment,
@@ -149,17 +148,17 @@
 {#snippet pendingInput()}
 	<div class="flex flex-col gap-2">
 		<span class="text-xs text-slate-400">Type your comment:</span>
-		<div class="flex gap-2">
-			<Input
+		<div class="flex flex-col gap-2">
+			<textarea
 				bind:value={pendingText}
 				placeholder="Add a comment..."
-				class="flex-1 h-8 text-sm"
+				class="flex-1 min-h-[60px] max-h-32 resize-y rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-0"
 				onkeydown={handlePendingKeydown}
 				autofocus
-			/>
+			></textarea>
 			<Button
 				size="sm"
-				class="h-8"
+				class="h-8 self-end"
 				disabled={!pendingText.trim() || pendingSubmitting}
 				onclick={handleSubmitPending}
 			>
@@ -173,34 +172,36 @@
 	<div class="flex flex-col gap-3 h-full">
 		<!-- New comment input -->
 		{#if canEdit}
-			<div class="flex gap-2">
-				<Input
+			<div class="flex flex-col gap-2">
+				<textarea
 					bind:value={newCommentText}
 					placeholder="New comment..."
-					class="flex-1 h-8 text-sm"
+					class="min-h-[60px] max-h-32 resize-y rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-0"
 					onkeydown={handleNewCommentKeydown}
-				/>
-				<Button
-					size="sm"
-					class="h-8"
-					disabled={!newCommentText.trim() || newCommentSubmitting}
-					onclick={handleNewComment}
-				>
-					Post
-				</Button>
+				></textarea>
+				<div class="flex gap-2">
+					<Button
+						variant="outline"
+						size="sm"
+						class="flex-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+						onclick={() => onPlaceOnMap?.()}
+					>
+						<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+						</svg>
+						Pin to map
+					</Button>
+					<Button
+						size="sm"
+						class="h-8"
+						disabled={!newCommentText.trim() || newCommentSubmitting}
+						onclick={handleNewComment}
+					>
+						Post
+					</Button>
+				</div>
 			</div>
-			<Button
-				variant="outline"
-				size="sm"
-				class="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-				onclick={() => onPlaceOnMap?.()}
-			>
-				<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-				</svg>
-				Pin to map
-			</Button>
 		{/if}
 
 		<!-- Toggle resolved -->
@@ -266,7 +267,7 @@
 {/snippet}
 
 {#if open}
-	<div class="w-full {isMobile ? '' : 'w-72 border-l border-slate-200'} bg-white p-4 flex flex-col gap-3 overflow-hidden {isMobile ? 'flex-1' : 'h-full'}">
+	<div class="{isMobile ? 'w-full flex-1' : 'w-72 flex-shrink-0 border-l border-slate-200 h-full'} bg-white p-4 flex flex-col gap-3 overflow-hidden">
 		<!-- Header -->
 		<div class="flex items-center justify-between flex-shrink-0">
 			{#if isDetailMode}
