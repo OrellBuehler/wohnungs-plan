@@ -251,6 +251,18 @@ export async function resolveComment(commentId: string, resolved: boolean): Prom
 		.where(eq(comments.id, commentId));
 }
 
+export async function updateCommentPosition(
+	commentId: string,
+	x: number,
+	y: number
+): Promise<void> {
+	const db = getDB();
+	await db
+		.update(comments)
+		.set({ x, y, updatedAt: new Date() })
+		.where(eq(comments.id, commentId));
+}
+
 export async function deleteComment(commentId: string): Promise<void> {
 	const db = getDB();
 	await db.delete(comments).where(eq(comments.id, commentId));

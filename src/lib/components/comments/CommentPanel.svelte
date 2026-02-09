@@ -22,6 +22,7 @@
 		onClose?: () => void;
 		onPlaceOnMap?: () => void;
 		onCreateComment?: (body: string) => void | Promise<void>;
+		onPinCommentToMap?: (commentId: string) => void;
 	}
 
 	let {
@@ -34,7 +35,8 @@
 		onCancelPending,
 		onClose,
 		onPlaceOnMap,
-		onCreateComment
+		onCreateComment,
+		onPinCommentToMap
 	}: Props = $props();
 
 	const activeComment = $derived(getActiveComment());
@@ -262,7 +264,7 @@
 	{#if pendingComment}
 		{@render pendingInput()}
 	{:else if activeComment}
-		<CommentThread comment={activeComment} {projectId} {canEdit} />
+		<CommentThread comment={activeComment} {projectId} {canEdit} onPinToMap={onPinCommentToMap} />
 	{/if}
 {/snippet}
 

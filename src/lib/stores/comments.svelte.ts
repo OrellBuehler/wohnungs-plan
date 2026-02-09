@@ -45,6 +45,7 @@ interface CommentsState {
 	showResolved: boolean;
 	activeCommentId: string | null;
 	placementMode: boolean;
+	pinningCommentId: string | null;
 	lastSeenAt: string | null;
 	pendingComment: PendingComment | null;
 }
@@ -58,6 +59,7 @@ let state = $state<CommentsState>({
 	showResolved: false,
 	activeCommentId: null,
 	placementMode: false,
+	pinningCommentId: null,
 	lastSeenAt: null,
 	pendingComment: null
 });
@@ -128,13 +130,20 @@ export function toggleShowResolved(): void {
 	state.showResolved = !state.showResolved;
 }
 
-export function enterPlacementMode(): void {
+export function enterPlacementMode(commentId?: string): void {
 	state.placementMode = true;
+	state.pinningCommentId = commentId ?? null;
+	state.activeCommentId = null;
 }
 
 export function exitPlacementMode(): void {
 	state.placementMode = false;
+	state.pinningCommentId = null;
 	state.pendingComment = null;
+}
+
+export function getPinningCommentId(): string | null {
+	return state.pinningCommentId;
 }
 
 export function getPendingComment(): PendingComment | null {
@@ -329,6 +338,37 @@ export async function toggleResolve(projectId: string, commentId: string): Promi
 	}
 }
 
+export async function updateCommentPosition(
+	projectId: string,
+	commentId: string,
+	x: number,
+	y: number
+): Promise<boolean> {
+	// Optimistic update
+	const previous = state.comments;
+	state.comments = state.comments.map((c) =>
+		c.id === commentId ? { ...c, x, y } : c
+	);
+
+	try {
+		const res = await fetch(`/api/projects/${projectId}/comments/${commentId}`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ x, y })
+		});
+		if (!res.ok) {
+			state.comments = previous;
+			console.error('Failed to update comment position:', res.status);
+			return false;
+		}
+		return true;
+	} catch (err) {
+		state.comments = previous;
+		console.error('Failed to update comment position:', err);
+		return false;
+	}
+}
+
 export async function removeComment(projectId: string, commentId: string): Promise<void> {
 	const previous = state.comments;
 	// Optimistic update
@@ -390,6 +430,7 @@ export function resetComments(): void {
 	state.showResolved = false;
 	state.activeCommentId = null;
 	state.placementMode = false;
+	state.pinningCommentId = null;
 	state.lastSeenAt = null;
 	state.pendingComment = null;
 	currentProjectId = null;

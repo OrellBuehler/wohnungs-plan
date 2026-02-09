@@ -47,7 +47,7 @@
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
-	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, createComment, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead, setPendingComment, getPendingComment, setActiveComment, getActiveComment } from '$lib/stores/comments.svelte';
+	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, createComment, updateCommentPosition, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead, setPendingComment, getPendingComment, getPinningCommentId, setActiveComment, getActiveComment } from '$lib/stores/comments.svelte';
 	import CommentPanel from '$lib/components/comments/CommentPanel.svelte';
 	import PlacementOverlay from '$lib/components/comments/PlacementOverlay.svelte';
 
@@ -858,12 +858,33 @@
 
 	// Comment actions
 	function handleCommentPlace(x: number, y: number) {
+		const pinningId = getPinningCommentId();
+		if (pinningId) {
+			// Pinning an existing comment to this position
+			const pid = projectId;
+			if (pid) {
+				updateCommentPosition(pid, pinningId, x, y);
+				exitPlacementMode();
+				setActiveComment(pinningId);
+			}
+			return;
+		}
 		setPendingComment({ x, y });
 	}
 
 	function handlePlaceCommentMobile(_screenX: number, _screenY: number) {
 		const center = canvasRef?.getViewportCenterNatural();
 		if (!center) return;
+		const pinningId = getPinningCommentId();
+		if (pinningId) {
+			const pid = projectId;
+			if (pid) {
+				updateCommentPosition(pid, pinningId, center.x, center.y);
+				exitPlacementMode();
+				setActiveComment(pinningId);
+			}
+			return;
+		}
 		setPendingComment({ x: center.x, y: center.y });
 	}
 
@@ -891,6 +912,11 @@
 	function handlePlaceOnMap() {
 		activeTab = 'plan';
 		enterPlacementMode();
+	}
+
+	function handlePinCommentToMap(commentId: string) {
+		activeTab = 'plan';
+		enterPlacementMode(commentId);
 	}
 
 	function handleCloseCommentsPanel() {
@@ -1118,6 +1144,7 @@
 						onCancelPending={handleCancelPendingComment}
 						onPlaceOnMap={handlePlaceOnMap}
 						onCreateComment={handleCreateComment}
+						onPinCommentToMap={handlePinCommentToMap}
 					/>
 				</div>
 			{/if}
@@ -1168,6 +1195,7 @@
 				onClose={handleCloseCommentsPanel}
 				onPlaceOnMap={handlePlaceOnMap}
 				onCreateComment={handleCreateComment}
+				onPinCommentToMap={handlePinCommentToMap}
 			/>
 		{/if}
 

@@ -1,7 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getProjectRole } from '$lib/server/projects';
-import { getCommentById, resolveComment, deleteComment } from '$lib/server/comments';
+import { getCommentById, resolveComment, updateCommentPosition, deleteComment } from '$lib/server/comments';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -22,6 +22,10 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 
 	if (typeof body.resolved === 'boolean') {
 		await resolveComment(params.commentId, body.resolved);
+	}
+
+	if (typeof body.x === 'number' && typeof body.y === 'number') {
+		await updateCommentPosition(params.commentId, body.x, body.y);
 	}
 
 	return json({ success: true });
