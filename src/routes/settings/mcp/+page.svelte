@@ -253,70 +253,34 @@
 					<div class="pt-4 border-t">
 						<h4 class="font-medium text-slate-900 mb-3">Available Capabilities</h4>
 						<ul class="space-y-2">
-							<li class="flex items-start gap-2 text-sm">
-								<svg
-									class="size-5 text-green-600 flex-shrink-0 mt-0.5"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M5 13l4 4L19 7"
-									/>
-								</svg>
-								<span class="text-slate-700">List and view your projects</span>
-							</li>
-							<li class="flex items-start gap-2 text-sm">
-								<svg
-									class="size-5 text-green-600 flex-shrink-0 mt-0.5"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M5 13l4 4L19 7"
-									/>
-								</svg>
-								<span class="text-slate-700">Create new projects and floor plans</span>
-							</li>
-							<li class="flex items-start gap-2 text-sm">
-								<svg
-									class="size-5 text-green-600 flex-shrink-0 mt-0.5"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M5 13l4 4L19 7"
-									/>
-								</svg>
-								<span class="text-slate-700">Add and edit furniture items</span>
-							</li>
-							<li class="flex items-start gap-2 text-sm">
-								<svg
-									class="size-5 text-green-600 flex-shrink-0 mt-0.5"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M5 13l4 4L19 7"
-									/>
-								</svg>
-								<span class="text-slate-700">Update item positions and properties</span>
-							</li>
+							{#each [
+								'List and view your projects',
+								'Create new projects and floor plans',
+								'Add and edit furniture items',
+								'Batch add/update multiple items at once',
+								'Check placement validity before positioning',
+								'Get room contents and available space',
+								'AI-suggested furniture placement',
+								'Guided workflows (furnish room, optimize layout, shopping list)',
+								'Project and floorplan data as MCP resources'
+							] as capability}
+								<li class="flex items-start gap-2 text-sm">
+									<svg
+										class="size-5 text-green-600 flex-shrink-0 mt-0.5"
+										fill="none"
+										viewBox="0 0 24 24"
+										stroke="currentColor"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"
+										/>
+									</svg>
+									<span class="text-slate-700">{capability}</span>
+								</li>
+							{/each}
 						</ul>
 					</div>
 				</div>
