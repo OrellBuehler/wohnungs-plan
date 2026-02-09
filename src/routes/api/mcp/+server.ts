@@ -48,7 +48,7 @@ import {
 } from '$lib/server/spatial-queries';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
-const MCP_SERVER_VERSION = '2.0.0';
+const MCP_SERVER_VERSION = '3.0.0';
 const REQUIRED_SCOPE = 'mcp:access';
 
 type SessionState = {
