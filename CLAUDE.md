@@ -73,10 +73,12 @@ bun db:studio    # Open Drizzle Studio
   - Manual origin checking in `hooks.server.ts` protects non-exempt routes
   - OAuth/MCP endpoints are exempt (use PKCE/Bearer tokens, not cookies)
 
-## Plans
+## Documentation & Plans
 
-- Implementation plans are stored in `docs/plans/`
-- Write plans to `docs/plans/<feature-name>.md` before implementing non-trivial features
+- All plans and documentation go in `docs/`
+- **Plans**: `docs/plans/<feature-name>.md` — implementation plans before non-trivial features
+- **In-progress work**: `docs/in-progress/<topic>.md` — active work that was interrupted or spans sessions. Always include a `## WHERE TO CONTINUE` section describing the exact next step, what was tried, and what remains.
+- **Finished work**: `docs/finished/<topic>.md` — move docs here from `in-progress/` when the work is complete
 
 ## Git Commits
 
