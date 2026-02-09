@@ -40,6 +40,11 @@ import {
 	getFloorplanAnalysis,
 	type FloorplanAnalysisData
 } from '$lib/server/floorplan-analyses';
+import {
+	getItemsInRoom,
+	getRoomAvailableSpace,
+	checkPlacement
+} from '$lib/server/spatial-queries';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
 const MCP_SERVER_VERSION = '2.0.0';
@@ -889,6 +894,129 @@ function createMcpServer(userId: string): McpServer {
 					has_scale: !!analysis.scale
 				}
 			});
+		}
+	);
+
+	server.registerTool(
+		'get_room_contents',
+		{
+			description:
+				'List all furniture items placed within a specific room. Requires a floorplan analysis to exist (rooms must be defined). Uses the item center point to determine room membership.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				room_id: z.string()
+			}
+		},
+		async ({ project_id, branch_id, room_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			if (!analysis) {
+				throw new Error('No floorplan analysis found. Run save_floorplan_analysis first.');
+			}
+
+			const room = analysis.rooms.find((r) => r.id === room_id);
+			if (!room) {
+				throw new Error(
+					`Room "${room_id}" not found. Available rooms: ${analysis.rooms.map((r) => `${r.id} (${r.type})`).join(', ')}`
+				);
+			}
+
+			const branchItems = await getBranchItems(project_id, branch_id);
+			const roomItems = getItemsInRoom(room_id, branchItems, analysis);
+
+			return asText({
+				room_id: room.id,
+				room_type: room.type,
+				room_label: room.label ?? room.type,
+				item_count: roomItems.length,
+				items: roomItems.map((item) => ({
+					id: item.id,
+					name: item.name,
+					width: item.width,
+					height: item.height,
+					x: item.x,
+					y: item.y,
+					rotation: item.rotation
+				}))
+			});
+		}
+	);
+
+	server.registerTool(
+		'get_available_space',
+		{
+			description:
+				'Calculate the available floor space in a room by subtracting furniture footprints from the room area. Returns both pixel and real-world (sqm) measurements when scale data exists.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				room_id: z.string()
+			}
+		},
+		async ({ project_id, branch_id, room_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			if (!analysis) {
+				throw new Error('No floorplan analysis found. Run save_floorplan_analysis first.');
+			}
+
+			const branchItems = await getBranchItems(project_id, branch_id);
+			const space = getRoomAvailableSpace(room_id, branchItems, analysis);
+			if (!space) {
+				throw new Error(
+					`Room "${room_id}" not found. Available rooms: ${analysis.rooms.map((r) => `${r.id} (${r.type})`).join(', ')}`
+				);
+			}
+
+			const room = analysis.rooms.find((r) => r.id === room_id)!;
+			return asText({
+				room_id: room.id,
+				room_type: room.type,
+				room_label: room.label ?? room.type,
+				...space
+			});
+		}
+	);
+
+	server.registerTool(
+		'check_placement',
+		{
+			description:
+				'Validate a proposed furniture placement BEFORE committing it. Checks for collisions with walls, door swing zones, and existing items. Returns whether the placement is valid and lists any issues. Always use this before update_furniture_item to avoid placing items in invalid positions.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				x: z.number(),
+				y: z.number(),
+				width: z.number().positive(),
+				height: z.number().positive(),
+				rotation: z.number().default(0),
+				exclude_item_id: z
+					.string()
+					.uuid()
+					.optional()
+					.describe(
+						'Item ID to exclude from collision checks (use when repositioning an existing item)'
+					)
+			}
+		},
+		async ({ project_id, branch_id, x, y, width, height, rotation, exclude_item_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			const branchItems = await getBranchItems(project_id, branch_id);
+			const filteredItems = exclude_item_id
+				? branchItems.filter((i) => i.id !== exclude_item_id)
+				: branchItems;
+
+			const result = checkPlacement(x, y, width, height, rotation, filteredItems, analysis);
+			return asText(result);
 		}
 	);
 
