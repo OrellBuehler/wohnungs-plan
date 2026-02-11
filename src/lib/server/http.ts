@@ -1,3 +1,10 @@
+export function isSafeRedirectPath(value: string): boolean {
+	if (!value.startsWith('/')) return false;
+	if (value.startsWith('//')) return false;
+	if (value.includes('://')) return false;
+	return true;
+}
+
 export function isSecureRequest(url: URL, headers: Headers): boolean {
 	const forwardedProto = headers.get('x-forwarded-proto');
 	if (forwardedProto) {

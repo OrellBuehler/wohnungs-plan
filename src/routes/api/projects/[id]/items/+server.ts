@@ -1,8 +1,8 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectById, getProjectRole } from '$lib/server/projects';
+import { getProjectRole } from '$lib/server/projects';
 import { createItem, getBranchItems } from '$lib/server/items';
-import { ensureMainBranch, getDefaultBranch } from '$lib/server/branches';
+import { resolveDefaultBranch } from '$lib/server/branches';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -14,15 +14,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 		throw error(403, 'Access denied');
 	}
 
-	let branch = await getDefaultBranch(params.id);
-	if (!branch) {
-		const project = await getProjectById(params.id);
-		if (!project) {
-			throw error(404, 'Project not found');
-		}
-		branch = await ensureMainBranch(project.id, project.ownerId);
-	}
-
+	const branch = await resolveDefaultBranch(params.id);
 	const items = await getBranchItems(params.id, branch.id);
 	return json({ items });
 };
@@ -37,14 +29,7 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		throw error(403, 'Edit access required');
 	}
 
-	let branch = await getDefaultBranch(params.id);
-	if (!branch) {
-		const project = await getProjectById(params.id);
-		if (!project) {
-			throw error(404, 'Project not found');
-		}
-		branch = await ensureMainBranch(project.id, project.ownerId);
-	}
+	const branch = await resolveDefaultBranch(params.id);
 
 	const body = await request.json();
 	const item = await createItem(params.id, branch.id, locals.user.id, {

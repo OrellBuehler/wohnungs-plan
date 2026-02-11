@@ -3,14 +3,7 @@ import type { RequestHandler } from './$types';
 import { exchangeCodeForTokens, getUserInfo } from '$lib/server/oidc';
 import { upsertUser } from '$lib/server/users';
 import { createSession, createSessionCookie } from '$lib/server/session';
-import { isSecureRequest } from '$lib/server/http';
-
-function isSafeRedirectPath(value: string): boolean {
-	if (!value.startsWith('/')) return false;
-	if (value.startsWith('//')) return false;
-	if (value.includes('://')) return false;
-	return true;
-}
+import { isSecureRequest, isSafeRedirectPath } from '$lib/server/http';
 
 export const GET: RequestHandler = async ({ url, cookies, request }) => {
 	const code = url.searchParams.get('code');

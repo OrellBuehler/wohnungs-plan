@@ -96,6 +96,11 @@ export async function getUserProjectsWithDetails(userId: string): Promise<Projec
 	}));
 }
 
+export async function touchProject(projectId: string): Promise<void> {
+	const db = getDB();
+	await db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
+}
+
 export async function getProjectById(projectId: string): Promise<Project | null> {
 	const db = getDB();
 	const [project] = await db.select().from(projects).where(eq(projects.id, projectId));

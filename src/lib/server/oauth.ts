@@ -15,6 +15,27 @@ import {
 	type NewOAuthAuthorizationCode
 } from './db';
 
+/**
+ * Validate redirect URI format according to OAuth 2.0 spec.
+ * Must be HTTPS or localhost (for development/native apps).
+ */
+export function isValidRedirectUriFormat(uri: string): boolean {
+	try {
+		const url = new URL(uri);
+		if (url.protocol === 'https:') return true;
+		if (url.protocol === 'http:') {
+			return (
+				url.hostname === 'localhost' ||
+				url.hostname === '127.0.0.1' ||
+				url.hostname === '[::1]'
+			);
+		}
+		return false;
+	} catch {
+		return false;
+	}
+}
+
 // Constants
 export const SALT_ROUNDS = 10;
 export const ACCESS_TOKEN_LIFETIME_MS = 60 * 60 * 1000; // 1 hour

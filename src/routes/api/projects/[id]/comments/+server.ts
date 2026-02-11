@@ -1,7 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectById, getProjectRole } from '$lib/server/projects';
-import { getDefaultBranch, ensureMainBranch } from '$lib/server/branches';
+import { getProjectRole } from '$lib/server/projects';
+import { resolveDefaultBranch } from '$lib/server/branches';
 import { getCommentsByBranch, createComment } from '$lib/server/comments';
 
 export const GET: RequestHandler = async ({ locals, params, url }) => {
@@ -15,21 +15,7 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
 	}
 
 	const branchIdParam = url.searchParams.get('branchId');
-	let branchId: string;
-
-	if (branchIdParam) {
-		branchId = branchIdParam;
-	} else {
-		let branch = await getDefaultBranch(params.id);
-		if (!branch) {
-			const project = await getProjectById(params.id);
-			if (!project) {
-				throw error(404, 'Project not found');
-			}
-			branch = await ensureMainBranch(project.id, project.ownerId);
-		}
-		branchId = branch.id;
-	}
+	const branchId = branchIdParam ?? (await resolveDefaultBranch(params.id)).id;
 
 	const comments = await getCommentsByBranch(params.id, branchId);
 	return json({ comments });
@@ -47,20 +33,9 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 
 	const body = await request.json();
 
-	let branchId: string;
-	if (body.branchId && typeof body.branchId === 'string') {
-		branchId = body.branchId;
-	} else {
-		let branch = await getDefaultBranch(params.id);
-		if (!branch) {
-			const project = await getProjectById(params.id);
-			if (!project) {
-				throw error(404, 'Project not found');
-			}
-			branch = await ensureMainBranch(project.id, project.ownerId);
-		}
-		branchId = branch.id;
-	}
+	const branchId = (body.branchId && typeof body.branchId === 'string')
+		? body.branchId
+		: (await resolveDefaultBranch(params.id)).id;
 
 	if (body.type !== 'canvas' && body.type !== 'item') {
 		throw error(400, 'Invalid comment type. Must be "canvas" or "item"');

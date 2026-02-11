@@ -3,12 +3,12 @@ import {
 	getDB,
 	itemChanges,
 	items,
-	projects,
 	users,
 	type Item,
 	type NewItem,
 	type NewItemChange
 } from './db';
+import { touchProject } from './projects';
 
 const ITEM_UPDATE_FIELDS = [
 	'name',
@@ -83,11 +83,6 @@ function normalizeItemForHistory(item: Item): Record<string, unknown> {
 		cutoutHeight: item.cutoutHeight,
 		cutoutCorner: item.cutoutCorner
 	};
-}
-
-async function touchProject(projectId: string): Promise<void> {
-	const db = getDB();
-	await db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
 }
 
 async function insertHistoryEntries(entries: NewItemChange[]): Promise<void> {

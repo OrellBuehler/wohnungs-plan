@@ -1,20 +1,8 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectById, getProjectRole } from '$lib/server/projects';
+import { getProjectRole } from '$lib/server/projects';
 import { getItemById, updateItem, deleteItem } from '$lib/server/items';
-import { ensureMainBranch, getDefaultBranch } from '$lib/server/branches';
-
-async function resolveDefaultBranch(projectId: string) {
-	let branch = await getDefaultBranch(projectId);
-	if (!branch) {
-		const project = await getProjectById(projectId);
-		if (!project) {
-			throw error(404, 'Project not found');
-		}
-		branch = await ensureMainBranch(project.id, project.ownerId);
-	}
-	return branch;
-}
+import { resolveDefaultBranch } from '$lib/server/branches';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
