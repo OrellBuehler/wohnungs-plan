@@ -75,7 +75,6 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		}
 
 		const thumbnailsDir = getThumbnailsDir();
-		console.log(`Saving thumbnail for ${projectId} to ${thumbnailsDir}`);
 
 		// Ensure thumbnails directory exists
 		await mkdir(thumbnailsDir, { recursive: true });
@@ -84,7 +83,6 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		const base64Data = imageData.replace(/^data:image\/png;base64,/, '');
 		await writeFile(getThumbnailPath(projectId), Buffer.from(base64Data, 'base64'));
 
-		console.log(`Thumbnail saved successfully for ${projectId}`);
 		return json({ success: true });
 	} catch (err) {
 		// Re-throw SvelteKit errors as-is

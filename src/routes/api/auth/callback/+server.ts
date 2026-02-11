@@ -83,6 +83,10 @@ export const GET: RequestHandler = async ({ url, cookies, request }) => {
 			}
 		});
 	} catch (err) {
+		// Re-throw SvelteKit redirects (e.g., OAuth pending flow)
+		if (err && typeof err === 'object' && 'status' in err && 'location' in err) {
+			throw err;
+		}
 		console.error('Auth callback error:', err);
 		throw redirect(302, '/?login=error');
 	}

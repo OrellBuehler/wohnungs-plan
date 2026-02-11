@@ -1,6 +1,6 @@
 import { randomBytes, createHash } from 'crypto';
 import { compareSync, hashSync } from 'bcrypt';
-import { eq, and, gt, lt } from 'drizzle-orm';
+import { eq, and, gt } from 'drizzle-orm';
 import {
 	getDB,
 	oauthClients,
@@ -546,26 +546,3 @@ export async function validateAccessToken(
 	};
 }
 
-/**
- * Revoke all access tokens for a client
- * @param clientId Client ID
- */
-export async function revokeClientTokens(clientId: string): Promise<void> {
-	const db = getDB();
-	await db.delete(oauthTokens).where(eq(oauthTokens.clientId, clientId));
-}
-
-/**
- * Clean up expired OAuth data (tokens and authorization codes)
- * Should be run periodically (e.g., daily cron job)
- */
-export async function cleanupExpiredOAuthData(): Promise<void> {
-	const db = getDB();
-	const now = new Date();
-
-	// Delete expired tokens
-	await db.delete(oauthTokens).where(lt(oauthTokens.expiresAt, now));
-
-	// Delete expired authorization codes
-	await db.delete(oauthAuthorizationCodes).where(lt(oauthAuthorizationCodes.expiresAt, now));
-}

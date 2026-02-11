@@ -599,15 +599,12 @@ function createMcpServer(userId: string): McpServer {
 			try {
 				await access(thumbPath);
 				thumbnailData = await readFile(thumbPath);
-				console.log(`[MCP] Loaded existing thumbnail for ${project_id}`);
 			} catch {
 				// Thumbnail doesn't exist - generate it
-				console.log(`[MCP] Generating thumbnail for ${project_id}...`);
 				try {
 					await generateAndSaveThumbnail(project_id);
 					thumbnailData = await readFile(thumbPath);
 					wasGenerated = true;
-					console.log(`[MCP] Successfully generated thumbnail for ${project_id}`);
 				} catch (err) {
 					console.error(`[MCP] Failed to generate thumbnail for ${project_id}:`, err);
 					return asText({

@@ -1,4 +1,4 @@
-import { eq, gt, lt } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { getDB, sessions, users, type Session, type User } from './db';
 import { config } from './env';
 
@@ -20,20 +20,6 @@ export async function createSession(userId: string, refreshToken?: string): Prom
 			expiresAt
 		})
 		.returning();
-
-	return session;
-}
-
-export async function getSession(sessionId: string): Promise<Session | null> {
-	const db = getDB();
-	const [session] = await db
-		.select()
-		.from(sessions)
-		.where(eq(sessions.id, sessionId));
-
-	if (!session || session.expiresAt < new Date()) {
-		return null;
-	}
 
 	return session;
 }
@@ -62,16 +48,6 @@ export async function getSessionWithUser(
 export async function deleteSession(sessionId: string): Promise<void> {
 	const db = getDB();
 	await db.delete(sessions).where(eq(sessions.id, sessionId));
-}
-
-export async function deleteUserSessions(userId: string): Promise<void> {
-	const db = getDB();
-	await db.delete(sessions).where(eq(sessions.userId, userId));
-}
-
-export async function cleanExpiredSessions(): Promise<void> {
-	const db = getDB();
-	await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
 }
 
 type SameSiteValue = 'lax' | 'strict' | 'none' | 'Lax' | 'Strict' | 'None';
