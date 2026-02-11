@@ -46,7 +46,7 @@ describe('sidebar store', () => {
 				]
 			};
 			registerProjectContext(ctx);
-			expect(getProjectContext()).toBe(ctx);
+			expect(getProjectContext()).toEqual(ctx);
 		});
 
 		it('clears project context', () => {

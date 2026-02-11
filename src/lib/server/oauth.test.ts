@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { createHash } from 'crypto';
 import {
 	generateToken,
 	hashToken,
@@ -7,7 +8,6 @@ import {
 	isValidCodeVerifier,
 	isValidCodeChallengeS256
 } from './oauth';
-import { createHash } from 'crypto';
 
 describe('generateToken', () => {
 	it('returns a base64url string', () => {

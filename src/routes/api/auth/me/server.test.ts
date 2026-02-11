@@ -67,7 +67,7 @@ describe('GET /api/auth/me', () => {
 			email: 'test@example.com',
 			name: 'Test User',
 			avatarUrl: null,
-			infomaniakId: '123',
+			infomaniakSub: '123',
 			createdAt: new Date(),
 			updatedAt: new Date()
 		};
