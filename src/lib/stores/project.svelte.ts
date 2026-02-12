@@ -1,5 +1,6 @@
 import type { Project, Item, ItemImage, Floorplan, Position, ProjectMeta, ProjectBranch, ItemChange } from '$lib/types';
 import type { CurrencyCode } from '$lib/utils/currency';
+import { parseDataUrl } from '$lib/utils/data';
 import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 import {
 	getAllProjects as getLocalProjects,
@@ -264,25 +265,6 @@ async function uploadFloorplan(projectId: string, floorplan: Floorplan): Promise
 			})
 		});
 	}
-}
-
-function parseDataUrl(dataUrl: string): { data: Blob; mimeType: string } {
-	const match = dataUrl.match(/^data:(.*?);base64,(.*)$/);
-	if (!match) {
-		return {
-			data: new Blob([dataUrl], { type: 'image/png' }),
-			mimeType: 'image/png'
-		};
-	}
-
-	const mimeType = match[1] || 'image/png';
-	const binary = atob(match[2]);
-	const buffer = new Uint8Array(binary.length);
-	for (let i = 0; i < binary.length; i += 1) {
-		buffer[i] = binary.charCodeAt(i);
-	}
-
-	return { data: new Blob([buffer], { type: mimeType }), mimeType };
 }
 
 function getBranchItemsBase(project: Project | null): string | null {

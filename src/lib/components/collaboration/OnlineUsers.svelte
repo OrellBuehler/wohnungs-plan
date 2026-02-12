@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getRemoteUsers, getCollaborationState } from '$lib/stores/collaboration.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip';
+	import { getInitials } from '$lib/utils/format';
 
 	const MAX_VISIBLE = 4;
 
@@ -9,16 +10,6 @@
 
 	const visibleUsers = $derived(users.slice(0, MAX_VISIBLE));
 	const overflowCount = $derived(Math.max(0, users.length - MAX_VISIBLE));
-
-	function getInitials(name: string | null): string {
-		if (!name) return '?';
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 </script>
 
 {#if isConnected && users.length > 0}

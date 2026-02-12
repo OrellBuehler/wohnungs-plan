@@ -3,20 +3,11 @@
 	import { LogIn } from 'lucide-svelte';
 	import { getUser, isAuthenticated, isLoading, login } from '$lib/stores/auth.svelte';
 	import { setSidebarOpen } from '$lib/stores/sidebar.svelte';
+	import { getInitials } from '$lib/utils/format';
 
 	const user = $derived(getUser());
 	const authed = $derived(isAuthenticated());
 	const loading = $derived(isLoading());
-
-	function getInitials(name: string | null): string {
-		if (!name) return '?';
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 </script>
 
 {#if authed}
