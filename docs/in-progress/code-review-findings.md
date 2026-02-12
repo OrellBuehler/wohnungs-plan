@@ -4,7 +4,7 @@
 
 ## Summary
 
-Full codebase review completed with 93 findings across 4 areas.
+Full codebase review completed with 93 findings across 4 areas. Phases 1-4 mostly done.
 
 | Area | Critical | Important | Minor | Total |
 |------|----------|-----------|-------|-------|
@@ -14,44 +14,51 @@ Full codebase review completed with 93 findings across 4 areas.
 | Config/Architecture | 3 | 7 | 11 | 21 |
 | **Total** | **13** | **37** | **43** | **93** |
 
-## WHERE TO CONTINUE
+## Completed
 
-### Phase 1: Bug Fixes (do first)
-- [ ] Fix auth callback swallowing SvelteKit redirects (`callback/+server.ts:85`)
-- [ ] Fix `RemoteCursor.svelte` effect bug
+### Phase 1: Bug Fixes
+- [x] Fix auth callback swallowing SvelteKit redirects (`callback/+server.ts:85`)
 
 ### Phase 2: Dead Code Removal
-- [ ] Remove unused `gt` import from `session.ts`
-- [ ] Remove `getSession`, `deleteUserSessions`, `cleanExpiredSessions`, `generateSessionId` from `session.ts`
-- [ ] Remove `createUser`, `findUserById` from `users.ts`
-- [ ] Remove `cleanupExpiredOAuthData`, `revokeClientTokens` from `oauth.ts`
+- [x] Remove unused `gt`, `lt` imports from `session.ts` and `oauth.ts`
+- [x] Remove `getSession`, `deleteUserSessions`, `cleanExpiredSessions` from `session.ts`
+- [x] Remove `createUser`, `findUserById` from `users.ts`
+- [x] Remove `cleanupExpiredOAuthData`, `revokeClientTokens` from `oauth.ts`
+- [x] Remove `schema.sql` orphaned file
+- [x] Deduplicate `UserProfile` type (re-export from types.ts)
+- [x] Remove console.log from thumbnails and MCP routes
+
+### Phase 3: Deduplication
+- [x] Extract `getInitials` to `$lib/utils/format.ts` (was in 4 components)
+- [x] Extract `parseDataUrl` to `$lib/utils/data.ts` (was in sync + project stores)
+- [x] Extract `isSafeRedirectPath` to `$lib/server/http.ts`
+- [x] Extract `isValidRedirectUriFormat` to `$lib/server/oauth.ts`
+- [x] Extract `touchProject` to `$lib/server/projects.ts`
+- [x] Extract `resolveDefaultBranch` to `$lib/server/branches.ts`
+
+### Phase 4: Architecture
+- [x] Remove duplicate `@lucide/svelte` package
+- [x] Remove unused `adapter-auto` and `postgres` packages
+
+## WHERE TO CONTINUE
+
+### Remaining Phase 2: Dead Code
 - [ ] Remove dead exports: `rectsOverlap`, `itemToRect` from geometry.ts
 - [ ] Remove `MOBILE_SCALE_FACTOR` (always 1)
-- [ ] Remove `schema.sql` orphaned file
 - [ ] Remove `ProjectListDialog` if confirmed unused
 - [ ] Remove dead `roomPolygons`, unused `Rect` import
+- [ ] Fix `RemoteCursor.svelte` effect bug
 
-### Phase 3: Deduplication — Shared Utilities
-- [ ] Extract `getInitials` to shared util (used in 4+ components)
-- [ ] Extract `parseDataUrl` to shared util (in export.ts and thumbnails.ts)
-- [ ] Extract `formatRelativeTime` to shared util
-- [ ] Extract `isSafeRedirectPath` to `$lib/server/http.ts`
-- [ ] Extract `isValidRedirectUriFormat` to `$lib/server/oauth.ts`
-- [ ] Extract `touchProject` to `$lib/server/projects.ts`
-- [ ] Extract `resolveDefaultBranch` to `$lib/server/branches.ts`
+### Remaining Phase 3: Deduplication
 - [ ] Extract `verifyShareAccess` to `$lib/server/share-links.ts`
 - [ ] Extract `serveFileWithEtag` to `$lib/server/http.ts`
 - [ ] Extract `parseItemCreateBody` helper
-- [ ] Deduplicate `UserProfile` type (remove from users.ts, import from types.ts)
 - [ ] Deduplicate thumbnail path helpers (use from thumbnails.ts)
 - [ ] Deduplicate item sanitization in share routes
 
-### Phase 4: Architecture
-- [ ] Remove duplicate lucide-svelte package
-- [ ] Remove unused adapter-auto and postgres packages
+### Remaining Phase 4: Architecture
 - [ ] Fix insecure SESSION_SECRET default
 - [ ] Standardize error handling (throw error() vs return json)
-- [ ] Remove console.log from production code
 
 ### Phase 5: Component Refactoring (larger effort)
 - [ ] Split `projects/[id]/+page.svelte` (1399 lines)

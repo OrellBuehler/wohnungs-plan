@@ -8,7 +8,6 @@ import {
   getItemShapePoints,
   getRotatedBoundingBox,
   getMinEdgeDistance,
-  rectsOverlap,
   intersectsWall,
   blocksDoor,
   blocksWindow,
@@ -239,27 +238,6 @@ describe('getMinEdgeDistance', () => {
     const b: BoundingBox = { minX: 20, minY: 0, maxX: 30, maxY: 10 };
     const { distance } = getMinEdgeDistance(a, b);
     expect(distance).toBeCloseTo(10, 5);
-  });
-});
-
-describe('rectsOverlap', () => {
-  it('detects overlapping rects', () => {
-    const a = { x: 0, y: 0, width: 100, height: 100, rotation: 0 };
-    const b = { x: 50, y: 50, width: 100, height: 100, rotation: 0 };
-    expect(rectsOverlap(a, b)).toBe(true);
-  });
-
-  it('returns false for rects within tolerance', () => {
-    // Overlap of exactly 5px should NOT count (needs > 5)
-    const a = { x: 0, y: 0, width: 100, height: 100, rotation: 0 };
-    const b = { x: 95, y: 95, width: 100, height: 100, rotation: 0 };
-    expect(rectsOverlap(a, b)).toBe(false);
-  });
-
-  it('returns false for separated rects', () => {
-    const a = { x: 0, y: 0, width: 50, height: 50, rotation: 0 };
-    const b = { x: 200, y: 200, width: 50, height: 50, rotation: 0 };
-    expect(rectsOverlap(a, b)).toBe(false);
   });
 });
 

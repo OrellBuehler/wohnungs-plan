@@ -361,21 +361,6 @@ export function itemToRect(item: Item, scale: number): Rect | null {
 // Minimum overlap in pixels required to be considered overlapping
 const OVERLAP_TOLERANCE = 5;
 
-/**
- * Check if two rectangles overlap, accounting for rotation
- */
-export function rectsOverlap(a: Rect, b: Rect): boolean {
-  // Get axis-aligned bounding boxes that account for rotation
-  const aBox = getRotatedBoundingBox(a.x, a.y, a.width, a.height, a.rotation);
-  const bBox = getRotatedBoundingBox(b.x, b.y, b.width, b.height, b.rotation);
-
-  // Check for overlap with tolerance (must overlap by more than OVERLAP_TOLERANCE pixels)
-  const overlapX = Math.min(aBox.maxX, bBox.maxX) - Math.max(aBox.minX, bBox.minX);
-  const overlapY = Math.min(aBox.maxY, bBox.maxY) - Math.max(aBox.minY, bBox.minY);
-
-  return overlapX > OVERLAP_TOLERANCE && overlapY > OVERLAP_TOLERANCE;
-}
-
 export function getOverlappingItems(items: Item[], scale: number): Set<string> {
   const overlapping = new Set<string>();
   const placedItems = items.filter((item) => item.position !== null);
