@@ -1,7 +1,7 @@
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { randomBytes, createHmac, timingSafeEqual } from 'node:crypto';
 import { compare, hash } from 'bcrypt';
-import { getDB, shareLinks, type ShareLink } from './db';
+import { getDB, shareLinks, type ShareLink, type Item } from './db';
 import { config } from './env';
 
 const SHARE_PASSWORD_SALT_ROUNDS = 10;
@@ -134,4 +134,27 @@ export function getShareAuthCookieExpires(expiresAt: Date | null): Date {
 	const maxLifetime = new Date(Date.now() + SHARE_COOKIE_LIFETIME_MS);
 	if (!expiresAt) return maxLifetime;
 	return expiresAt < maxLifetime ? expiresAt : maxLifetime;
+}
+
+export function sanitizeItemsForShare(items: Item[]) {
+	return items.map((item) => ({
+		id: item.id,
+		branchId: item.branchId,
+		name: item.name,
+		width: item.width,
+		height: item.height,
+		x: item.x,
+		y: item.y,
+		rotation: item.rotation,
+		color: item.color,
+		price: item.price,
+		priceCurrency: item.priceCurrency,
+		productUrl: item.productUrl,
+		shape: item.shape,
+		cutoutWidth: item.cutoutWidth,
+		cutoutHeight: item.cutoutHeight,
+		cutoutCorner: item.cutoutCorner,
+		createdAt: item.createdAt,
+		updatedAt: item.updatedAt
+	}));
 }

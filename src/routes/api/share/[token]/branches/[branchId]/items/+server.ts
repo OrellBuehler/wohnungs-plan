@@ -4,6 +4,7 @@ import {
 	getShareAuthCookieName,
 	getShareLinkByToken,
 	isShareLinkValid,
+	sanitizeItemsForShare,
 	verifyShareAuthCookie
 } from '$lib/server/share-links';
 import { getProjectItems } from '$lib/server/projects';
@@ -29,26 +30,5 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 	}
 
 	const items = await getProjectItems(link.projectId, branch.id);
-	return json({
-		items: items.map((item) => ({
-			id: item.id,
-			branchId: item.branchId,
-			name: item.name,
-			width: item.width,
-			height: item.height,
-			x: item.x,
-			y: item.y,
-			rotation: item.rotation,
-			color: item.color,
-			price: item.price,
-			priceCurrency: item.priceCurrency,
-			productUrl: item.productUrl,
-			shape: item.shape,
-			cutoutWidth: item.cutoutWidth,
-			cutoutHeight: item.cutoutHeight,
-			cutoutCorner: item.cutoutCorner,
-			createdAt: item.createdAt,
-			updatedAt: item.updatedAt
-		}))
-	});
+	return json({ items: sanitizeItemsForShare(items) });
 };

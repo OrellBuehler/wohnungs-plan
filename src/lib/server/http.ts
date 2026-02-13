@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 export function isSafeRedirectPath(value: string): boolean {
 	if (!value.startsWith('/')) return false;
 	if (value.startsWith('//')) return false;
@@ -24,4 +26,21 @@ export function isSecureRequest(url: URL, headers: Headers): boolean {
 	}
 
 	return url.protocol === 'https:';
+}
+
+export function serveFileWithEtag(
+	fileBuffer: Buffer | Uint8Array,
+	request: Request,
+	headers: Record<string, string>
+): Response {
+	const etag = createHash('md5').update(fileBuffer).digest('hex');
+
+	const ifNoneMatch = request.headers.get('if-none-match');
+	if (ifNoneMatch === etag) {
+		return new Response(null, { status: 304 });
+	}
+
+	return new Response(new Uint8Array(fileBuffer), {
+		headers: { ...headers, ETag: etag }
+	});
 }

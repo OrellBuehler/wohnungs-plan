@@ -9,7 +9,7 @@ import {
 import { getProjectFloorplan } from '$lib/server/projects';
 import { getFloorplanPath } from '$lib/server/floorplans';
 import { readFile, stat } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
+import { serveFileWithEtag } from '$lib/server/http';
 
 export const GET: RequestHandler = async ({ params, cookies, request }) => {
 	const link = await getShareLinkByToken(params.token);
@@ -38,20 +38,11 @@ export const GET: RequestHandler = async ({ params, cookies, request }) => {
 			stat(filePath)
 		]);
 
-		const etag = createHash('md5').update(fileBuffer).digest('hex');
-		const ifNoneMatch = request.headers.get('if-none-match');
-		if (ifNoneMatch === etag) {
-			return new Response(null, { status: 304 });
-		}
-
-		return new Response(fileBuffer, {
-			headers: {
-				'Content-Type': floorplan.mimeType,
-				'Content-Length': fileStat.size.toString(),
-				'Cache-Control': 'private, max-age=0, must-revalidate',
-				ETag: etag,
-				Vary: 'Cookie'
-			}
+		return serveFileWithEtag(fileBuffer, request, {
+			'Content-Type': floorplan.mimeType,
+			'Content-Length': fileStat.size.toString(),
+			'Cache-Control': 'private, max-age=0, must-revalidate',
+			Vary: 'Cookie'
 		});
 	} catch {
 		throw error(404, 'Image not found');

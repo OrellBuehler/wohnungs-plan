@@ -4,7 +4,7 @@
 
 ## Summary
 
-Full codebase review completed with 93 findings across 4 areas. Phases 1-4 mostly done.
+Full codebase review completed with 93 findings across 4 areas. Phases 1-4 done. Phase 5 (component refactoring) remains as optional larger effort.
 
 | Area | Critical | Important | Minor | Total |
 |------|----------|-----------|-------|-------|
@@ -27,6 +27,13 @@ Full codebase review completed with 93 findings across 4 areas. Phases 1-4 mostl
 - [x] Remove `schema.sql` orphaned file
 - [x] Deduplicate `UserProfile` type (re-export from types.ts)
 - [x] Remove console.log from thumbnails and MCP routes
+- [x] Remove `rectsOverlap`, `MOBILE_SCALE_FACTOR` (already done in commit 8574394)
+- [x] Remove dead `roomPolygons` derived state + unused `Rect` import from WallsDoorsLayer
+
+### Phase 2: Investigated & Closed (no action needed)
+- `itemToRect` — used by `getOverlappingItems()`, not dead
+- `ProjectListDialog` — doesn't exist in codebase
+- `RemoteCursor.svelte` — no effect bug found, implementation correct
 
 ### Phase 3: Deduplication
 - [x] Extract `getInitials` to `$lib/utils/format.ts` (was in 4 components)
@@ -35,32 +42,25 @@ Full codebase review completed with 93 findings across 4 areas. Phases 1-4 mostl
 - [x] Extract `isValidRedirectUriFormat` to `$lib/server/oauth.ts`
 - [x] Extract `touchProject` to `$lib/server/projects.ts`
 - [x] Extract `resolveDefaultBranch` to `$lib/server/branches.ts`
+- [x] Extract `serveFileWithEtag` to `$lib/server/http.ts` (was in 4 image routes)
+- [x] Extract `parseItemCreateBody` to `$lib/server/items.ts` (was in 2 REST routes)
+- [x] Deduplicate thumbnail path helper (use `getThumbnailPath` from `thumbnails.ts`)
+- [x] Extract `sanitizeItemsForShare` to `$lib/server/share-links.ts` (was in 2 share routes)
+
+### Phase 3: Investigated & Closed (no action needed)
+- `verifyShareAccess` — no existing function to extract; inline auth checks are contextual per route
 
 ### Phase 4: Architecture
 - [x] Remove duplicate `@lucide/svelte` package
 - [x] Remove unused `adapter-auto` and `postgres` packages
+- [x] Fix insecure SESSION_SECRET default (now throws in production if not set)
+
+### Phase 4: Investigated & Closed (no action needed)
+- Error handling — already consistent (`throw error()` for errors, `return json()` for success)
 
 ## WHERE TO CONTINUE
 
-### Remaining Phase 2: Dead Code
-- [ ] Remove dead exports: `rectsOverlap`, `itemToRect` from geometry.ts
-- [ ] Remove `MOBILE_SCALE_FACTOR` (always 1)
-- [ ] Remove `ProjectListDialog` if confirmed unused
-- [ ] Remove dead `roomPolygons`, unused `Rect` import
-- [ ] Fix `RemoteCursor.svelte` effect bug
-
-### Remaining Phase 3: Deduplication
-- [ ] Extract `verifyShareAccess` to `$lib/server/share-links.ts`
-- [ ] Extract `serveFileWithEtag` to `$lib/server/http.ts`
-- [ ] Extract `parseItemCreateBody` helper
-- [ ] Deduplicate thumbnail path helpers (use from thumbnails.ts)
-- [ ] Deduplicate item sanitization in share routes
-
-### Remaining Phase 4: Architecture
-- [ ] Fix insecure SESSION_SECRET default
-- [ ] Standardize error handling (throw error() vs return json)
-
-### Phase 5: Component Refactoring (larger effort)
+### Phase 5: Component Refactoring (larger effort, optional)
 - [ ] Split `projects/[id]/+page.svelte` (1399 lines)
 - [ ] Deduplicate zoom/pan logic between Canvas and MobileCanvas
 - [ ] Deduplicate comment creation functions

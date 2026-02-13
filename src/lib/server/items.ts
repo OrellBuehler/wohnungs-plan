@@ -35,6 +35,27 @@ export type ItemCreateInput = Partial<Omit<Item, 'projectId' | 'branchId' | 'cre
 
 export type ItemUpdateInput = Partial<Omit<Item, 'id' | 'projectId' | 'branchId' | 'createdAt' | 'updatedAt'>>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseItemCreateBody(body: Record<string, any>): ItemCreateInput {
+	return {
+		id: body.id,
+		name: body.name,
+		width: body.width,
+		height: body.height,
+		x: body.x ?? null,
+		y: body.y ?? null,
+		rotation: body.rotation ?? 0,
+		color: body.color ?? '#3b82f6',
+		price: body.price ?? null,
+		priceCurrency: body.priceCurrency ?? 'EUR',
+		productUrl: body.productUrl ?? null,
+		shape: body.shape ?? 'rectangle',
+		cutoutWidth: body.cutoutWidth ?? null,
+		cutoutHeight: body.cutoutHeight ?? null,
+		cutoutCorner: body.cutoutCorner ?? null
+	};
+}
+
 export interface ItemChangeWithUser {
 	id: string;
 	projectId: string;

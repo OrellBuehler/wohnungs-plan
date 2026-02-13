@@ -4,6 +4,7 @@ import {
 	getShareAuthCookieName,
 	getShareLinkByToken,
 	isShareLinkValid,
+	sanitizeItemsForShare,
 	verifyShareAuthCookie
 } from '$lib/server/share-links';
 import {
@@ -17,29 +18,6 @@ import {
 	getDefaultBranch,
 	listProjectBranches
 } from '$lib/server/branches';
-
-function sanitizeItems(items: Awaited<ReturnType<typeof getProjectItems>>) {
-	return items.map((item) => ({
-		id: item.id,
-		branchId: item.branchId,
-		name: item.name,
-		width: item.width,
-		height: item.height,
-		x: item.x,
-		y: item.y,
-		rotation: item.rotation,
-		color: item.color,
-		price: item.price,
-		priceCurrency: item.priceCurrency,
-		productUrl: item.productUrl,
-		shape: item.shape,
-		cutoutWidth: item.cutoutWidth,
-		cutoutHeight: item.cutoutHeight,
-		cutoutCorner: item.cutoutCorner,
-		createdAt: item.createdAt,
-		updatedAt: item.updatedAt
-	}));
-}
 
 export const GET: RequestHandler = async ({ params, cookies, url }) => {
 	const link = await getShareLinkByToken(params.token);
@@ -88,7 +66,7 @@ export const GET: RequestHandler = async ({ params, cookies, url }) => {
 			currency: project.currency,
 			gridSize: project.gridSize
 		},
-		items: sanitizeItems(items),
+		items: sanitizeItemsForShare(items),
 		floorplan: floorplan
 			? {
 					scale: floorplan.scale,
