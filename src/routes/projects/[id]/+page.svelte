@@ -740,6 +740,13 @@
 		setPendingComment({ x, y });
 	}
 
+	function handleCommentMove(commentId: string, x: number, y: number) {
+		const pid = projectId;
+		if (pid) {
+			updateCommentPosition(pid, commentId, x, y);
+		}
+	}
+
 	function handlePlaceCommentMobile(_screenX: number, _screenY: number) {
 		const center = canvasRef?.getViewportCenterNatural();
 		if (!center) return;
@@ -1052,6 +1059,7 @@
 						onItemUnplace={handleUnplaceItem}
 						onThumbnailReady={handleThumbnailReady}
 						onCommentPlace={handleCommentPlace}
+						onCommentMove={handleCommentMove}
 					/>
 				{/if}
 			</div>

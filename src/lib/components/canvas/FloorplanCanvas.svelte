@@ -53,6 +53,7 @@
     onItemUnplace: (id: string) => void;
     onThumbnailReady?: (dataUrl: string) => void;
     onCommentPlace?: (x: number, y: number) => void;
+    onCommentMove?: (commentId: string, x: number, y: number) => void;
   }
 
   let {
@@ -69,6 +70,7 @@
     onItemUnplace,
     onThumbnailReady,
     onCommentPlace,
+    onCommentMove,
   }: Props = $props();
 
   let containerEl: HTMLDivElement;
@@ -1178,7 +1180,7 @@
     <!-- Comments Layer -->
     <Layer listening={!isPlacementMode()}>
       <Group x={imageDimensions.x} y={imageDimensions.y} scaleX={displayScale} scaleY={displayScale}>
-        <CommentsLayer isMobile={mobileMode} />
+        <CommentsLayer isMobile={mobileMode} {onCommentMove} />
       </Group>
     </Layer>
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type Konva from 'konva';
 	import { Group, Circle, Text } from 'svelte-konva';
 	import {
 		getCanvasComments,
@@ -10,9 +11,10 @@
 
 	interface Props {
 		isMobile: boolean;
+		onCommentMove?: (commentId: string, x: number, y: number) => void;
 	}
 
-	let { isMobile }: Props = $props();
+	let { isMobile, onCommentMove }: Props = $props();
 
 	const comments = $derived(getCanvasComments());
 	const visible = $derived(isCommentsVisible());
@@ -21,6 +23,21 @@
 	function handlePinClick(comment: ClientComment) {
 		if (isPlacementMode()) return;
 		setActiveComment(comment.id);
+	}
+
+	function handleDragEnd(commentId: string, e: { target: Konva.Node }) {
+		const node = e.target;
+		onCommentMove?.(commentId, node.x(), node.y());
+	}
+
+	function handleMouseEnter(e: { target: Konva.Node }) {
+		const stage = e.target.getStage();
+		if (stage) stage.container().style.cursor = 'pointer';
+	}
+
+	function handleMouseLeave(e: { target: Konva.Node }) {
+		const stage = e.target.getStage();
+		if (stage) stage.container().style.cursor = 'default';
 	}
 
 	function getInitial(name: string | null): string {
@@ -36,7 +53,11 @@
 					x={comment.x}
 					y={comment.y}
 					listening={true}
+					draggable={!isMobile}
 					onpointerclick={() => handlePinClick(comment)}
+					ondragend={(e: { target: Konva.Node }) => handleDragEnd(comment.id, e)}
+					onmouseenter={handleMouseEnter}
+					onmouseleave={handleMouseLeave}
 				>
 					<Circle
 						x={0}
