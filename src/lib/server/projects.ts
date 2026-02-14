@@ -96,6 +96,23 @@ export async function getUserProjectsWithDetails(userId: string): Promise<Projec
 	}));
 }
 
+export async function getProjectDisabledTools(projectId: string): Promise<string[]> {
+	const db = getDB();
+	const [row] = await db
+		.select({ disabledMcpTools: projects.disabledMcpTools })
+		.from(projects)
+		.where(eq(projects.id, projectId));
+	return row?.disabledMcpTools ?? [];
+}
+
+export async function updateProjectDisabledTools(projectId: string, tools: string[]): Promise<void> {
+	const db = getDB();
+	await db
+		.update(projects)
+		.set({ disabledMcpTools: tools, updatedAt: new Date() })
+		.where(eq(projects.id, projectId));
+}
+
 export async function touchProject(projectId: string): Promise<void> {
 	const db = getDB();
 	await db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));

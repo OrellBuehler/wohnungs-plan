@@ -8,7 +8,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair, MessageSquare, EllipsisVertical, GitBranch, Check } from 'lucide-svelte';
+	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair, MessageSquare, EllipsisVertical, GitBranch, Check, Settings2 } from 'lucide-svelte';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
@@ -61,6 +61,7 @@
 	import ItemForm from '$lib/components/items/ItemForm.svelte';
 	import ItemBottomSheet from '$lib/components/items/ItemBottomSheet.svelte';
 	import HistoryDialog from '$lib/components/projects/HistoryDialog.svelte';
+	import McpToolsDialog from '$lib/components/projects/McpToolsDialog.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -84,6 +85,7 @@
 	let showShareDialog = $state(false);
 	let showItemBottomSheet = $state(false);
 	let showHistory = $state(false);
+	let showMcpToolsDialog = $state(false);
 	let historyDialogRef = $state<ReturnType<typeof HistoryDialog> | null>(null);
 	let showConfirmDialog = $state(false);
 	let confirmDialogTitle = $state('');
@@ -448,6 +450,11 @@
 								icon: RefreshCw,
 								onclick: () => refreshProject(),
 								disabled: isRefreshing
+							},
+							{
+								label: 'MCP Tools',
+								icon: Settings2,
+								onclick: () => (showMcpToolsDialog = true)
 							}
 						]
 					: [])
@@ -1182,6 +1189,12 @@
 		bind:open={showShareDialog}
 		projectId={project.id}
 		onClose={() => (showShareDialog = false)}
+	/>
+
+	<McpToolsDialog
+		bind:open={showMcpToolsDialog}
+		projectId={project.id}
+		onClose={() => (showMcpToolsDialog = false)}
 	/>
 
 	<ItemBottomSheet

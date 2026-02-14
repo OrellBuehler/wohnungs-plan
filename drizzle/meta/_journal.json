@@ -99,6 +99,13 @@
       "when": 1770673647403,
       "tag": "0013_black_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1771071957813,
+      "tag": "0014_brown_eternals",
+      "breakpoints": true
     }
   ]
 }

@@ -54,6 +54,7 @@ export const projects = pgTable(
 		name: text('name').notNull(),
 		currency: text('currency').notNull().default('EUR'),
 		gridSize: integer('grid_size').notNull().default(20),
+		disabledMcpTools: text('disabled_mcp_tools').array().notNull().default(sql`ARRAY[]::text[]`),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
 	},
