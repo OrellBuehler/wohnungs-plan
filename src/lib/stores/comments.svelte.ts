@@ -4,6 +4,7 @@ import {
 	sendCommentResolved,
 	sendCommentDeleted
 } from './collaboration.svelte';
+import { authFetch } from './auth.svelte';
 
 // Client-side types (no server imports)
 export interface ClientComment {
@@ -172,7 +173,7 @@ export async function loadComments(projectId: string, branchId: string): Promise
 	currentProjectId = projectId;
 	state.loading = true;
 	try {
-		const res = await fetch(
+		const res = await authFetch(
 			`/api/projects/${projectId}/comments?branchId=${encodeURIComponent(branchId)}`
 		);
 		if (!res.ok) {
@@ -198,7 +199,7 @@ export async function createComment(
 	position?: { x: number; y: number }
 ): Promise<ClientComment | null> {
 	try {
-		const res = await fetch(`/api/projects/${projectId}/comments`, {
+		const res = await authFetch(`/api/projects/${projectId}/comments`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ type: 'canvas', branchId, body, ...position })
@@ -226,7 +227,7 @@ export async function addReplyToComment(
 	body: string
 ): Promise<ClientReply | null> {
 	try {
-		const res = await fetch(`/api/projects/${projectId}/comments/${commentId}/replies`, {
+		const res = await authFetch(`/api/projects/${projectId}/comments/${commentId}/replies`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ body })
@@ -261,7 +262,7 @@ export async function toggleResolve(projectId: string, commentId: string): Promi
 	);
 
 	try {
-		const res = await fetch(`/api/projects/${projectId}/comments/${commentId}`, {
+		const res = await authFetch(`/api/projects/${projectId}/comments/${commentId}`, {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ resolved: newResolved })
@@ -295,7 +296,7 @@ export async function updateCommentPosition(
 	);
 
 	try {
-		const res = await fetch(`/api/projects/${projectId}/comments/${commentId}`, {
+		const res = await authFetch(`/api/projects/${projectId}/comments/${commentId}`, {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ x, y })
@@ -322,7 +323,7 @@ export async function removeComment(projectId: string, commentId: string): Promi
 	}
 
 	try {
-		const res = await fetch(`/api/projects/${projectId}/comments/${commentId}`, {
+		const res = await authFetch(`/api/projects/${projectId}/comments/${commentId}`, {
 			method: 'DELETE'
 		});
 		if (!res.ok) {

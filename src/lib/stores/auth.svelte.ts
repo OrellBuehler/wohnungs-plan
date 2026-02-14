@@ -58,6 +58,24 @@ export function login(): void {
 	window.location.href = '/api/auth/login';
 }
 
+let redirecting = false;
+
+function handleUnauthorized(): void {
+	if (redirecting) return;
+	redirecting = true;
+	state.user = null;
+	state.isAuthenticated = false;
+	login();
+}
+
+export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+	const response = await fetch(input, init);
+	if (response.status === 401) {
+		handleUnauthorized();
+	}
+	return response;
+}
+
 export async function logout(): Promise<void> {
 	try {
 		await fetch('/api/auth/logout', { method: 'POST' });
