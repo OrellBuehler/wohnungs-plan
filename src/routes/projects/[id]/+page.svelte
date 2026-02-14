@@ -410,13 +410,12 @@
 	});
 
 	onMount(() => {
-		// Mobile detection
-		const updateMobile = () => {
-			isMobile = window.innerWidth < 768; // md breakpoint
-		};
-		updateMobile();
-		window.addEventListener('resize', updateMobile);
-		return () => window.removeEventListener('resize', updateMobile);
+		// Mobile detection via matchMedia (fires only on breakpoint crossing)
+		const mql = window.matchMedia('(max-width: 767px)');
+		isMobile = mql.matches;
+		const handleChange = (e: MediaQueryListEvent) => { isMobile = e.matches; };
+		mql.addEventListener('change', handleChange);
+		return () => mql.removeEventListener('change', handleChange);
 	});
 
 	onDestroy(() => {
