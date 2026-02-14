@@ -2,7 +2,7 @@
 	import { onMount, onDestroy, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import type { Item, ItemChange } from '$lib/types';
+	import type { Item } from '$lib/types';
 	import type { CurrencyCode } from '$lib/utils/currency';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -47,7 +47,7 @@
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
-	import { loadComments, resetComments, enterPlacementMode, createCanvasComment, createComment, updateCommentPosition, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead, setPendingComment, getPendingComment, getPinningCommentId, setActiveComment, getActiveComment } from '$lib/stores/comments.svelte';
+	import { loadComments, resetComments, enterPlacementMode, createComment, updateCommentPosition, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead, setPendingComment, getPendingComment, getPinningCommentId, setActiveComment, getActiveComment } from '$lib/stores/comments.svelte';
 	import CommentPanel from '$lib/components/comments/CommentPanel.svelte';
 	import PlacementOverlay from '$lib/components/comments/PlacementOverlay.svelte';
 
@@ -59,6 +59,7 @@
 	import ItemList from '$lib/components/items/ItemList.svelte';
 	import ItemForm from '$lib/components/items/ItemForm.svelte';
 	import ItemBottomSheet from '$lib/components/items/ItemBottomSheet.svelte';
+	import HistoryDialog from '$lib/components/projects/HistoryDialog.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -82,11 +83,7 @@
 	let showShareDialog = $state(false);
 	let showItemBottomSheet = $state(false);
 	let showHistory = $state(false);
-	let isHistoryLoading = $state(false);
-	let isRevertingHistory = $state(false);
-	let historyChanges = $state<ItemChange[]>([]);
-	let expandedHistoryGroups = $state<Set<string>>(new Set());
-	let selectedHistoryChangeIds = $state<Set<string>>(new Set());
+	let historyDialogRef = $state<ReturnType<typeof HistoryDialog> | null>(null);
 	let showConfirmDialog = $state(false);
 	let confirmDialogTitle = $state('');
 	let confirmDialogDescription = $state('');
@@ -327,137 +324,8 @@
 		});
 	}
 
-	interface HistoryGroup {
-		id: string;
-		userId: string | null;
-		userName: string;
-		itemId: string;
-		createdAt: string;
-		changes: ItemChange[];
-	}
-
-	function groupHistoryEntries(changes: ItemChange[]): HistoryGroup[] {
-		if (changes.length === 0) return [];
-		const sorted = [...changes].sort(
-			(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-		);
-
-		const groups: HistoryGroup[] = [];
-		for (const change of sorted) {
-			const currentTime = new Date(change.createdAt).getTime();
-			const last = groups[groups.length - 1];
-			const lastTime = last ? new Date(last.createdAt).getTime() : 0;
-			const sameActor = last?.userId === change.userId;
-			const sameItem = last?.itemId === change.itemId;
-			const withinWindow = Math.abs(lastTime - currentTime) <= 2000;
-
-			if (last && sameActor && sameItem && withinWindow) {
-				last.changes.push(change);
-				continue;
-			}
-
-			groups.push({
-				id: `${change.userId ?? 'anonymous'}:${change.itemId}:${change.createdAt}`,
-				userId: change.userId,
-				userName: change.userName ?? 'Unknown user',
-				itemId: change.itemId,
-				createdAt: change.createdAt,
-				changes: [change]
-			});
-		}
-
-		return groups;
-	}
-
-	const historyGroups = $derived(groupHistoryEntries(historyChanges));
-
-	function isGroupExpanded(groupId: string): boolean {
-		return expandedHistoryGroups.has(groupId);
-	}
-
-	function toggleHistoryGroup(groupId: string): void {
-		const next = new Set(expandedHistoryGroups);
-		if (next.has(groupId)) {
-			next.delete(groupId);
-		} else {
-			next.add(groupId);
-		}
-		expandedHistoryGroups = next;
-	}
-
-	function isChangeSelected(changeId: string): boolean {
-		return selectedHistoryChangeIds.has(changeId);
-	}
-
-	function toggleChangeSelection(changeId: string): void {
-		const next = new Set(selectedHistoryChangeIds);
-		if (next.has(changeId)) {
-			next.delete(changeId);
-		} else {
-			next.add(changeId);
-		}
-		selectedHistoryChangeIds = next;
-	}
-
-	function toggleGroupSelection(group: HistoryGroup): void {
-		const next = new Set(selectedHistoryChangeIds);
-		const hasAll = group.changes.every((change) => next.has(change.id));
-		for (const change of group.changes) {
-			if (hasAll) {
-				next.delete(change.id);
-			} else {
-				next.add(change.id);
-			}
-		}
-		selectedHistoryChangeIds = next;
-	}
-
-	function getHistoryItemLabel(itemId: string): string {
-		const item = items.find((candidate) => candidate.id === itemId);
-		return item?.name ?? `Item ${itemId.slice(0, 8)}`;
-	}
-
-	function describeGroupAction(group: HistoryGroup): string {
-		if (group.changes.some((change) => change.action === 'delete')) return 'deleted';
-		if (group.changes.some((change) => change.action === 'create')) return 'created';
-		return 'updated';
-	}
-
-	async function loadHistory() {
-		isHistoryLoading = true;
-		try {
-			historyChanges = await getItemHistory(200, 0);
-			selectedHistoryChangeIds = new Set(historyChanges.map((change) => change.id));
-		} finally {
-			isHistoryLoading = false;
-		}
-	}
-
 	async function handleOpenHistory() {
-		showHistory = true;
-		await loadHistory();
-	}
-
-	function handleRevertHistory() {
-		const changeIds = Array.from(selectedHistoryChangeIds);
-		if (changeIds.length === 0) return;
-		openConfirmDialog({
-			title: 'Revert Selected Changes',
-			description: `Revert ${changeIds.length} selected change(s)?`,
-			actionLabel: 'Revert',
-			actionVariant: 'destructive',
-			action: async () => {
-				isRevertingHistory = true;
-				try {
-					const reverted = await revertHistoryChanges(changeIds);
-					if (reverted) {
-						await loadHistory();
-					}
-				} finally {
-					isRevertingHistory = false;
-				}
-			}
-		});
+		await historyDialogRef?.openAndLoad();
 	}
 
 	function handleGridSizeChange(newSize: number) {
@@ -894,7 +762,7 @@
 		const pid = projectId;
 		const branchId = activeBranch?.id;
 		if (!pid || !branchId) return;
-		await createCanvasComment(pid, branchId, pending.x, pending.y, body);
+		await createComment(pid, branchId, body, { x: pending.x, y: pending.y });
 		setPendingComment(null);
 	}
 
@@ -1211,86 +1079,13 @@
 	<!-- Comment placement overlay -->
 	<PlacementOverlay {isMobile} onPlace={handlePlaceCommentMobile} />
 
-	{#if showHistory}
-		<div class="fixed inset-0 z-50 flex items-end justify-center md:items-center">
-			<button
-				type="button"
-				class="absolute inset-0 bg-black/40"
-				onclick={() => (showHistory = false)}
-				aria-label="Close history"
-			></button>
-			<div class="relative z-10 w-full md:max-w-2xl max-h-[85vh] bg-white rounded-t-xl md:rounded-xl shadow-xl flex flex-col">
-				<div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-					<h2 class="text-base font-semibold text-slate-800">Change History</h2>
-					<div class="flex items-center gap-2">
-						<Button variant="outline" size="sm" onclick={loadHistory} disabled={isHistoryLoading}>
-							Reload
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={handleRevertHistory}
-							disabled={isRevertingHistory || selectedHistoryChangeIds.size === 0}
-						>
-							Revert Selected
-						</Button>
-						<Button variant="ghost" size="sm" onclick={() => (showHistory = false)}>Close</Button>
-					</div>
-				</div>
-
-				<div class="overflow-y-auto px-4 py-3 space-y-3">
-					{#if isHistoryLoading}
-						<p class="text-sm text-slate-500">Loading history...</p>
-					{:else if historyGroups.length === 0}
-						<p class="text-sm text-slate-500">No history entries yet.</p>
-					{:else}
-						{#each historyGroups as group}
-							<div class="border border-slate-200 rounded-lg">
-								<div class="flex items-center justify-between gap-3 px-3 py-2 bg-slate-50">
-									<button
-										type="button"
-										class="text-left flex-1"
-										onclick={() => toggleHistoryGroup(group.id)}
-									>
-										<p class="text-sm font-medium text-slate-800">
-											{group.userName} {describeGroupAction(group)} {getHistoryItemLabel(group.itemId)}
-										</p>
-										<p class="text-xs text-slate-500">{new Date(group.createdAt).toLocaleString()}</p>
-									</button>
-									<input
-										type="checkbox"
-										checked={group.changes.every((change) => isChangeSelected(change.id))}
-										onchange={() => toggleGroupSelection(group)}
-										aria-label="Select group"
-									/>
-								</div>
-
-								{#if isGroupExpanded(group.id)}
-									<div class="px-3 py-2 space-y-2">
-										{#each group.changes as change}
-											<label class="flex items-start gap-2 text-sm text-slate-700">
-												<input
-													type="checkbox"
-													checked={isChangeSelected(change.id)}
-													onchange={() => toggleChangeSelection(change.id)}
-												/>
-												<span>
-													<strong>{change.action}</strong>
-													{#if change.field}
-														: {change.field}
-													{/if}
-												</span>
-											</label>
-										{/each}
-									</div>
-								{/if}
-							</div>
-						{/each}
-					{/if}
-				</div>
-			</div>
-		</div>
-	{/if}
+	<HistoryDialog
+		bind:this={historyDialogRef}
+		bind:open={showHistory}
+		{items}
+		onLoadHistory={getItemHistory}
+		onRevertChanges={revertHistoryChanges}
+	/>
 
 	<MobileNav {activeTab} onTabChange={(tab) => { activeTab = tab; if (tab === 'comments') markAllRead(); }} {unreadCount} />
 

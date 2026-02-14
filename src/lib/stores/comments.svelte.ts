@@ -194,13 +194,14 @@ export async function loadComments(projectId: string, branchId: string): Promise
 export async function createComment(
 	projectId: string,
 	branchId: string,
-	body: string
+	body: string,
+	position?: { x: number; y: number }
 ): Promise<ClientComment | null> {
 	try {
 		const res = await fetch(`/api/projects/${projectId}/comments`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ type: 'canvas', branchId, body })
+			body: JSON.stringify({ type: 'canvas', branchId, body, ...position })
 		});
 		if (!res.ok) {
 			console.error('Failed to create comment:', res.status);
@@ -210,68 +211,11 @@ export async function createComment(
 		const comment: ClientComment = data.comment;
 		state.comments = [...state.comments, comment];
 		state.activeCommentId = comment.id;
+		if (position) state.placementMode = false;
 		sendCommentCreated(data.comment);
 		return comment;
 	} catch (err) {
 		console.error('Failed to create comment:', err);
-		return null;
-	}
-}
-
-export async function createCanvasComment(
-	projectId: string,
-	branchId: string,
-	x: number,
-	y: number,
-	body: string
-): Promise<ClientComment | null> {
-	try {
-		const res = await fetch(`/api/projects/${projectId}/comments`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ type: 'canvas', branchId, x, y, body })
-		});
-		if (!res.ok) {
-			console.error('Failed to create canvas comment:', res.status);
-			return null;
-		}
-		const data = await res.json();
-		const comment: ClientComment = data.comment;
-		state.comments = [...state.comments, comment];
-		state.activeCommentId = comment.id;
-		state.placementMode = false;
-		sendCommentCreated(data.comment);
-		return comment;
-	} catch (err) {
-		console.error('Failed to create canvas comment:', err);
-		return null;
-	}
-}
-
-export async function createItemComment(
-	projectId: string,
-	branchId: string,
-	itemId: string,
-	body: string
-): Promise<ClientComment | null> {
-	try {
-		const res = await fetch(`/api/projects/${projectId}/comments`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ type: 'item', branchId, itemId, body })
-		});
-		if (!res.ok) {
-			console.error('Failed to create item comment:', res.status);
-			return null;
-		}
-		const data = await res.json();
-		const comment: ClientComment = data.comment;
-		state.comments = [...state.comments, comment];
-		state.activeCommentId = comment.id;
-		sendCommentCreated(data.comment);
-		return comment;
-	} catch (err) {
-		console.error('Failed to create item comment:', err);
 		return null;
 	}
 }
