@@ -4,7 +4,9 @@ import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
-		adapter: adapter(),
+		adapter: adapter({
+			precompress: true
+		}),
 		// Disable SvelteKit's built-in CSRF to allow cross-origin OAuth token exchange.
 		// Manual CSRF origin checking is applied in hooks.server.ts for non-exempt routes.
 		csrf: {

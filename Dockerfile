@@ -81,4 +81,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/auth/me || exit 1
 
 # Start the server
-CMD ["bun", "./build/index.js"]
+CMD ["bun", "--smol", "./build/index.js"]
