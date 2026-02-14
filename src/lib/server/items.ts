@@ -106,7 +106,7 @@ function normalizeItemForHistory(item: Item): Record<string, unknown> {
 	};
 }
 
-async function insertHistoryEntries(entries: NewItemChange[]): Promise<void> {
+export async function insertHistoryEntries(entries: NewItemChange[]): Promise<void> {
 	if (entries.length === 0) return;
 	const db = getDB();
 	await db.insert(itemChanges).values(entries);

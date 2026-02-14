@@ -14,6 +14,7 @@ import {
 	deleteItem,
 	getBranchItems,
 	getItemById,
+	insertHistoryEntries,
 	updateItem
 } from '$lib/server/items';
 import { createBranch, getBranchById, getDefaultBranch, listProjectBranches } from '$lib/server/branches';
@@ -723,6 +724,19 @@ function createMcpServer(userId: string): McpServer {
 				throw err;
 			}
 
+			await insertHistoryEntries([
+				{
+					projectId: project_id,
+					branchId: branch_id,
+					itemId: item_id,
+					userId,
+					action: 'update',
+					field: 'image',
+					oldValue: null,
+					newValue: originalName
+				}
+			]);
+
 			return asText({
 				id: image.id,
 				item_id: item_id,
@@ -792,10 +806,30 @@ function createMcpServer(userId: string): McpServer {
 				throw new Error('Item not found in this branch.');
 			}
 
+			// Get image info before deletion for history
+			const images = await getItemImages(item_id);
+			const image = images.find((img) => img.id === image_id);
+			if (!image) {
+				throw new Error('Image not found for this item.');
+			}
+
 			const deleted = await deleteItemImage(project_id, item_id, image_id);
 			if (!deleted) {
 				throw new Error('Image not found for this item.');
 			}
+
+			await insertHistoryEntries([
+				{
+					projectId: project_id,
+					branchId: branch_id,
+					itemId: item_id,
+					userId,
+					action: 'update',
+					field: 'image',
+					oldValue: image.originalName ?? image.filename,
+					newValue: null
+				}
+			]);
 
 			return asText({ success: true, image_id });
 		}

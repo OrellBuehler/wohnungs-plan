@@ -216,11 +216,23 @@
 			id: 'change',
 			header: 'Change',
 			cell: ({ row }) => {
-				const { action, oldValue, newValue } = row.original;
+				const { action, field, oldValue, newValue } = row.original;
 				if (action !== 'update') {
 					return renderSnippet(
 						createRawSnippet(() => ({
 							render: () => `<span class="text-muted-foreground">\u2014</span>`
+						})),
+						undefined as never
+					);
+				}
+				if (field === 'image') {
+					const added = oldValue === null && newValue !== null;
+					return renderSnippet(
+						createRawSnippet(() => ({
+							render: () =>
+								added
+									? `<span class="font-medium">+ ${newValue}</span>`
+									: `<span class="line-through text-muted-foreground">\u2212 ${oldValue}</span>`
 						})),
 						undefined as never
 					);
