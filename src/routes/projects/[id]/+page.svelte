@@ -8,7 +8,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair, MessageSquare, EllipsisVertical, GitBranch, Check, Settings2 } from 'lucide-svelte';
+	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, Grid3x3, Magnet, Image, Crosshair, MessageSquare, EllipsisVertical, GitBranch, Check, Settings2 } from 'lucide-svelte';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
@@ -35,8 +35,6 @@
 		createProjectBranch,
 		renameProjectBranch,
 		deleteProjectBranch,
-		getItemHistory,
-		revertHistoryChanges,
 		getCurrency,
 		setCurrency,
 		getGridSize,
@@ -60,7 +58,6 @@
 	import ItemList from '$lib/components/items/ItemList.svelte';
 	import ItemForm from '$lib/components/items/ItemForm.svelte';
 	import ItemBottomSheet from '$lib/components/items/ItemBottomSheet.svelte';
-	import HistoryDialog from '$lib/components/projects/HistoryDialog.svelte';
 	import McpToolsDialog from '$lib/components/projects/McpToolsDialog.svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -84,9 +81,7 @@
 	let editingItem = $state<Partial<Item> | null>(null);
 	let showShareDialog = $state(false);
 	let showItemBottomSheet = $state(false);
-	let showHistory = $state(false);
 	let showMcpToolsDialog = $state(false);
-	let historyDialogRef = $state<ReturnType<typeof HistoryDialog> | null>(null);
 	let showConfirmDialog = $state(false);
 	let confirmDialogTitle = $state('');
 	let confirmDialogDescription = $state('');
@@ -327,8 +322,8 @@
 		});
 	}
 
-	async function handleOpenHistory() {
-		await historyDialogRef?.openAndLoad();
+	function handleOpenHistory() {
+		goto(`/projects/${projectId}/history`);
 	}
 
 	function handleGridSizeChange(newSize: number) {
@@ -439,11 +434,6 @@
 								label: 'Share',
 								icon: Share2,
 								onclick: () => (showShareDialog = true)
-							},
-							{
-								label: 'History',
-								icon: History,
-								onclick: () => handleOpenHistory()
 							},
 							{
 								label: 'Refresh',
@@ -1016,10 +1006,6 @@
 								<Share2 size={14} class="mr-2" />
 								Share
 							</DropdownMenu.Item>
-							<DropdownMenu.Item onclick={handleOpenHistory}>
-								<History size={14} class="mr-2" />
-								History
-							</DropdownMenu.Item>
 							<DropdownMenu.Item onclick={refreshProject} disabled={isRefreshing}>
 								<RefreshCw size={14} class="mr-2 {isRefreshing ? 'animate-spin' : ''}" />
 								Refresh
@@ -1162,14 +1148,6 @@
 
 	<!-- Comment placement overlay -->
 	<PlacementOverlay {isMobile} onPlace={handlePlaceCommentMobile} />
-
-	<HistoryDialog
-		bind:this={historyDialogRef}
-		bind:open={showHistory}
-		{items}
-		onLoadHistory={getItemHistory}
-		onRevertChanges={revertHistoryChanges}
-	/>
 
 	<MobileNav {activeTab} onTabChange={(tab) => { activeTab = tab; if (tab === 'comments') markAllRead(); }} {unreadCount} />
 
