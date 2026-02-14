@@ -52,6 +52,8 @@
 		logout();
 	}
 
+	let avatarError = $state(false);
+
 	const navItems = [
 		{ href: '/', label: 'Projects', icon: Home },
 		{ href: '/settings', label: 'Settings', icon: Settings }
@@ -74,11 +76,12 @@
 			<!-- User info -->
 			{#if authed && user}
 				<div class="flex items-center gap-3 px-4 py-4">
-					{#if user.avatarUrl}
+					{#if user.avatarUrl && !avatarError}
 						<img
 							src={user.avatarUrl}
 							alt={user.name ?? 'User avatar'}
 							class="h-10 w-10 rounded-full object-cover shrink-0"
+							onerror={() => (avatarError = true)}
 						/>
 					{:else}
 						<div class="flex h-10 w-10 items-center justify-center rounded-full bg-sidebar-accent text-sm font-medium shrink-0">

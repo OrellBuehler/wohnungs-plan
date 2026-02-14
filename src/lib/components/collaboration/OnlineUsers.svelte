@@ -10,6 +10,8 @@
 
 	const visibleUsers = $derived(users.slice(0, MAX_VISIBLE));
 	const overflowCount = $derived(Math.max(0, users.length - MAX_VISIBLE));
+
+	let failedAvatars = $state(new Set<string>());
 </script>
 
 {#if isConnected && users.length > 0}
@@ -21,11 +23,12 @@
 						class="h-8 w-8 rounded-full border-2 border-background flex items-center justify-center text-xs font-medium text-white"
 						style:background-color={user.color}
 					>
-						{#if user.avatarUrl}
+						{#if user.avatarUrl && !failedAvatars.has(user.id)}
 							<img
 								src={user.avatarUrl}
 								alt={user.name ?? 'User'}
 								class="h-full w-full rounded-full object-cover"
+								onerror={() => (failedAvatars = new Set([...failedAvatars, user.id]))}
 							/>
 						{:else}
 							{getInitials(user.name)}

@@ -8,6 +8,8 @@
 	const user = $derived(getUser());
 	const authed = $derived(isAuthenticated());
 	const loading = $derived(isLoading());
+
+	let avatarError = $state(false);
 </script>
 
 {#if authed}
@@ -16,11 +18,12 @@
 		class="relative h-9 w-9 rounded-full p-0 overflow-hidden shrink-0"
 		onclick={() => setSidebarOpen(true)}
 	>
-		{#if user?.avatarUrl}
+		{#if user?.avatarUrl && !avatarError}
 			<img
 				src={user.avatarUrl}
 				alt={user.name ?? 'User avatar'}
 				class="absolute inset-0 h-full w-full rounded-full object-cover"
+				onerror={() => (avatarError = true)}
 			/>
 		{:else}
 			<div

@@ -24,6 +24,8 @@
 
 	let { members, currentUserId, canManage, onRoleChange, onRemove }: Props = $props();
 
+	let failedAvatars = $state(new Set<string>());
+
 	const roleOptions: { value: ProjectRole; label: string }[] = [
 		{ value: 'owner', label: 'Owner' },
 		{ value: 'editor', label: 'Editor' },
@@ -39,11 +41,12 @@
 			<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-slate-200 p-3">
 				<div class="flex items-center gap-3 min-w-0 flex-1">
 					<div class="h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-						{#if member.avatarUrl}
+						{#if member.avatarUrl && !failedAvatars.has(member.userId)}
 							<img
 								src={member.avatarUrl}
 								alt={member.name ?? 'Member'}
 								class="h-full w-full rounded-full object-cover"
+								onerror={() => (failedAvatars = new Set([...failedAvatars, member.userId]))}
 							/>
 						{:else}
 							{getInitials(member.name)}
