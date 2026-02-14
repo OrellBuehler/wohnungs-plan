@@ -40,6 +40,7 @@
 	// Filters
 	let filterItem = $state('');
 	let filterUser = $state('');
+	let filterSource = $state<'' | 'user' | 'mcp'>('');
 
 	// Derive unique item names and users for filter dropdowns
 	const itemOptions = $derived.by(() => {
@@ -98,6 +99,11 @@
 		if (filterUser) {
 			const userId = filterUser === '__anonymous' ? null : filterUser;
 			result = result.filter((c) => c.userId === userId);
+		}
+		if (filterSource === 'mcp') {
+			result = result.filter((c) => c.viaMcp);
+		} else if (filterSource === 'user') {
+			result = result.filter((c) => !c.viaMcp);
 		}
 		return result;
 	});
@@ -368,6 +374,24 @@
 				{#each userOptions as opt (opt.value)}
 					<Select.Item value={opt.value}>{opt.label}</Select.Item>
 				{/each}
+			</Select.Content>
+		</Select.Root>
+
+		<Select.Root
+			type="single"
+			value={filterSource}
+			onValueChange={(v) => {
+				filterSource = (v ?? '') as '' | 'user' | 'mcp';
+				rowSelection = {};
+			}}
+		>
+			<Select.Trigger class="w-[140px] h-8">
+				{filterSource === 'mcp' ? 'MCP' : filterSource === 'user' ? 'User' : 'All sources'}
+			</Select.Trigger>
+			<Select.Content>
+				<Select.Item value="">All sources</Select.Item>
+				<Select.Item value="user">User</Select.Item>
+				<Select.Item value="mcp">MCP</Select.Item>
 			</Select.Content>
 		</Select.Root>
 	</div>
