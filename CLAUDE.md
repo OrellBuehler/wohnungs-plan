@@ -21,6 +21,8 @@ bun db:studio    # Open Drizzle Studio
 ## Package Manager
 
 - Use `bun` instead of npm/pnpm/yarn for all package operations
+- Use `bunx` instead of npx for executing packages
+- **Never use `npm`, `npx`, `pnpm`, or `yarn`** — always `bun` / `bunx`
 
 ## UI Components
 
