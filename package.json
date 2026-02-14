@@ -50,6 +50,7 @@
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.74.0",
 		"@modelcontextprotocol/sdk": "^1.25.3",
+		"@tanstack/table-core": "^8.21.3",
 		"bcrypt": "^6.0.0",
 		"drizzle-orm": "^0.45.1",
 		"idb": "^8.0.3",
