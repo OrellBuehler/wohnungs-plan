@@ -30,6 +30,9 @@ kirchhaldenstrasse-*.json
 # Local git worktrees
 .worktrees/
 
+# Paraglide generated
+/src/lib/paraglide/
+
 # Playwright MCP
 .playwright-mcp/
 /mobile-*.png

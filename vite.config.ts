@@ -1,5 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { defineConfig, type Plugin } from 'vitest/config';
 
 // Vite plugin to handle "bun" imports in test mode.
@@ -27,6 +28,11 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		sveltekit(),
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide',
+			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
+		}),
 		...(process.env.VITEST ? [stubBunForTests()] : [])
 	],
 	test: {

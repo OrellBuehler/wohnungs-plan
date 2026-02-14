@@ -1,4 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
+import { paraglideMiddleware } from '$lib/paraglide/server';
 import { getSessionWithUser, parseSessionCookie } from '$lib/server/session';
 import { runMigrations } from '$lib/server/db';
 
@@ -53,7 +55,15 @@ const CORS_HEADERS = {
 	'Access-Control-Expose-Headers': 'Mcp-Session-Id'
 } as const;
 
-export const handle: Handle = async ({ event, resolve }) => {
+const paraglideHandle: Handle = ({ event, resolve }) =>
+	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
+		event.request = localizedRequest;
+		return resolve(event, {
+			transformPageChunk: ({ html }) => html.replace('%lang%', locale)
+		});
+	});
+
+const appHandle: Handle = async ({ event, resolve }) => {
 	const pathname = event.url.pathname;
 	const isCrossOrigin = isCrossOriginEndpoint(pathname);
 
@@ -101,3 +111,5 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	return response;
 };
+
+export const handle = sequence(paraglideHandle, appHandle);
