@@ -8,8 +8,11 @@
 		getComments,
 		isShowResolved,
 		toggleShowResolved,
+		isCommentsVisible,
+		toggleCommentsVisibility,
 		type ClientComment
 	} from '$lib/stores/comments.svelte';
+	import { Eye, EyeOff, X } from 'lucide-svelte';
 
 	interface Props {
 		projectId: string;
@@ -43,6 +46,7 @@
 	const pendingComment = $derived(getPendingComment());
 	const allComments = $derived(getComments());
 	const showResolved = $derived(isShowResolved());
+	const commentsVisible = $derived(isCommentsVisible());
 
 	const filteredComments = $derived.by(() => {
 		const sorted = [...allComments].sort((a, b) => {
@@ -285,11 +289,26 @@
 			{:else}
 				<span class="text-sm font-medium text-slate-700">Comments</span>
 			{/if}
-			{#if !isMobile}
-				<Button variant="ghost" size="sm" class="h-6 w-6 p-0" onclick={handleClose}>
-					✕
+			<div class="flex items-center gap-1">
+				<Button
+					variant="ghost"
+					size="sm"
+					class="h-7 w-7 p-0 {commentsVisible ? 'text-slate-500' : 'text-slate-300'}"
+					title={commentsVisible ? 'Hide pins on map' : 'Show pins on map'}
+					onclick={toggleCommentsVisibility}
+				>
+					{#if commentsVisible}
+						<Eye class="h-4 w-4" />
+					{:else}
+						<EyeOff class="h-4 w-4" />
+					{/if}
 				</Button>
-			{/if}
+				{#if !isMobile}
+					<Button variant="ghost" size="sm" class="h-6 w-6 p-0" onclick={handleClose}>
+						<X class="h-4 w-4" />
+					</Button>
+				{/if}
+			</div>
 		</div>
 
 		<!-- Content -->
