@@ -8,7 +8,7 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { config } from '$lib/server/env';
 import { validateAccessToken } from '$lib/server/oauth';
-import { getProjectById, getProjectFloorplan, getProjectRole, getUserProjects } from '$lib/server/projects';
+import { getProjectById, getProjectDisabledTools, getProjectFloorplan, getProjectRole, getUserProjects } from '$lib/server/projects';
 import {
 	createItem,
 	deleteItem,
@@ -172,6 +172,15 @@ function createMcpServer(userId: string): McpServer {
 		return role;
 	}
 
+	async function checkToolEnabled(toolName: string, projectId: string): Promise<void> {
+		const disabled = await getProjectDisabledTools(projectId);
+		if (disabled.includes(toolName)) {
+			throw new Error(
+				`The '${toolName}' tool is disabled for this project. The project owner can enable it in project settings.`
+			);
+		}
+	}
+
 	async function ensureBranch(projectId: string, branchId: string): Promise<void> {
 		const branch = await getBranchById(projectId, branchId);
 		if (!branch) {
@@ -211,6 +220,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id }) => {
+			await checkToolEnabled('list_branches', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 			const projectBranches = await listProjectBranches(project_id);
 			return asText(
@@ -238,6 +248,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, name, fork_from_branch_id }) => {
+			await checkToolEnabled('create_branch', project_id);
 			await ensureProjectRole(project_id, 'editor');
 
 			let forkId: string | null;
@@ -287,6 +298,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, ...itemData }) => {
+			await checkToolEnabled('add_furniture_item', project_id);
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 			const item = await createItem(project_id, branch_id, userId, {
@@ -345,6 +357,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, item_id, ...updates }) => {
+			await checkToolEnabled('update_furniture_item', project_id);
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 
@@ -392,6 +405,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, item_id }) => {
+			await checkToolEnabled('delete_furniture_item', project_id);
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 
@@ -441,6 +455,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, items: itemsInput }) => {
+			await checkToolEnabled('batch_add_items', project_id);
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 
@@ -500,6 +515,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, updates }) => {
+			await checkToolEnabled('batch_update_items', project_id);
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 
@@ -538,6 +554,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id }) => {
+			await checkToolEnabled('list_furniture_items', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 			await ensureBranch(project_id, branch_id);
 			const branchItems = await getBranchItems(project_id, branch_id);
@@ -590,6 +607,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id }) => {
+			await checkToolEnabled('get_project_preview', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 
 			const thumbPath = getThumbnailPath(project_id);
@@ -657,6 +675,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, item_id, image_url }) => {
+			await checkToolEnabled('add_item_image_from_url', project_id);
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 
@@ -727,6 +746,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, item_id }) => {
+			await checkToolEnabled('list_item_images', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 			await ensureBranch(project_id, branch_id);
 
@@ -763,6 +783,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, item_id, image_id }) => {
+			await checkToolEnabled('delete_item_image', project_id);
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 
@@ -842,6 +863,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, analysis }) => {
+			await checkToolEnabled('save_floorplan_analysis', project_id);
 			await ensureProjectRole(project_id, 'editor');
 
 			const saved = await saveFloorplanAnalysis(
@@ -871,6 +893,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id }) => {
+			await checkToolEnabled('get_floorplan_analysis', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 
 			const analysis = await getFloorplanAnalysis(project_id);
@@ -908,6 +931,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, room_id }) => {
+			await checkToolEnabled('get_room_contents', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 			await ensureBranch(project_id, branch_id);
 
@@ -956,6 +980,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, room_id }) => {
+			await checkToolEnabled('get_available_space', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 			await ensureBranch(project_id, branch_id);
 
@@ -1005,6 +1030,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, x, y, width, height, rotation, exclude_item_id }) => {
+			await checkToolEnabled('check_placement', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 			await ensureBranch(project_id, branch_id);
 
@@ -1033,6 +1059,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id, room_id, width, height }) => {
+			await checkToolEnabled('suggest_placement', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 			await ensureBranch(project_id, branch_id);
 
@@ -1072,6 +1099,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, branch_id }) => {
+			await checkToolEnabled('list_comments', project_id);
 			await ensureProjectRole(project_id, 'viewer');
 			await ensureBranch(project_id, branch_id);
 
@@ -1110,6 +1138,7 @@ function createMcpServer(userId: string): McpServer {
 			}
 		},
 		async ({ project_id, comment_id, body }) => {
+			await checkToolEnabled('add_comment_reply', project_id);
 			await ensureProjectRole(project_id, 'editor');
 
 			const comment = await getCommentById(comment_id);
