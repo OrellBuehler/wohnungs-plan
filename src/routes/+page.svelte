@@ -157,7 +157,7 @@
 	}
 </script>
 
-<div class="h-screen bg-slate-50 flex flex-col overflow-hidden">
+<div class="bg-slate-50 flex flex-col overflow-hidden" style="height: 100dvh;">
 	<!-- Header -->
 	<header class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0" style="padding-top: max(0.75rem, env(safe-area-inset-top));">
 		<a href="/" class="flex items-center gap-2">

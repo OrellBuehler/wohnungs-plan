@@ -1,16 +1,12 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { config } from '$lib/server/env';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { createHash } from 'node:crypto';
 import { getFloorplanPath } from '$lib/server/floorplans';
 import { getProjectFloorplan, getProjectRole } from '$lib/server/projects';
 import { getShareLinkByToken, isShareLinkValid } from '$lib/server/share-links';
-
-function getThumbnailPath(projectId: string): string {
-	return join(config.uploads.dir, 'thumbnails', `${projectId}.png`);
-}
+import { serveFileWithEtag } from '$lib/server/http';
+import { getThumbnailPath } from '$lib/server/thumbnails';
 
 function getDefaultOgImagePath(): string {
 	return join(process.cwd(), 'static', 'og-image.png');
@@ -113,26 +109,15 @@ export const GET: RequestHandler = async ({ params, request, locals, url }) => {
 		throw error(404, 'Thumbnail not found');
 	}
 
-	// Generate ETag from file content
-	const etag = createHash('md5').update(imageData.buffer).digest('hex');
-
-	// Check If-None-Match header for caching
-	const ifNoneMatch = request.headers.get('if-none-match');
-	if (ifNoneMatch === etag) {
-		return new Response(null, { status: 304 });
-	}
-
 	const headers: Record<string, string> = {
 		'Content-Type': imageData.contentType,
 		'Content-Length': imageData.contentLength.toString(),
-		'Cache-Control': imageData.cacheControl,
-		ETag: etag
+		'Cache-Control': imageData.cacheControl
 	};
 
 	if (imageData.vary) {
 		headers.Vary = imageData.vary;
 	}
 
-	const body = new Uint8Array(imageData.buffer);
-	return new Response(body, { headers });
+	return serveFileWithEtag(imageData.buffer, request, headers);
 };

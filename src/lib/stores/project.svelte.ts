@@ -1,5 +1,6 @@
 import type { Project, Item, ItemImage, Floorplan, Position, ProjectMeta, ProjectBranch, ItemChange } from '$lib/types';
 import type { CurrencyCode } from '$lib/utils/currency';
+import { parseDataUrl } from '$lib/utils/data';
 import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 import {
 	getAllProjects as getLocalProjects,
@@ -10,7 +11,7 @@ import {
 	getThumbnail,
 	saveThumbnail
 } from '$lib/db';
-import { isAuthenticated } from '$lib/stores/auth.svelte';
+import { isAuthenticated, authFetch } from '$lib/stores/auth.svelte';
 import { isOnline, queueChange } from '$lib/stores/sync.svelte';
 
 interface ApiProject {
@@ -244,7 +245,7 @@ async function uploadFloorplan(projectId: string, floorplan: Floorplan): Promise
 	const formData = new FormData();
 	formData.set('file', file);
 
-	const response = await fetch(`/api/projects/${projectId}/floorplan`, {
+	const response = await authFetch(`/api/projects/${projectId}/floorplan`, {
 		method: 'POST',
 		body: formData
 	});
@@ -255,7 +256,7 @@ async function uploadFloorplan(projectId: string, floorplan: Floorplan): Promise
 
 	// Update scale after uploading
 	if (floorplan.scale && floorplan.referenceLength) {
-		await fetch(`/api/projects/${projectId}/floorplan`, {
+		await authFetch(`/api/projects/${projectId}/floorplan`, {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -264,25 +265,6 @@ async function uploadFloorplan(projectId: string, floorplan: Floorplan): Promise
 			})
 		});
 	}
-}
-
-function parseDataUrl(dataUrl: string): { data: Blob; mimeType: string } {
-	const match = dataUrl.match(/^data:(.*?);base64,(.*)$/);
-	if (!match) {
-		return {
-			data: new Blob([dataUrl], { type: 'image/png' }),
-			mimeType: 'image/png'
-		};
-	}
-
-	const mimeType = match[1] || 'image/png';
-	const binary = atob(match[2]);
-	const buffer = new Uint8Array(binary.length);
-	for (let i = 0; i < binary.length; i += 1) {
-		buffer[i] = binary.charCodeAt(i);
-	}
-
-	return { data: new Blob([buffer], { type: mimeType }), mimeType };
 }
 
 function getBranchItemsBase(project: Project | null): string | null {
@@ -329,7 +311,7 @@ export async function listProjects(): Promise<ProjectMeta[]> {
 	}
 
 	try {
-		const response = await fetch('/api/projects');
+		const response = await authFetch('/api/projects');
 		if (!response.ok) throw new Error('Failed to load projects');
 		const data = await response.json();
 		const cloudMetas: ProjectMeta[] = data.projects;
@@ -360,7 +342,7 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 
 	try {
 		// Create project in cloud
-		const createRes = await fetch('/api/projects', {
+		const createRes = await authFetch('/api/projects', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -372,7 +354,7 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 		});
 		if (!createRes.ok) throw new Error('Failed to create project');
 
-		const projectRes = await fetch(`/api/projects/${project.id}`);
+		const projectRes = await authFetch(`/api/projects/${project.id}`);
 		if (!projectRes.ok) throw new Error('Failed to load created project');
 		const projectData = await projectRes.json();
 		const defaultBranchId: string | null =
@@ -386,7 +368,7 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 
 		// Create all items - check each response
 		for (const item of project.items) {
-			const itemRes = await fetch(
+			const itemRes = await authFetch(
 				`/api/projects/${project.id}/branches/${defaultBranchId}/items`,
 				{
 				method: 'POST',
@@ -434,7 +416,7 @@ export async function loadProjectById(id: string, branchId?: string): Promise<Pr
 		const endpoint = branchId
 			? `/api/projects/${id}?branch=${encodeURIComponent(branchId)}`
 			: `/api/projects/${id}`;
-		const response = await fetch(endpoint);
+		const response = await authFetch(endpoint);
 		if (!response.ok) throw new Error('Failed to load project');
 		const data = await response.json();
 		const project = mapApiProject(
@@ -466,7 +448,7 @@ export async function setActiveBranch(branchId: string): Promise<boolean> {
 	// Try cloud path if authenticated and online (even if project was loaded as local)
 	if (useRemote()) {
 		try {
-			const response = await fetch(
+			const response = await authFetch(
 				`/api/projects/${currentProject.id}/branches/${branchId}/items`
 			);
 			if (response.ok) {
@@ -515,7 +497,7 @@ export async function createProjectBranch(
 	}
 
 	try {
-		const response = await fetch(`/api/projects/${currentProject.id}/branches`, {
+		const response = await authFetch(`/api/projects/${currentProject.id}/branches`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -553,7 +535,7 @@ export async function renameProjectBranch(branchId: string, name: string): Promi
 	}
 
 	try {
-		const response = await fetch(`/api/projects/${currentProject.id}/branches/${branchId}`, {
+		const response = await authFetch(`/api/projects/${currentProject.id}/branches/${branchId}`, {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ name: trimmed })
@@ -588,7 +570,7 @@ export async function deleteProjectBranch(branchId: string): Promise<boolean> {
 	}
 
 	try {
-		const response = await fetch(`/api/projects/${projectRef.id}/branches/${branchId}`, {
+		const response = await authFetch(`/api/projects/${projectRef.id}/branches/${branchId}`, {
 			method: 'DELETE'
 		});
 		if (!response.ok) throw new Error('Failed to delete branch');
@@ -633,7 +615,7 @@ export async function getItemHistory(limit = 50, offset = 0): Promise<ItemChange
 	if (!branchId) return [];
 
 	try {
-		const response = await fetch(
+		const response = await authFetch(
 			`/api/projects/${currentProject.id}/branches/${branchId}/history?limit=${limit}&offset=${offset}`
 		);
 		if (!response.ok) throw new Error('Failed to fetch change history');
@@ -658,7 +640,7 @@ export async function revertHistoryChanges(changeIds: string[]): Promise<boolean
 	if (!branchId) return false;
 
 	try {
-		const response = await fetch(`/api/projects/${currentProject.id}/branches/${branchId}/revert`, {
+		const response = await authFetch(`/api/projects/${currentProject.id}/branches/${branchId}/revert`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ changeIds })
@@ -676,7 +658,7 @@ export async function revertHistoryChanges(changeIds: string[]): Promise<boolean
 export async function removeProject(id: string): Promise<void> {
 	if (useRemote()) {
 		try {
-			await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+			await authFetch(`/api/projects/${id}`, { method: 'DELETE' });
 		} catch (error) {
 			console.error('Failed to delete remote project:', error);
 		}
@@ -734,7 +716,7 @@ export async function duplicateProject(id: string): Promise<ProjectMeta | null> 
 
 	// Cloud project: call API
 	try {
-		const response = await fetch(`/api/projects/${id}/duplicate`, { method: 'POST' });
+		const response = await authFetch(`/api/projects/${id}/duplicate`, { method: 'POST' });
 		if (!response.ok) throw new Error('Failed to duplicate project');
 		const data = await response.json();
 		return {
@@ -758,7 +740,7 @@ export function createProject(name?: string) {
 	saveLocalProject(currentProject);
 
 	if (useRemote()) {
-		void fetch('/api/projects', {
+		void authFetch('/api/projects', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -790,7 +772,7 @@ export function updateProjectName(name: string) {
 		debounceAutoSave();
 
 		if (shouldSyncProject()) {
-			void fetch(`/api/projects/${currentProject.id}`, {
+			void authFetch(`/api/projects/${currentProject.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name })
@@ -838,7 +820,7 @@ export function updateFloorplanScale(scale: number, referenceLength: number) {
 		debounceAutoSave();
 
 		if (shouldSyncProject()) {
-			void fetch(`/api/projects/${currentProject.id}/floorplan`, {
+			void authFetch(`/api/projects/${currentProject.id}/floorplan`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ scale, referenceLength })
@@ -860,7 +842,7 @@ export function clearFloorplan() {
 		debounceAutoSave();
 
 		if (shouldSyncProject()) {
-			void fetch(`/api/projects/${currentProject.id}/floorplan`, {
+			void authFetch(`/api/projects/${currentProject.id}/floorplan`, {
 				method: 'DELETE'
 			});
 		} else if (shouldQueueProject()) {
@@ -888,7 +870,7 @@ export function addItem(item: Omit<Item, 'id'>) {
 		if (!baseUrl) return newItem;
 
 		if (shouldSyncProject()) {
-			void fetch(baseUrl, {
+			void authFetch(baseUrl, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(buildItemPayload(newItem))
@@ -924,7 +906,7 @@ export function updateItem(id: string, updates: Partial<Item>) {
 		if (!updatedItem) return;
 
 		if (shouldSyncProject()) {
-			void fetch(`${baseUrl}/${id}`, {
+			void authFetch(`${baseUrl}/${id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(buildItemPayload(updatedItem))
@@ -953,7 +935,7 @@ export function deleteItem(id: string) {
 		if (!baseUrl) return;
 
 		if (shouldSyncProject()) {
-			void fetch(`${baseUrl}/${id}`, {
+			void authFetch(`${baseUrl}/${id}`, {
 				method: 'DELETE'
 			});
 		} else if (shouldQueueProject()) {
@@ -996,7 +978,7 @@ export function duplicateItem(id: string) {
 			if (!baseUrl) return newItem;
 
 			if (shouldSyncProject()) {
-				void fetch(baseUrl, {
+				void authFetch(baseUrl, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(buildItemPayload(newItem))
@@ -1058,7 +1040,7 @@ export async function uploadItemImage(itemId: string, file: File): Promise<ItemI
 	formData.set('file', file);
 
 	try {
-		const response = await fetch(
+		const response = await authFetch(
 			`/api/projects/${currentProject.id}/branches/${branchId}/items/${itemId}/images`,
 			{ method: 'POST', body: formData }
 		);
@@ -1098,7 +1080,7 @@ export async function deleteItemImage(itemId: string, imageId: string): Promise<
 	}
 
 	try {
-		const response = await fetch(
+		const response = await authFetch(
 			`/api/projects/${currentProject.id}/branches/${branchId}/items/${itemId}/images/${imageId}`,
 			{ method: 'DELETE' }
 		);
@@ -1142,7 +1124,7 @@ export async function reorderItemImages(itemId: string, imageIds: string[]): Pro
 	}
 
 	try {
-		await fetch(
+		await authFetch(
 			`/api/projects/${currentProject.id}/branches/${branchId}/items/${itemId}/images/reorder`,
 			{
 				method: 'PATCH',
@@ -1186,7 +1168,7 @@ export function setCurrency(currency: CurrencyCode) {
 		debounceAutoSave();
 
 		if (shouldSyncProject()) {
-			void fetch(`/api/projects/${currentProject.id}`, {
+			void authFetch(`/api/projects/${currentProject.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ currency })
@@ -1212,7 +1194,7 @@ export function setGridSize(gridSize: number) {
 		debounceAutoSave();
 
 		if (shouldSyncProject()) {
-			void fetch(`/api/projects/${currentProject.id}`, {
+			void authFetch(`/api/projects/${currentProject.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ gridSize: currentProject.gridSize })
@@ -1295,7 +1277,7 @@ let floorplanAnalysis = $state<FloorplanAnalysisState>({
  */
 export async function loadFloorplanAnalysis(projectId: string): Promise<void> {
 	try {
-		const response = await fetch(`/api/projects/${projectId}/floorplan-analysis`);
+		const response = await authFetch(`/api/projects/${projectId}/floorplan-analysis`);
 		if (!response.ok) {
 			console.warn('Failed to load floorplan analysis:', response.statusText);
 			floorplanAnalysis = {

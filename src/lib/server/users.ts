@@ -1,12 +1,8 @@
 import { eq } from 'drizzle-orm';
 import { getDB, users, type User } from './db';
+import type { UserProfile } from './types';
 
-export interface UserProfile {
-	id: string;
-	email: string | null;
-	name: string | null;
-	avatarUrl: string | null;
-}
+export type { UserProfile };
 
 export async function findUserByInfomaniakSub(sub: string): Promise<User | null> {
 	const db = getDB();
@@ -14,35 +10,10 @@ export async function findUserByInfomaniakSub(sub: string): Promise<User | null>
 	return user ?? null;
 }
 
-export async function findUserById(id: string): Promise<User | null> {
-	const db = getDB();
-	const [user] = await db.select().from(users).where(eq(users.id, id));
-	return user ?? null;
-}
-
 export async function findUserByEmail(email: string): Promise<User | null> {
 	const db = getDB();
 	const [user] = await db.select().from(users).where(eq(users.email, email));
 	return user ?? null;
-}
-
-export async function createUser(data: {
-	infomaniakSub: string;
-	email?: string;
-	name?: string;
-	avatarUrl?: string;
-}): Promise<User> {
-	const db = getDB();
-	const [user] = await db
-		.insert(users)
-		.values({
-			infomaniakSub: data.infomaniakSub,
-			email: data.email ?? null,
-			name: data.name ?? null,
-			avatarUrl: data.avatarUrl ?? null
-		})
-		.returning();
-	return user;
 }
 
 export async function updateUser(

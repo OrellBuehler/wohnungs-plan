@@ -1,5 +1,7 @@
+import { error } from '@sveltejs/kit';
 import { and, asc, count, eq } from 'drizzle-orm';
 import { getDB, branches, items, projects, type Branch, type Item } from './db';
+import { touchProject, getProjectById } from './projects';
 
 export const MAIN_BRANCH_NAME = 'Main';
 
@@ -41,9 +43,16 @@ export async function getDefaultBranch(projectId: string): Promise<Branch | null
 	return branch ?? null;
 }
 
-async function touchProject(projectId: string): Promise<void> {
-	const db = getDB();
-	await db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
+export async function resolveDefaultBranch(projectId: string): Promise<Branch> {
+	let branch = await getDefaultBranch(projectId);
+	if (!branch) {
+		const project = await getProjectById(projectId);
+		if (!project) {
+			throw error(404, 'Project not found');
+		}
+		branch = await ensureMainBranch(project.id, project.ownerId);
+	}
+	return branch;
 }
 
 export async function ensureMainBranch(projectId: string, ownerId: string): Promise<Branch> {

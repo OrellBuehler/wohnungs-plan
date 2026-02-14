@@ -6,7 +6,8 @@ import {
 	hasAuthorization,
 	createAuthorizationCode,
 	validateRedirectUri,
-	isValidCodeChallengeS256
+	isValidCodeChallengeS256,
+	isValidRedirectUriFormat
 } from '$lib/server/oauth';
 
 /**
@@ -19,30 +20,6 @@ function oauthError(code: string, detail?: string): never {
 		errorUrl.searchParams.set('detail', detail);
 	}
 	throw redirect(302, errorUrl.pathname + errorUrl.search);
-}
-
-/**
- * Validate redirect URI format according to OAuth 2.0 spec
- * Must be HTTPS or localhost (for development)
- */
-function isValidRedirectUriFormat(uri: string): boolean {
-	try {
-		const url = new URL(uri);
-		// Allow HTTPS or localhost (http://localhost or http://127.0.0.1)
-		if (url.protocol === 'https:') {
-			return true;
-		}
-		if (url.protocol === 'http:') {
-			const isLocalhost =
-				url.hostname === 'localhost' ||
-				url.hostname === '127.0.0.1' ||
-				url.hostname === '[::1]';
-			return isLocalhost;
-		}
-		return false;
-	} catch {
-		return false;
-	}
 }
 
 /**

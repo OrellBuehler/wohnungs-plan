@@ -9,6 +9,11 @@
     toggleWallsDoors,
     hasFloorplanAnalysis
   } from '$lib/stores/project.svelte';
+  import {
+    isCommentsVisible,
+    toggleCommentsVisibility,
+    getComments
+  } from '$lib/stores/comments.svelte';
 
   interface Props {
     showGrid: boolean;
@@ -34,6 +39,10 @@
   const floorplanAnalysis = $derived(getFloorplanAnalysis());
   const hasAnalysis = $derived(hasFloorplanAnalysis());
   const showWallsDoors = $derived(floorplanAnalysis.visible);
+
+  // Comments state
+  const showComments = $derived(isCommentsVisible());
+  const commentCount = $derived(getComments().filter(c => !c.resolved).length);
 
   function handleGridSizeInput(e: Event) {
     const value = parseInt((e.target as HTMLInputElement).value, 10);
@@ -67,6 +76,14 @@
     </Label>
   {/if}
 
+  <Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
+    <Checkbox
+      checked={showComments}
+      onchange={() => toggleCommentsVisibility()}
+    />
+    Comments
+  </Label>
+
   <Separator orientation="vertical" class="h-6" />
 
   <Label class="flex items-center gap-2 text-slate-600">
@@ -89,6 +106,12 @@
     <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
       {floorplanAnalysis.walls.length} walls,
       {floorplanAnalysis.doors.length} doors
+    </span>
+  {/if}
+
+  {#if showComments && commentCount > 0}
+    <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+      {commentCount} comment{commentCount !== 1 ? 's' : ''}
     </span>
   {/if}
 

@@ -60,7 +60,7 @@
 
 	const token = $derived($page.params.token);
 
-	let activeTab = $state<'plan' | 'items'>('plan');
+	let activeTab = $state<'plan' | 'items' | 'comments'>('plan');
 	let isMobile = $state(false);
 	let isInvalid = $state(false);
 	let requiresPassword = $state(false);
@@ -353,7 +353,7 @@
 		</header>
 
 		<main class="relative flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
-			<div class="flex-1 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
+			<div class="flex-1 min-w-0 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
 				<div class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden bg-white">
 					{#if isLoading}
 						<div class="h-full flex items-center justify-center text-sm text-slate-500">

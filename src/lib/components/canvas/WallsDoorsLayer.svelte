@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Group, Line, Arc, Circle, Rect } from 'svelte-konva';
+	import { Group, Line, Arc, Circle } from 'svelte-konva';
 	import { getFloorplanAnalysis } from '$lib/stores/project.svelte';
 
 	const analysis = $derived(getFloorplanAnalysis());
@@ -90,24 +90,6 @@
 		})
 	);
 
-	// Optional: Room boundaries (for debugging/visualization)
-	const roomPolygons = $derived(
-		analysis.rooms.map((room) => {
-			// Flatten polygon points for Konva
-			const points = room.polygon.flatMap((point) => point);
-
-			return {
-				id: room.id,
-				points,
-				stroke: '#64748b', // Slate-500
-				strokeWidth: 1,
-				opacity: 0.3,
-				dash: [5, 5], // Dashed line
-				closed: true,
-				listening: false
-			};
-		})
-	);
 </script>
 
 {#if visible}
@@ -116,13 +98,6 @@
 		{#each wallLines as wall (wall.id)}
 			<Line {...wall} />
 		{/each}
-
-		<!-- Room boundaries (optional, dashed outlines) -->
-		<!-- Uncomment to show room polygons:
-		{#each roomPolygons as room (room.id)}
-			<Line {...room} />
-		{/each}
-		-->
 
 		<!-- Doors (arcs + hinges) -->
 		{#each doorArcs as door (door.id)}

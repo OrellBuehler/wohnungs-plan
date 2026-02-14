@@ -1,28 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getDB, oauthClients } from '$lib/server/db';
-import { generateClientId, generateClientSecret, hashToken } from '$lib/server/oauth';
-
-/**
- * Validate redirect URI format according to OAuth 2.0 spec.
- * Must be HTTPS or localhost (for development/native apps).
- */
-function isValidRedirectUriFormat(uri: string): boolean {
-	try {
-		const url = new URL(uri);
-		if (url.protocol === 'https:') return true;
-		if (url.protocol === 'http:') {
-			return (
-				url.hostname === 'localhost' ||
-				url.hostname === '127.0.0.1' ||
-				url.hostname === '[::1]'
-			);
-		}
-		return false;
-	} catch {
-		return false;
-	}
-}
+import { generateClientId, generateClientSecret, hashToken, isValidRedirectUriFormat } from '$lib/server/oauth';
 
 /**
  * RFC 7591 — OAuth 2.0 Dynamic Client Registration

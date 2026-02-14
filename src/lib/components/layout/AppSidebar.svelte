@@ -11,6 +11,7 @@
 		getProjectContext,
 		type ProjectAction
 	} from '$lib/stores/sidebar.svelte';
+	import { getInitials } from '$lib/utils/format';
 
 	const user = $derived(getUser());
 	const authed = $derived(isAuthenticated());
@@ -31,16 +32,6 @@
 		}
 		lastPath = currentPath;
 	});
-
-	function getInitials(name: string | null): string {
-		if (!name) return '?';
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 
 	function handleAction(action: ProjectAction) {
 		setSidebarOpen(false);

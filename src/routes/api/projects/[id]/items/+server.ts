@@ -1,8 +1,8 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectById, getProjectRole } from '$lib/server/projects';
-import { createItem, getBranchItems } from '$lib/server/items';
-import { ensureMainBranch, getDefaultBranch } from '$lib/server/branches';
+import { getProjectRole } from '$lib/server/projects';
+import { createItem, getBranchItems, parseItemCreateBody } from '$lib/server/items';
+import { resolveDefaultBranch } from '$lib/server/branches';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -14,15 +14,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 		throw error(403, 'Access denied');
 	}
 
-	let branch = await getDefaultBranch(params.id);
-	if (!branch) {
-		const project = await getProjectById(params.id);
-		if (!project) {
-			throw error(404, 'Project not found');
-		}
-		branch = await ensureMainBranch(project.id, project.ownerId);
-	}
-
+	const branch = await resolveDefaultBranch(params.id);
 	const items = await getBranchItems(params.id, branch.id);
 	return json({ items });
 };
@@ -37,33 +29,10 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		throw error(403, 'Edit access required');
 	}
 
-	let branch = await getDefaultBranch(params.id);
-	if (!branch) {
-		const project = await getProjectById(params.id);
-		if (!project) {
-			throw error(404, 'Project not found');
-		}
-		branch = await ensureMainBranch(project.id, project.ownerId);
-	}
+	const branch = await resolveDefaultBranch(params.id);
 
 	const body = await request.json();
-	const item = await createItem(params.id, branch.id, locals.user.id, {
-		id: body.id,
-		name: body.name,
-		width: body.width,
-		height: body.height,
-		x: body.x ?? null,
-		y: body.y ?? null,
-		rotation: body.rotation ?? 0,
-		color: body.color ?? '#3b82f6',
-		price: body.price ?? null,
-		priceCurrency: body.priceCurrency ?? 'EUR',
-		productUrl: body.productUrl ?? null,
-		shape: body.shape ?? 'rectangle',
-		cutoutWidth: body.cutoutWidth ?? null,
-		cutoutHeight: body.cutoutHeight ?? null,
-		cutoutCorner: body.cutoutCorner ?? null
-	});
+	const item = await createItem(params.id, branch.id, locals.user.id, parseItemCreateBody(body));
 
 	return json({ item }, { status: 201 });
 };

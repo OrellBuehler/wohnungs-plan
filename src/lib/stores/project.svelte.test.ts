@@ -21,7 +21,8 @@ vi.mock('$lib/db', () => {
 
 vi.mock('$lib/stores/auth.svelte', () => ({
 	isAuthenticated: vi.fn(() => false),
-	waitForAuth: vi.fn(() => Promise.resolve())
+	waitForAuth: vi.fn(() => Promise.resolve()),
+	authFetch: vi.fn((...args: Parameters<typeof fetch>) => globalThis.fetch(...args))
 }));
 
 vi.mock('$lib/stores/sync.svelte', () => ({

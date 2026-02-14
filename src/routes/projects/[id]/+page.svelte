@@ -2,12 +2,13 @@
 	import { onMount, onDestroy, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import type { Item, ItemChange } from '$lib/types';
+	import type { Item } from '$lib/types';
 	import type { CurrencyCode } from '$lib/utils/currency';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair } from 'lucide-svelte';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, History, Grid3x3, Magnet, Image, Crosshair, MessageSquare, EllipsisVertical, GitBranch, Check } from 'lucide-svelte';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
@@ -47,6 +48,9 @@
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
+	import { loadComments, resetComments, enterPlacementMode, createComment, updateCommentPosition, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead, setPendingComment, getPendingComment, getPinningCommentId, setActiveComment, getActiveComment } from '$lib/stores/comments.svelte';
+	import CommentPanel from '$lib/components/comments/CommentPanel.svelte';
+	import PlacementOverlay from '$lib/components/comments/PlacementOverlay.svelte';
 
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
 	import FloorplanCanvas from '$lib/components/canvas/FloorplanCanvas.svelte';
@@ -56,6 +60,7 @@
 	import ItemList from '$lib/components/items/ItemList.svelte';
 	import ItemForm from '$lib/components/items/ItemForm.svelte';
 	import ItemBottomSheet from '$lib/components/items/ItemBottomSheet.svelte';
+	import HistoryDialog from '$lib/components/projects/HistoryDialog.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -66,7 +71,8 @@
 	const authed = $derived(isAuthenticated());
 
 	// App state
-	let activeTab = $state<'plan' | 'items'>('plan');
+	let activeTab = $state<'plan' | 'items' | 'comments'>('plan');
+	let showCommentsPanel = $state(false);
 	let selectedItemId = $state<string | null>(null);
 	let showGrid = $state(true);
 	let snapToGrid = $state(true);
@@ -78,11 +84,7 @@
 	let showShareDialog = $state(false);
 	let showItemBottomSheet = $state(false);
 	let showHistory = $state(false);
-	let isHistoryLoading = $state(false);
-	let isRevertingHistory = $state(false);
-	let historyChanges = $state<ItemChange[]>([]);
-	let expandedHistoryGroups = $state<Set<string>>(new Set());
-	let selectedHistoryChangeIds = $state<Set<string>>(new Set());
+	let historyDialogRef = $state<ReturnType<typeof HistoryDialog> | null>(null);
 	let showConfirmDialog = $state(false);
 	let confirmDialogTitle = $state('');
 	let confirmDialogDescription = $state('');
@@ -155,10 +157,12 @@
 
 		if (dy > SWIPE_MAX_Y) return; // Too much vertical movement
 
-		if (dx < -SWIPE_THRESHOLD && activeTab === 'plan') {
-			activeTab = 'items';
-		} else if (dx > SWIPE_THRESHOLD && activeTab === 'items') {
-			activeTab = 'plan';
+		if (dx < -SWIPE_THRESHOLD) {
+			if (activeTab === 'plan') activeTab = 'items';
+			else if (activeTab === 'items') activeTab = 'comments';
+		} else if (dx > SWIPE_THRESHOLD) {
+			if (activeTab === 'comments') activeTab = 'items';
+			else if (activeTab === 'items') activeTab = 'plan';
 		}
 	}
 
@@ -209,6 +213,8 @@
 				await syncBranchUrl(branchId);
 				didSyncUrl = true;
 			}
+			// Reload comments for the new branch
+			if (projectId) loadComments(projectId, branchId);
 			return true;
 		} finally {
 			if (pendingBranchUrlSyncId === branchId) {
@@ -319,137 +325,8 @@
 		});
 	}
 
-	interface HistoryGroup {
-		id: string;
-		userId: string | null;
-		userName: string;
-		itemId: string;
-		createdAt: string;
-		changes: ItemChange[];
-	}
-
-	function groupHistoryEntries(changes: ItemChange[]): HistoryGroup[] {
-		if (changes.length === 0) return [];
-		const sorted = [...changes].sort(
-			(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-		);
-
-		const groups: HistoryGroup[] = [];
-		for (const change of sorted) {
-			const currentTime = new Date(change.createdAt).getTime();
-			const last = groups[groups.length - 1];
-			const lastTime = last ? new Date(last.createdAt).getTime() : 0;
-			const sameActor = last?.userId === change.userId;
-			const sameItem = last?.itemId === change.itemId;
-			const withinWindow = Math.abs(lastTime - currentTime) <= 2000;
-
-			if (last && sameActor && sameItem && withinWindow) {
-				last.changes.push(change);
-				continue;
-			}
-
-			groups.push({
-				id: `${change.userId ?? 'anonymous'}:${change.itemId}:${change.createdAt}`,
-				userId: change.userId,
-				userName: change.userName ?? 'Unknown user',
-				itemId: change.itemId,
-				createdAt: change.createdAt,
-				changes: [change]
-			});
-		}
-
-		return groups;
-	}
-
-	const historyGroups = $derived(groupHistoryEntries(historyChanges));
-
-	function isGroupExpanded(groupId: string): boolean {
-		return expandedHistoryGroups.has(groupId);
-	}
-
-	function toggleHistoryGroup(groupId: string): void {
-		const next = new Set(expandedHistoryGroups);
-		if (next.has(groupId)) {
-			next.delete(groupId);
-		} else {
-			next.add(groupId);
-		}
-		expandedHistoryGroups = next;
-	}
-
-	function isChangeSelected(changeId: string): boolean {
-		return selectedHistoryChangeIds.has(changeId);
-	}
-
-	function toggleChangeSelection(changeId: string): void {
-		const next = new Set(selectedHistoryChangeIds);
-		if (next.has(changeId)) {
-			next.delete(changeId);
-		} else {
-			next.add(changeId);
-		}
-		selectedHistoryChangeIds = next;
-	}
-
-	function toggleGroupSelection(group: HistoryGroup): void {
-		const next = new Set(selectedHistoryChangeIds);
-		const hasAll = group.changes.every((change) => next.has(change.id));
-		for (const change of group.changes) {
-			if (hasAll) {
-				next.delete(change.id);
-			} else {
-				next.add(change.id);
-			}
-		}
-		selectedHistoryChangeIds = next;
-	}
-
-	function getHistoryItemLabel(itemId: string): string {
-		const item = items.find((candidate) => candidate.id === itemId);
-		return item?.name ?? `Item ${itemId.slice(0, 8)}`;
-	}
-
-	function describeGroupAction(group: HistoryGroup): string {
-		if (group.changes.some((change) => change.action === 'delete')) return 'deleted';
-		if (group.changes.some((change) => change.action === 'create')) return 'created';
-		return 'updated';
-	}
-
-	async function loadHistory() {
-		isHistoryLoading = true;
-		try {
-			historyChanges = await getItemHistory(200, 0);
-			selectedHistoryChangeIds = new Set(historyChanges.map((change) => change.id));
-		} finally {
-			isHistoryLoading = false;
-		}
-	}
-
 	async function handleOpenHistory() {
-		showHistory = true;
-		await loadHistory();
-	}
-
-	function handleRevertHistory() {
-		const changeIds = Array.from(selectedHistoryChangeIds);
-		if (changeIds.length === 0) return;
-		openConfirmDialog({
-			title: 'Revert Selected Changes',
-			description: `Revert ${changeIds.length} selected change(s)?`,
-			actionLabel: 'Revert',
-			actionVariant: 'destructive',
-			action: async () => {
-				isRevertingHistory = true;
-				try {
-					const reverted = await revertHistoryChanges(changeIds);
-					if (reverted) {
-						await loadHistory();
-					}
-				} finally {
-					isRevertingHistory = false;
-				}
-			}
-		});
+		await historyDialogRef?.openAndLoad();
 	}
 
 	function handleGridSizeChange(newSize: number) {
@@ -516,6 +393,10 @@
 			if (authed && loaded.floorplan?.imageData?.startsWith('/api/')) {
 				isLocalProject = false;
 			}
+			// Load comments for this project
+			if (loaded.activeBranchId) {
+				loadComments(loaded.id, loaded.activeBranchId);
+			}
 		} else {
 			goto('/');
 		}
@@ -530,17 +411,17 @@
 	});
 
 	onMount(() => {
-		// Mobile detection
-		const updateMobile = () => {
-			isMobile = window.innerWidth < 768; // md breakpoint
-		};
-		updateMobile();
-		window.addEventListener('resize', updateMobile);
-		return () => window.removeEventListener('resize', updateMobile);
+		// Mobile detection via matchMedia (fires only on breakpoint crossing)
+		const mql = window.matchMedia('(max-width: 767px)');
+		isMobile = mql.matches;
+		const handleChange = (e: MediaQueryListEvent) => { isMobile = e.matches; };
+		mql.addEventListener('change', handleChange);
+		return () => mql.removeEventListener('change', handleChange);
 	});
 
 	onDestroy(() => {
 		clearProjectContext();
+		resetComments();
 	});
 
 	// Register project context for sidebar
@@ -843,6 +724,86 @@
 		handleUnplaceItem(id);
 	}
 
+	// Comment actions
+	function handleCommentPlace(x: number, y: number) {
+		const pinningId = getPinningCommentId();
+		if (pinningId) {
+			// Pinning an existing comment to this position
+			const pid = projectId;
+			if (pid) {
+				updateCommentPosition(pid, pinningId, x, y);
+				exitPlacementMode();
+				setActiveComment(pinningId);
+			}
+			return;
+		}
+		setPendingComment({ x, y });
+	}
+
+	function handleCommentMove(commentId: string, x: number, y: number) {
+		const pid = projectId;
+		if (pid) {
+			updateCommentPosition(pid, commentId, x, y);
+		}
+	}
+
+	function handlePlaceCommentMobile(_screenX: number, _screenY: number) {
+		const center = canvasRef?.getViewportCenterNatural();
+		if (!center) return;
+		const pinningId = getPinningCommentId();
+		if (pinningId) {
+			const pid = projectId;
+			if (pid) {
+				updateCommentPosition(pid, pinningId, center.x, center.y);
+				exitPlacementMode();
+				setActiveComment(pinningId);
+			}
+			return;
+		}
+		setPendingComment({ x: center.x, y: center.y });
+	}
+
+	async function handleSubmitPendingComment(body: string) {
+		const pending = getPendingComment();
+		if (!pending) return;
+		const pid = projectId;
+		const branchId = activeBranch?.id;
+		if (!pid || !branchId) return;
+		await createComment(pid, branchId, body, { x: pending.x, y: pending.y });
+		setPendingComment(null);
+	}
+
+	function handleCancelPendingComment() {
+		setPendingComment(null);
+	}
+
+	async function handleCreateComment(body: string) {
+		const pid = projectId;
+		const branchId = activeBranch?.id;
+		if (!pid || !branchId) return;
+		await createComment(pid, branchId, body);
+	}
+
+	function handlePlaceOnMap() {
+		activeTab = 'plan';
+		enterPlacementMode();
+	}
+
+	function handlePinCommentToMap(commentId: string) {
+		activeTab = 'plan';
+		enterPlacementMode(commentId);
+	}
+
+	function handleCloseCommentsPanel() {
+		showCommentsPanel = false;
+	}
+
+	// Derive unread count for header badge
+	const unreadCount = $derived(getUnreadCount());
+
+	// Derive whether comment panel should be open on desktop
+	const commentsPanelOpen = $derived(showCommentsPanel || getPendingComment() !== null || getActiveComment() !== null);
+
 	// Canvas actions
 	function handleItemSelect(id: string | null) {
 		selectedItemId = id;
@@ -977,13 +938,96 @@
 					<span class="sr-only">Refresh</span>
 				</Button>
 			{/if}
+			<Button
+				variant="outline"
+				size="sm"
+				class="hidden md:inline-flex relative"
+				onclick={() => { showCommentsPanel = !showCommentsPanel; markAllRead(); }}
+			>
+				<MessageSquare size={16} class="mr-1" />
+				Comments
+				{#if unreadCount > 0}
+					<span class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1">
+						{unreadCount}
+					</span>
+				{/if}
+			</Button>
+			<!-- Mobile overflow menu -->
+			{#if isMobile}
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						<Button variant="outline" size="icon-sm" class="min-h-[44px] min-w-[44px]">
+							<EllipsisVertical size={18} />
+							<span class="sr-only">More actions</span>
+						</Button>
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content align="end" class="w-56">
+						{#if branches.length > 0}
+							<DropdownMenu.Label>
+								<div class="flex items-center gap-1.5">
+									<GitBranch size={14} />
+									Branches
+								</div>
+							</DropdownMenu.Label>
+							{#each branches as branch}
+								<DropdownMenu.Item
+									class="flex items-center justify-between"
+									disabled={isBranchSwitching}
+									onclick={() => {
+										if (branch.id !== activeBranch?.id) {
+											const fakeEvent = { target: { value: branch.id } } as unknown as Event;
+											handleBranchSelect(fakeEvent);
+										}
+									}}
+								>
+									{branch.name}
+									{#if branch.id === activeBranch?.id}
+										<Check size={14} class="text-blue-600" />
+									{/if}
+								</DropdownMenu.Item>
+							{/each}
+							<DropdownMenu.Item onclick={handleCreateBranch} disabled={isBranchSwitching}>
+								<GitBranchPlus size={14} class="mr-2" />
+								New branch
+							</DropdownMenu.Item>
+							<DropdownMenu.Item onclick={handleRenameBranch} disabled={!activeBranch || isBranchSwitching}>
+								<Pencil size={14} class="mr-2" />
+								Rename branch
+							</DropdownMenu.Item>
+							<DropdownMenu.Item onclick={handleDeleteBranch} disabled={!activeBranch || branches.length <= 1 || isBranchSwitching}>
+								<Trash2 size={14} class="mr-2" />
+								Delete branch
+							</DropdownMenu.Item>
+							<DropdownMenu.Separator />
+						{/if}
+						<DropdownMenu.Item onclick={startEditingName}>
+							<Pencil size={14} class="mr-2" />
+							Rename project
+						</DropdownMenu.Item>
+						{#if !isLocalProject}
+							<DropdownMenu.Item onclick={() => (showShareDialog = true)}>
+								<Share2 size={14} class="mr-2" />
+								Share
+							</DropdownMenu.Item>
+							<DropdownMenu.Item onclick={handleOpenHistory}>
+								<History size={14} class="mr-2" />
+								History
+							</DropdownMenu.Item>
+							<DropdownMenu.Item onclick={refreshProject} disabled={isRefreshing}>
+								<RefreshCw size={14} class="mr-2 {isRefreshing ? 'animate-spin' : ''}" />
+								Refresh
+							</DropdownMenu.Item>
+						{/if}
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			{/if}
 			<SidebarTrigger />
 		</div>
 	</header>
 
 	<main class="relative flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
-		<div class="flex-1 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col">
-			<div class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden">
+		<div class="flex-1 min-w-0 min-h-0 {activeTab === 'plan' || activeTab === 'comments' ? 'flex' : 'hidden'} md:flex flex-col">
+			<div class="{activeTab === 'comments' && isMobile ? 'h-[40vh] flex-shrink-0' : 'flex-1'} min-h-0 m-2 md:m-4 rounded-lg overflow-hidden">
 				{#if pendingImageData}
 					<ScaleCalibration
 						imageData={pendingImageData}
@@ -1014,6 +1058,8 @@
 							onItemRotate={handleItemRotate}
 						onItemUnplace={handleUnplaceItem}
 						onThumbnailReady={handleThumbnailReady}
+						onCommentPlace={handleCommentPlace}
+						onCommentMove={handleCommentMove}
 					/>
 				{/if}
 			</div>
@@ -1028,6 +1074,24 @@
 					onGridSizeChange={handleGridSizeChange}
 					onRecalibrate={handleRecalibrate}
 				/>
+			{/if}
+
+			<!-- Mobile: Comments panel below canvas when comments tab is active -->
+			{#if isMobile && activeTab === 'comments'}
+				<div class="flex-1 min-h-0 border-t border-slate-200">
+					<CommentPanel
+						projectId={project.id}
+						canEdit={true}
+						{isMobile}
+						open={true}
+						branchId={activeBranch?.id ?? null}
+						onSubmitPending={handleSubmitPendingComment}
+						onCancelPending={handleCancelPendingComment}
+						onPlaceOnMap={handlePlaceOnMap}
+						onCreateComment={handleCreateComment}
+						onPinCommentToMap={handlePinCommentToMap}
+					/>
+				</div>
 			{/if}
 		</div>
 
@@ -1063,6 +1127,23 @@
 			/>
 		</aside>
 
+		{#if !isMobile}
+			<!-- Desktop: Side panel -->
+			<CommentPanel
+				projectId={project.id}
+				canEdit={true}
+				{isMobile}
+				open={commentsPanelOpen}
+				branchId={activeBranch?.id ?? null}
+				onSubmitPending={handleSubmitPendingComment}
+				onCancelPending={handleCancelPendingComment}
+				onClose={handleCloseCommentsPanel}
+				onPlaceOnMap={handlePlaceOnMap}
+				onCreateComment={handleCreateComment}
+				onPinCommentToMap={handlePinCommentToMap}
+			/>
+		{/if}
+
 		{#if isBranchSwitching}
 			<div class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
 				<div class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
@@ -1072,88 +1153,18 @@
 		{/if}
 	</main>
 
-	{#if showHistory}
-		<div class="fixed inset-0 z-50 flex items-end justify-center md:items-center">
-			<button
-				type="button"
-				class="absolute inset-0 bg-black/40"
-				onclick={() => (showHistory = false)}
-				aria-label="Close history"
-			></button>
-			<div class="relative z-10 w-full md:max-w-2xl max-h-[85vh] bg-white rounded-t-xl md:rounded-xl shadow-xl flex flex-col">
-				<div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-					<h2 class="text-base font-semibold text-slate-800">Change History</h2>
-					<div class="flex items-center gap-2">
-						<Button variant="outline" size="sm" onclick={loadHistory} disabled={isHistoryLoading}>
-							Reload
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={handleRevertHistory}
-							disabled={isRevertingHistory || selectedHistoryChangeIds.size === 0}
-						>
-							Revert Selected
-						</Button>
-						<Button variant="ghost" size="sm" onclick={() => (showHistory = false)}>Close</Button>
-					</div>
-				</div>
+	<!-- Comment placement overlay -->
+	<PlacementOverlay {isMobile} onPlace={handlePlaceCommentMobile} />
 
-				<div class="overflow-y-auto px-4 py-3 space-y-3">
-					{#if isHistoryLoading}
-						<p class="text-sm text-slate-500">Loading history...</p>
-					{:else if historyGroups.length === 0}
-						<p class="text-sm text-slate-500">No history entries yet.</p>
-					{:else}
-						{#each historyGroups as group}
-							<div class="border border-slate-200 rounded-lg">
-								<div class="flex items-center justify-between gap-3 px-3 py-2 bg-slate-50">
-									<button
-										type="button"
-										class="text-left flex-1"
-										onclick={() => toggleHistoryGroup(group.id)}
-									>
-										<p class="text-sm font-medium text-slate-800">
-											{group.userName} {describeGroupAction(group)} {getHistoryItemLabel(group.itemId)}
-										</p>
-										<p class="text-xs text-slate-500">{new Date(group.createdAt).toLocaleString()}</p>
-									</button>
-									<input
-										type="checkbox"
-										checked={group.changes.every((change) => isChangeSelected(change.id))}
-										onchange={() => toggleGroupSelection(group)}
-										aria-label="Select group"
-									/>
-								</div>
+	<HistoryDialog
+		bind:this={historyDialogRef}
+		bind:open={showHistory}
+		{items}
+		onLoadHistory={getItemHistory}
+		onRevertChanges={revertHistoryChanges}
+	/>
 
-								{#if isGroupExpanded(group.id)}
-									<div class="px-3 py-2 space-y-2">
-										{#each group.changes as change}
-											<label class="flex items-start gap-2 text-sm text-slate-700">
-												<input
-													type="checkbox"
-													checked={isChangeSelected(change.id)}
-													onchange={() => toggleChangeSelection(change.id)}
-												/>
-												<span>
-													<strong>{change.action}</strong>
-													{#if change.field}
-														: {change.field}
-													{/if}
-												</span>
-											</label>
-										{/each}
-									</div>
-								{/if}
-							</div>
-						{/each}
-					{/if}
-				</div>
-			</div>
-		</div>
-	{/if}
-
-	<MobileNav {activeTab} onTabChange={(tab) => (activeTab = tab)} />
+	<MobileNav {activeTab} onTabChange={(tab) => { activeTab = tab; if (tab === 'comments') markAllRead(); }} {unreadCount} />
 
 	<ItemForm
 		bind:open={showItemForm}

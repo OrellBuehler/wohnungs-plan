@@ -2,13 +2,13 @@ import { randomUUID } from 'crypto';
 import { readFile, unlink, access } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { RequestHandler } from './$types';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { config } from '$lib/server/env';
 import { validateAccessToken } from '$lib/server/oauth';
-import { getProjectFloorplan, getProjectRole, getUserProjects } from '$lib/server/projects';
+import { getProjectById, getProjectFloorplan, getProjectRole, getUserProjects } from '$lib/server/projects';
 import {
 	createItem,
 	deleteItem,
@@ -40,9 +40,16 @@ import {
 	getFloorplanAnalysis,
 	type FloorplanAnalysisData
 } from '$lib/server/floorplan-analyses';
+import {
+	getItemsInRoom,
+	getRoomAvailableSpace,
+	checkPlacement,
+	suggestPlacement
+} from '$lib/server/spatial-queries';
+import { getCommentsByBranch, addReply, getCommentById } from '$lib/server/comments';
 
 const MCP_SERVER_NAME = 'wohnungs-plan';
-const MCP_SERVER_VERSION = '2.0.0';
+const MCP_SERVER_VERSION = '3.0.0';
 const REQUIRED_SCOPE = 'mcp:access';
 
 type SessionState = {
@@ -398,6 +405,130 @@ function createMcpServer(userId: string): McpServer {
 	);
 
 	server.registerTool(
+		'batch_add_items',
+		{
+			description:
+				'Add multiple furniture items to a project branch in one call. Each item is added to the inventory (not placed on canvas unless x/y provided). Max 50 items per call.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				items: z
+					.array(
+						z.object({
+							name: z.string().min(1),
+							width: z.number().positive(),
+							height: z.number().positive(),
+							x: z.number().nullable().optional(),
+							y: z.number().nullable().optional(),
+							rotation: z.number().optional(),
+							color: z
+								.string()
+								.regex(/^#[0-9a-fA-F]{6}$/)
+								.optional(),
+							price: z.number().positive().optional(),
+							priceCurrency: z.string().optional(),
+							productUrl: z.string().url().optional(),
+							shape: z.enum(['rectangle', 'l-shape']).optional(),
+							cutoutWidth: z.number().positive().optional(),
+							cutoutHeight: z.number().positive().optional(),
+							cutoutCorner: z
+								.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
+								.optional()
+						})
+					)
+					.min(1)
+					.max(50)
+			}
+		},
+		async ({ project_id, branch_id, items: itemsInput }) => {
+			await ensureProjectRole(project_id, 'editor');
+			await ensureBranch(project_id, branch_id);
+
+			const created = [];
+			for (const itemData of itemsInput) {
+				const item = await createItem(project_id, branch_id, userId, {
+					...itemData,
+					x: itemData.x ?? null,
+					y: itemData.y ?? null
+				});
+				created.push({
+					id: item.id,
+					name: item.name,
+					width: item.width,
+					height: item.height,
+					x: item.x,
+					y: item.y
+				});
+			}
+
+			return asText({
+				created_count: created.length,
+				items: created
+			});
+		}
+	);
+
+	server.registerTool(
+		'batch_update_items',
+		{
+			description:
+				'Update multiple furniture items in a single call. Useful for repositioning multiple items at once (e.g., rearranging a room). Max 50 items per call.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				updates: z
+					.array(
+						z.object({
+							item_id: z.string().uuid(),
+							name: z.string().min(1).optional(),
+							width: z.number().positive().optional(),
+							height: z.number().positive().optional(),
+							x: z.number().nullable().optional(),
+							y: z.number().nullable().optional(),
+							rotation: z.number().optional(),
+							color: z
+								.string()
+								.regex(/^#[0-9a-fA-F]{6}$/)
+								.optional(),
+							price: z.number().positive().nullable().optional(),
+							priceCurrency: z.string().optional(),
+							productUrl: z.string().url().nullable().optional()
+						})
+					)
+					.min(1)
+					.max(50)
+			}
+		},
+		async ({ project_id, branch_id, updates }) => {
+			await ensureProjectRole(project_id, 'editor');
+			await ensureBranch(project_id, branch_id);
+
+			const results = [];
+			for (const { item_id, ...data } of updates) {
+				const item = await updateItem(project_id, branch_id, item_id, userId, data);
+				if (!item) {
+					results.push({ item_id, success: false, error: 'Item not found' });
+				} else {
+					results.push({
+						item_id: item.id,
+						success: true,
+						name: item.name,
+						x: item.x,
+						y: item.y,
+						rotation: item.rotation
+					});
+				}
+			}
+
+			return asText({
+				updated_count: results.filter((r) => r.success).length,
+				failed_count: results.filter((r) => !r.success).length,
+				results
+			});
+		}
+	);
+
+	server.registerTool(
 		'list_furniture_items',
 		{
 			description: 'List furniture items for a specific project branch, including image data for each item.',
@@ -469,15 +600,12 @@ function createMcpServer(userId: string): McpServer {
 			try {
 				await access(thumbPath);
 				thumbnailData = await readFile(thumbPath);
-				console.log(`[MCP] Loaded existing thumbnail for ${project_id}`);
 			} catch {
 				// Thumbnail doesn't exist - generate it
-				console.log(`[MCP] Generating thumbnail for ${project_id}...`);
 				try {
 					await generateAndSaveThumbnail(project_id);
 					thumbnailData = await readFile(thumbPath);
 					wasGenerated = true;
-					console.log(`[MCP] Successfully generated thumbnail for ${project_id}`);
 				} catch (err) {
 					console.error(`[MCP] Failed to generate thumbnail for ${project_id}:`, err);
 					return asText({
@@ -765,6 +893,556 @@ function createMcpServer(userId: string): McpServer {
 					has_scale: !!analysis.scale
 				}
 			});
+		}
+	);
+
+	server.registerTool(
+		'get_room_contents',
+		{
+			description:
+				'List all furniture items placed within a specific room. Requires a floorplan analysis to exist (rooms must be defined). Uses the item center point to determine room membership.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				room_id: z.string()
+			}
+		},
+		async ({ project_id, branch_id, room_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			if (!analysis) {
+				throw new Error('No floorplan analysis found. Run save_floorplan_analysis first.');
+			}
+
+			const room = analysis.rooms.find((r) => r.id === room_id);
+			if (!room) {
+				throw new Error(
+					`Room "${room_id}" not found. Available rooms: ${analysis.rooms.map((r) => `${r.id} (${r.type})`).join(', ')}`
+				);
+			}
+
+			const branchItems = await getBranchItems(project_id, branch_id);
+			const roomItems = getItemsInRoom(room_id, branchItems, analysis);
+
+			return asText({
+				room_id: room.id,
+				room_type: room.type,
+				room_label: room.label ?? room.type,
+				item_count: roomItems.length,
+				items: roomItems.map((item) => ({
+					id: item.id,
+					name: item.name,
+					width: item.width,
+					height: item.height,
+					x: item.x,
+					y: item.y,
+					rotation: item.rotation
+				}))
+			});
+		}
+	);
+
+	server.registerTool(
+		'get_available_space',
+		{
+			description:
+				'Calculate the available floor space in a room by subtracting furniture footprints from the room area. Returns both pixel and real-world (sqm) measurements when scale data exists.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				room_id: z.string()
+			}
+		},
+		async ({ project_id, branch_id, room_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			if (!analysis) {
+				throw new Error('No floorplan analysis found. Run save_floorplan_analysis first.');
+			}
+
+			const branchItems = await getBranchItems(project_id, branch_id);
+			const space = getRoomAvailableSpace(room_id, branchItems, analysis);
+			if (!space) {
+				throw new Error(
+					`Room "${room_id}" not found. Available rooms: ${analysis.rooms.map((r) => `${r.id} (${r.type})`).join(', ')}`
+				);
+			}
+
+			const room = analysis.rooms.find((r) => r.id === room_id)!;
+			return asText({
+				room_id: room.id,
+				room_type: room.type,
+				room_label: room.label ?? room.type,
+				...space
+			});
+		}
+	);
+
+	server.registerTool(
+		'check_placement',
+		{
+			description:
+				'Validate a proposed furniture placement BEFORE committing it. Checks for collisions with walls, door swing zones, and existing items. Returns whether the placement is valid and lists any issues. Always use this before update_furniture_item to avoid placing items in invalid positions.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				x: z.number(),
+				y: z.number(),
+				width: z.number().positive(),
+				height: z.number().positive(),
+				rotation: z.number().default(0),
+				exclude_item_id: z
+					.string()
+					.uuid()
+					.optional()
+					.describe(
+						'Item ID to exclude from collision checks (use when repositioning an existing item)'
+					)
+			}
+		},
+		async ({ project_id, branch_id, x, y, width, height, rotation, exclude_item_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			const branchItems = await getBranchItems(project_id, branch_id);
+			const filteredItems = exclude_item_id
+				? branchItems.filter((i) => i.id !== exclude_item_id)
+				: branchItems;
+
+			const result = checkPlacement(x, y, width, height, rotation, filteredItems, analysis);
+			return asText(result);
+		}
+	);
+
+	server.registerTool(
+		'suggest_placement',
+		{
+			description:
+				'Find a valid position for a furniture item within a specific room. Uses grid search to find a spot that avoids walls, doors, and existing items. Returns suggested x, y, rotation or null if no valid position found. Requires floorplan analysis.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				room_id: z.string(),
+				width: z.number().positive(),
+				height: z.number().positive()
+			}
+		},
+		async ({ project_id, branch_id, room_id, width, height }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			if (!analysis) {
+				throw new Error('No floorplan analysis found. Run save_floorplan_analysis first.');
+			}
+
+			const branchItems = await getBranchItems(project_id, branch_id);
+			const suggestion = suggestPlacement(room_id, width, height, branchItems, analysis);
+
+			if (!suggestion) {
+				return asText({
+					found: false,
+					message: `No valid position found for a ${width}x${height} item in room "${room_id}". The room may be too full.`
+				});
+			}
+
+			return asText({
+				found: true,
+				x: suggestion.x,
+				y: suggestion.y,
+				rotation: suggestion.rotation,
+				message: `Suggested position: (${suggestion.x}, ${suggestion.y}) with rotation ${suggestion.rotation}°`
+			});
+		}
+	);
+
+	server.registerTool(
+		'list_comments',
+		{
+			description:
+				'List all comment threads for a project branch. Each comment has a type (canvas pin or item-attached) and contains threaded replies. The first reply in each thread is the original message. Comments can be resolved or unresolved.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid()
+			}
+		},
+		async ({ project_id, branch_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const threadList = await getCommentsByBranch(project_id, branch_id);
+			return asText(
+				threadList.map((c) => ({
+					id: c.id,
+					type: c.type,
+					item_id: c.itemId,
+					x: c.x,
+					y: c.y,
+					resolved: c.resolved,
+					author_name: c.authorName,
+					created_at: c.createdAt?.toISOString(),
+					updated_at: c.updatedAt?.toISOString(),
+					replies: c.replies.map((r) => ({
+						id: r.id,
+						author_name: r.authorName,
+						body: r.body,
+						created_at: r.createdAt?.toISOString()
+					}))
+				}))
+			);
+		}
+	);
+
+	server.registerTool(
+		'add_comment_reply',
+		{
+			description:
+				'Add a reply to an existing comment thread. Use list_comments first to find the comment ID you want to reply to.',
+			inputSchema: {
+				project_id: z.string().uuid(),
+				comment_id: z.string().uuid(),
+				body: z.string().min(1)
+			}
+		},
+		async ({ project_id, comment_id, body }) => {
+			await ensureProjectRole(project_id, 'editor');
+
+			const comment = await getCommentById(comment_id);
+			if (!comment || comment.projectId !== project_id) {
+				throw new Error('Comment not found in this project.');
+			}
+
+			const reply = await addReply({
+				commentId: comment_id,
+				authorId: userId,
+				body
+			});
+
+			return asText({
+				id: reply.id,
+				comment_id: reply.commentId,
+				author_name: reply.authorName,
+				body: reply.body,
+				created_at: reply.createdAt?.toISOString()
+			});
+		}
+	);
+
+	// --- MCP Resources ---
+
+	server.resource(
+		'project-summary',
+		new ResourceTemplate('project://{project_id}/summary', { list: undefined }),
+		{
+			description:
+				'Project metadata including name, dimensions, currency, grid size, branch count, and item count.',
+			mimeType: 'application/json'
+		},
+		async (uri, vars) => {
+			const projectId = String(vars.project_id);
+			await ensureProjectRole(projectId, 'viewer');
+			const project = await getProjectById(projectId);
+			if (!project) throw new Error('Project not found');
+
+			const projectBranches = await listProjectBranches(projectId);
+			const defaultBranch = await getDefaultBranch(projectId);
+			let itemCount = 0;
+			if (defaultBranch) {
+				const branchItems = await getBranchItems(projectId, defaultBranch.id);
+				itemCount = branchItems.length;
+			}
+
+			return {
+				contents: [
+					{
+						uri: uri.href,
+						mimeType: 'application/json',
+						text: JSON.stringify(
+							{
+								id: project.id,
+								name: project.name,
+								currency: project.currency,
+								grid_size: project.gridSize,
+								branch_count: projectBranches.length,
+								default_branch_id: defaultBranch?.id ?? null,
+								item_count: itemCount,
+								created_at: project.createdAt?.toISOString(),
+								updated_at: project.updatedAt?.toISOString()
+							},
+							null,
+							2
+						)
+					}
+				]
+			};
+		}
+	);
+
+	server.resource(
+		'floorplan-analysis',
+		new ResourceTemplate('project://{project_id}/floorplan-analysis', { list: undefined }),
+		{
+			description:
+				'Cached floorplan analysis with rooms, walls, openings, and scale data. Returns null if no analysis exists.',
+			mimeType: 'application/json'
+		},
+		async (uri, vars) => {
+			const projectId = String(vars.project_id);
+			await ensureProjectRole(projectId, 'viewer');
+			const analysis = await getFloorplanAnalysis(projectId);
+			return {
+				contents: [
+					{
+						uri: uri.href,
+						mimeType: 'application/json',
+						text: JSON.stringify(analysis, null, 2)
+					}
+				]
+			};
+		}
+	);
+
+	server.resource(
+		'branch-items',
+		new ResourceTemplate('project://{project_id}/branches/{branch_id}/items', {
+			list: undefined
+		}),
+		{
+			description:
+				'Complete furniture inventory for a branch, including positions and dimensions.',
+			mimeType: 'application/json'
+		},
+		async (uri, vars) => {
+			const projectId = String(vars.project_id);
+			const branchId = String(vars.branch_id);
+			await ensureProjectRole(projectId, 'viewer');
+			await ensureBranch(projectId, branchId);
+			const branchItems = await getBranchItems(projectId, branchId);
+			return {
+				contents: [
+					{
+						uri: uri.href,
+						mimeType: 'application/json',
+						text: JSON.stringify(
+							branchItems.map((item) => ({
+								id: item.id,
+								name: item.name,
+								width: item.width,
+								height: item.height,
+								x: item.x,
+								y: item.y,
+								rotation: item.rotation,
+								color: item.color,
+								price: item.price,
+								price_currency: item.priceCurrency,
+								product_url: item.productUrl,
+								shape: item.shape
+							})),
+							null,
+							2
+						)
+					}
+				]
+			};
+		}
+	);
+
+	// --- MCP Prompts ---
+
+	server.registerPrompt(
+		'furnish-room',
+		{
+			description:
+				'Guided workflow to furnish a specific room with appropriate furniture items.',
+			argsSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				room_id: z.string(),
+				style: z
+					.string()
+					.optional()
+					.describe('Furniture style preference (e.g., modern, minimalist, cozy)')
+			}
+		},
+		async ({ project_id, branch_id, room_id, style }) => {
+			await ensureProjectRole(project_id, 'viewer');
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			if (!analysis) {
+				return {
+					messages: [
+						{
+							role: 'user' as const,
+							content: {
+								type: 'text' as const,
+								text: `No floorplan analysis found for project ${project_id}. Please first use get_project_preview to view the floorplan, then save_floorplan_analysis to extract room data.`
+							}
+						}
+					]
+				};
+			}
+
+			const room = analysis.rooms.find((r) => r.id === room_id);
+			if (!room) {
+				return {
+					messages: [
+						{
+							role: 'user' as const,
+							content: {
+								type: 'text' as const,
+								text: `Room "${room_id}" not found. Available rooms: ${analysis.rooms.map((r) => `${r.id} (${r.type}${r.label ? ': ' + r.label : ''})`).join(', ')}`
+							}
+						}
+					]
+				};
+			}
+
+			const branchItems = await getBranchItems(project_id, branch_id);
+			const roomItemCount = getItemsInRoom(room_id, branchItems, analysis).length;
+
+			const scaleInfo = analysis.scale
+				? `Scale: ${analysis.scale.pixels_per_meter} pixels/meter.`
+				: 'No scale data available — dimensions are in pixels.';
+
+			const styleNote = style ? `Style preference: ${style}.` : '';
+
+			return {
+				messages: [
+					{
+						role: 'user' as const,
+						content: {
+							type: 'text' as const,
+							text: `Please furnish the ${room.type}${room.label ? ` (${room.label})` : ''} in project ${project_id}, branch ${branch_id}.
+
+Room details:
+- ID: ${room.id}
+- Type: ${room.type}
+- Area: ${room.area_sqm ? room.area_sqm + ' sqm' : 'unknown'}
+- Dimensions: ${room.dimensions ? `${room.dimensions.width}x${room.dimensions.height}` : 'see polygon'}
+- Current items in room: ${roomItemCount}
+- Walls nearby: ${analysis.walls.length} total
+- Doors/windows nearby: ${analysis.openings.length} total
+${scaleInfo}
+${styleNote}
+
+Steps:
+1. Use get_available_space to check how much room you have
+2. Decide which furniture items are appropriate for a ${room.type}
+3. Use batch_add_items to add all items at once
+4. Use check_placement for each item before setting positions
+5. Use batch_update_items to place all items with valid positions
+6. Use get_project_preview to verify the final layout looks good`
+						}
+					}
+				]
+			};
+		}
+	);
+
+	server.registerPrompt(
+		'optimize-layout',
+		{
+			description:
+				'Analyze the current furniture layout and suggest improvements for better space usage, traffic flow, and aesthetics.',
+			argsSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid()
+			}
+		},
+		async ({ project_id, branch_id }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			const branchItems = await getBranchItems(project_id, branch_id);
+
+			const placedItems = branchItems.filter((i) => i.x !== null && i.y !== null);
+			const unplacedItems = branchItems.filter((i) => i.x === null || i.y === null);
+
+			return {
+				messages: [
+					{
+						role: 'user' as const,
+						content: {
+							type: 'text' as const,
+							text: `Please analyze and optimize the furniture layout for project ${project_id}, branch ${branch_id}.
+
+Current state:
+- Total items: ${branchItems.length}
+- Placed on canvas: ${placedItems.length}
+- In inventory (unplaced): ${unplacedItems.length}
+- Rooms defined: ${analysis ? analysis.rooms.length : 'No floorplan analysis — run save_floorplan_analysis first'}
+- Walls: ${analysis ? analysis.walls.length : 'unknown'}
+- Doors/windows: ${analysis ? analysis.openings.length : 'unknown'}
+
+Steps:
+1. Use get_project_preview to see the current layout
+2. For each room, use get_room_contents and get_available_space
+3. Identify issues: blocked doors, overlapping items, wasted space, poor traffic flow
+4. Use check_placement to validate proposed new positions
+5. Use batch_update_items to reposition items
+6. Use get_project_preview to verify improvements`
+						}
+					}
+				]
+			};
+		}
+	);
+
+	server.registerPrompt(
+		'shopping-list',
+		{
+			description:
+				'Generate a furniture shopping list based on empty or under-furnished rooms.',
+			argsSchema: {
+				project_id: z.string().uuid(),
+				branch_id: z.string().uuid(),
+				budget: z.string().optional().describe('Budget constraint (e.g., "500 EUR")')
+			}
+		},
+		async ({ project_id, branch_id, budget }) => {
+			await ensureProjectRole(project_id, 'viewer');
+			await ensureBranch(project_id, branch_id);
+
+			const analysis = await getFloorplanAnalysis(project_id);
+			const branchItems = await getBranchItems(project_id, branch_id);
+
+			const totalSpent = branchItems
+				.filter((i) => i.price !== null)
+				.reduce((sum, i) => sum + (i.price ?? 0), 0);
+
+			const budgetNote = budget
+				? `Budget: ${budget}. Already spent: ${totalSpent} EUR.`
+				: `Current total: ${totalSpent} EUR.`;
+
+			return {
+				messages: [
+					{
+						role: 'user' as const,
+						content: {
+							type: 'text' as const,
+							text: `Generate a furniture shopping list for project ${project_id}, branch ${branch_id}.
+
+${budgetNote}
+Current item count: ${branchItems.length}
+Rooms: ${analysis ? analysis.rooms.map((r) => `${r.type}${r.label ? ` (${r.label})` : ''}`).join(', ') : 'No floorplan analysis — analyze first'}
+
+Steps:
+1. Use get_project_preview to see the current layout
+2. For each room, use get_room_contents to see what's already there
+3. Identify what's missing (e.g., bedroom without bed, living room without sofa)
+4. Suggest specific items with estimated dimensions and prices
+5. Use batch_add_items to add suggested items to inventory
+6. Summarize the total estimated cost`
+						}
+					}
+				]
+			};
 		}
 	);
 

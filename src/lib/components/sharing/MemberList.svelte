@@ -2,6 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Select from '$lib/components/ui/select';
 	import { UserMinus } from 'lucide-svelte';
+	import { getInitials } from '$lib/utils/format';
 
 	export type ProjectRole = 'owner' | 'editor' | 'viewer';
 
@@ -28,16 +29,6 @@
 		{ value: 'editor', label: 'Editor' },
 		{ value: 'viewer', label: 'Viewer' }
 	];
-
-	function getInitials(name: string | null): string {
-		if (!name) return '?';
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 </script>
 
 <div class="space-y-3">

@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { Stage, Layer, Shape, Image as KonvaImage, Rect, Line, Text, Group } from 'svelte-konva';
+  import { Stage, Layer, Shape, Image as KonvaImage, Rect, Line, Text, Group, Circle } from 'svelte-konva';
   import type { Item, Floorplan } from '$lib/types';
   import type Konva from 'konva';
   import type { Context } from 'konva/lib/Context';
   import type { Shape as KonvaShape } from 'konva/lib/Shape';
   import WallsDoorsLayer from './WallsDoorsLayer.svelte';
+  import CommentsLayer from './CommentsLayer.svelte';
+  import { isPlacementMode, getItemCommentCount, isCommentsVisible } from '$lib/stores/comments.svelte';
   import {
     getMinEdgeDistance,
     getOverlappingItems,
@@ -50,6 +52,8 @@
     onItemRotate: (id: string, rotation: number) => void;
     onItemUnplace: (id: string) => void;
     onThumbnailReady?: (dataUrl: string) => void;
+    onCommentPlace?: (x: number, y: number) => void;
+    onCommentMove?: (commentId: string, x: number, y: number) => void;
   }
 
   let {
@@ -65,6 +69,8 @@
     onItemRotate,
     onItemUnplace,
     onThumbnailReady,
+    onCommentPlace,
+    onCommentMove,
   }: Props = $props();
 
   let containerEl: HTMLDivElement;
@@ -241,6 +247,19 @@
   }
 
   function handleStageClick(e: { target: Konva.Node }) {
+    if (isPlacementMode()) {
+      const stage = stageRef?.node;
+      if (!stage) return;
+      const pointer = stage.getPointerPosition();
+      if (!pointer) return;
+      // Convert screen pointer to canvas coordinates (undo zoom+pan)
+      const canvasX = (pointer.x - panX) / zoom;
+      const canvasY = (pointer.y - panY) / zoom;
+      // Convert display coords to natural coords for storage
+      const natural = displayToNatural(canvasX, canvasY);
+      onCommentPlace?.(natural.x, natural.y);
+      return;
+    }
     if (e.target.getClassName() === 'Stage') {
       onItemSelect(null);
     }
@@ -1065,6 +1084,8 @@
           ondragstart={mobileMode ? undefined : () => handleDragStart(item.id)}
           ondragmove={mobileMode ? undefined : (e) => handleDragMove(item.id, e)}
           ondragend={mobileMode ? undefined : (e) => handleDragEnd(item.id, e)}
+          onmouseenter={mobileMode ? undefined : (e: { target: Konva.Node }) => { const s = e.target.getStage(); if (s) s.container().style.cursor = 'pointer'; }}
+          onmouseleave={mobileMode ? undefined : (e: { target: Konva.Node }) => { const s = e.target.getStage(); if (s) s.container().style.cursor = 'default'; }}
         >
           {#if item.shape === 'l-shape'}
             <Line
@@ -1128,8 +1149,41 @@
               listening={false}
             />
           {/if}
+          {#if isCommentsVisible() && getItemCommentCount(item.id) > 0}
+            {@const badgeRadius = 8}
+            {@const badgeCount = getItemCommentCount(item.id)}
+            <Circle
+              x={itemWidthPx - badgeRadius / 2}
+              y={-badgeRadius / 2}
+              radius={badgeRadius}
+              fill="#6366f1"
+              stroke="#fff"
+              strokeWidth={1}
+              listening={false}
+            />
+            <Text
+              x={itemWidthPx - badgeRadius / 2 - badgeRadius}
+              y={-badgeRadius / 2 - badgeRadius}
+              width={badgeRadius * 2}
+              height={badgeRadius * 2}
+              text={String(badgeCount)}
+              fontSize={10}
+              fill="#fff"
+              fontStyle="bold"
+              align="center"
+              verticalAlign="middle"
+              listening={false}
+            />
+          {/if}
         </Group>
       {/each}
+    </Layer>
+
+    <!-- Comments Layer -->
+    <Layer listening={!isPlacementMode()}>
+      <Group x={imageDimensions.x} y={imageDimensions.y} scaleX={displayScale} scaleY={displayScale}>
+        <CommentsLayer isMobile={mobileMode} {onCommentMove} />
+      </Group>
     </Layer>
 
     <!-- Distance indicators -->
