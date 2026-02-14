@@ -1000,6 +1000,7 @@
 
 <div
   bind:this={containerEl}
+  role="application"
   class="w-full h-full bg-canvas-bg relative"
   onwheel={handleWheel}
   onpointerdown={handlePointerDown}
