@@ -7,8 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, Grid3x3, Magnet, Image, Crosshair, MessageSquare, EllipsisVertical, GitBranch, Check, Settings2 } from 'lucide-svelte';
+	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, Grid3x3, Magnet, Image, Crosshair, MessageSquare, Settings2 } from 'lucide-svelte';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
@@ -949,71 +948,6 @@
 					</span>
 				{/if}
 			</Button>
-			<!-- Mobile overflow menu -->
-			{#if isMobile}
-				<DropdownMenu.Root>
-					<DropdownMenu.Trigger>
-						<Button variant="outline" size="icon-sm" class="min-h-[44px] min-w-[44px]">
-							<EllipsisVertical size={18} />
-							<span class="sr-only">More actions</span>
-						</Button>
-					</DropdownMenu.Trigger>
-					<DropdownMenu.Content align="end" class="w-56">
-						{#if branches.length > 0}
-							<DropdownMenu.Label>
-								<div class="flex items-center gap-1.5">
-									<GitBranch size={14} />
-									Branches
-								</div>
-							</DropdownMenu.Label>
-							{#each branches as branch}
-								<DropdownMenu.Item
-									class="flex items-center justify-between"
-									disabled={isBranchSwitching}
-									onclick={() => {
-										if (branch.id !== activeBranch?.id) {
-											const fakeEvent = { target: { value: branch.id } } as unknown as Event;
-											handleBranchSelect(fakeEvent);
-										}
-									}}
-								>
-									{branch.name}
-									{#if branch.id === activeBranch?.id}
-										<Check size={14} class="text-blue-600" />
-									{/if}
-								</DropdownMenu.Item>
-							{/each}
-							<DropdownMenu.Item onclick={handleCreateBranch} disabled={isBranchSwitching}>
-								<GitBranchPlus size={14} class="mr-2" />
-								New branch
-							</DropdownMenu.Item>
-							<DropdownMenu.Item onclick={handleRenameBranch} disabled={!activeBranch || isBranchSwitching}>
-								<Pencil size={14} class="mr-2" />
-								Rename branch
-							</DropdownMenu.Item>
-							<DropdownMenu.Item onclick={handleDeleteBranch} disabled={!activeBranch || branches.length <= 1 || isBranchSwitching}>
-								<Trash2 size={14} class="mr-2" />
-								Delete branch
-							</DropdownMenu.Item>
-							<DropdownMenu.Separator />
-						{/if}
-						<DropdownMenu.Item onclick={startEditingName}>
-							<Pencil size={14} class="mr-2" />
-							Rename project
-						</DropdownMenu.Item>
-						{#if !isLocalProject}
-							<DropdownMenu.Item onclick={() => (showShareDialog = true)}>
-								<Share2 size={14} class="mr-2" />
-								Share
-							</DropdownMenu.Item>
-							<DropdownMenu.Item onclick={refreshProject} disabled={isRefreshing}>
-								<RefreshCw size={14} class="mr-2 {isRefreshing ? 'animate-spin' : ''}" />
-								Refresh
-							</DropdownMenu.Item>
-						{/if}
-					</DropdownMenu.Content>
-				</DropdownMenu.Root>
-			{/if}
 			<SidebarTrigger />
 		</div>
 	</header>
