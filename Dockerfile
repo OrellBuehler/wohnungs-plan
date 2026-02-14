@@ -73,6 +73,7 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
+ENV BODY_SIZE_LIMIT=10M
 # Point dynamic linker to bundled libvips from sharp's npm package
 ENV LD_LIBRARY_PATH=/app/node_modules/@img/sharp-libvips-linuxmusl-x64/lib
 
