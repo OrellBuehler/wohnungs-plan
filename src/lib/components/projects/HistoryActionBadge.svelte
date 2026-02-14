@@ -8,7 +8,5 @@
 
 <span class="inline-flex items-center gap-1">
 	<Badge {variant}>{action}</Badge>
-	{#if viaMcp}
-		<Badge variant="outline" class="text-[10px] px-1 py-0">MCP</Badge>
-	{/if}
+	<Badge variant="outline" class="text-[10px] px-1 py-0">{viaMcp ? 'MCP' : 'User'}</Badge>
 </span>
