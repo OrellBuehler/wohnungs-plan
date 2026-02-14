@@ -1084,6 +1084,8 @@
           ondragstart={mobileMode ? undefined : () => handleDragStart(item.id)}
           ondragmove={mobileMode ? undefined : (e) => handleDragMove(item.id, e)}
           ondragend={mobileMode ? undefined : (e) => handleDragEnd(item.id, e)}
+          onmouseenter={mobileMode ? undefined : (e: { target: Konva.Node }) => { const s = e.target.getStage(); if (s) s.container().style.cursor = 'pointer'; }}
+          onmouseleave={mobileMode ? undefined : (e: { target: Konva.Node }) => { const s = e.target.getStage(); if (s) s.container().style.cursor = 'default'; }}
         >
           {#if item.shape === 'l-shape'}
             <Line
