@@ -123,7 +123,7 @@
 	}
 
 	// Pagination
-	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 20 });
+	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 50 });
 	let rowSelection = $state<RowSelectionState>({});
 
 	const selectedCount = $derived(Object.keys(rowSelection).length);
@@ -228,7 +228,7 @@
 				return renderSnippet(
 					createRawSnippet(() => ({
 						render: () =>
-							`<span><span class="line-through text-muted-foreground">${oldValue ?? ''}</span> <span class="font-medium">${newValue ?? ''}</span></span>`
+							`<span><span class="line-through text-muted-foreground">${oldValue ?? ''}</span> → <span class="font-medium">${newValue ?? ''}</span></span>`
 					})),
 					undefined as never
 				);
