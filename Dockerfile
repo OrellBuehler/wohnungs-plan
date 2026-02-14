@@ -27,7 +27,9 @@ ENV VITE_GIT_HASH=${GIT_HASH}
 ENV VITE_BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
 
 # Build the application
-RUN bun --bun run build
+# SESSION_SECRET is needed at build time because SvelteKit evaluates server
+# modules during SSR compilation. The actual secret is provided at runtime.
+RUN SESSION_SECRET=build-placeholder bun --bun run build
 
 # Write version info to file for container inspection
 RUN echo "GIT_HASH=${GIT_HASH}" > /app/version.txt && \
