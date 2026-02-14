@@ -79,6 +79,7 @@ export interface ItemChange {
   field: string | null;
   oldValue: string | null;
   newValue: string | null;
+  viaMcp: boolean;
   createdAt: string;
   userName?: string | null;
   userAvatarUrl?: string | null;

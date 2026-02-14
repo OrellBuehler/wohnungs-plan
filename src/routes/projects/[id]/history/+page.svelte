@@ -197,7 +197,10 @@
 			accessorKey: 'action',
 			header: 'Action',
 			cell: ({ row }) =>
-				renderComponent(HistoryActionBadge, { action: row.original.action })
+				renderComponent(HistoryActionBadge, {
+					action: row.original.action,
+					viaMcp: row.original.viaMcp
+				})
 		},
 		{
 			accessorKey: 'field',

@@ -306,7 +306,7 @@ function createMcpServer(userId: string): McpServer {
 				...itemData,
 				x: null,
 				y: null
-			});
+			}, { viaMcp: true });
 			return asText({
 				id: item.id,
 				project_id: item.projectId,
@@ -367,7 +367,7 @@ function createMcpServer(userId: string): McpServer {
 				throw new Error('Item not found in this branch.');
 			}
 
-			const item = await updateItem(project_id, branch_id, item_id, userId, updates);
+			const item = await updateItem(project_id, branch_id, item_id, userId, updates, { viaMcp: true });
 			if (!item) {
 				throw new Error('Item update failed.');
 			}
@@ -410,7 +410,7 @@ function createMcpServer(userId: string): McpServer {
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 
-			const deleted = await deleteItem(project_id, branch_id, item_id, userId);
+			const deleted = await deleteItem(project_id, branch_id, item_id, userId, { viaMcp: true });
 			if (!deleted) {
 				throw new Error('Item not found in this branch.');
 			}
@@ -466,7 +466,7 @@ function createMcpServer(userId: string): McpServer {
 					...itemData,
 					x: itemData.x ?? null,
 					y: itemData.y ?? null
-				});
+				}, { viaMcp: true });
 				created.push({
 					id: item.id,
 					name: item.name,
@@ -522,7 +522,7 @@ function createMcpServer(userId: string): McpServer {
 
 			const results = [];
 			for (const { item_id, ...data } of updates) {
-				const item = await updateItem(project_id, branch_id, item_id, userId, data);
+				const item = await updateItem(project_id, branch_id, item_id, userId, data, { viaMcp: true });
 				if (!item) {
 					results.push({ item_id, success: false, error: 'Item not found' });
 				} else {
@@ -733,7 +733,8 @@ function createMcpServer(userId: string): McpServer {
 					action: 'update',
 					field: 'image',
 					oldValue: null,
-					newValue: originalName
+					newValue: originalName,
+					viaMcp: true
 				}
 			]);
 
@@ -827,7 +828,8 @@ function createMcpServer(userId: string): McpServer {
 					action: 'update',
 					field: 'image',
 					oldValue: image.originalName ?? image.filename,
-					newValue: null
+					newValue: null,
+					viaMcp: true
 				}
 			]);
 
