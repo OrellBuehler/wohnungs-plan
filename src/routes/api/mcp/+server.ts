@@ -14,6 +14,7 @@ import {
 	deleteItem,
 	getBranchItems,
 	getItemById,
+	insertHistoryEntries,
 	updateItem
 } from '$lib/server/items';
 import { createBranch, getBranchById, getDefaultBranch, listProjectBranches } from '$lib/server/branches';
@@ -305,7 +306,7 @@ function createMcpServer(userId: string): McpServer {
 				...itemData,
 				x: null,
 				y: null
-			});
+			}, { viaMcp: true });
 			return asText({
 				id: item.id,
 				project_id: item.projectId,
@@ -366,7 +367,7 @@ function createMcpServer(userId: string): McpServer {
 				throw new Error('Item not found in this branch.');
 			}
 
-			const item = await updateItem(project_id, branch_id, item_id, userId, updates);
+			const item = await updateItem(project_id, branch_id, item_id, userId, updates, { viaMcp: true });
 			if (!item) {
 				throw new Error('Item update failed.');
 			}
@@ -409,7 +410,7 @@ function createMcpServer(userId: string): McpServer {
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 
-			const deleted = await deleteItem(project_id, branch_id, item_id, userId);
+			const deleted = await deleteItem(project_id, branch_id, item_id, userId, { viaMcp: true });
 			if (!deleted) {
 				throw new Error('Item not found in this branch.');
 			}
@@ -465,7 +466,7 @@ function createMcpServer(userId: string): McpServer {
 					...itemData,
 					x: itemData.x ?? null,
 					y: itemData.y ?? null
-				});
+				}, { viaMcp: true });
 				created.push({
 					id: item.id,
 					name: item.name,
@@ -521,7 +522,7 @@ function createMcpServer(userId: string): McpServer {
 
 			const results = [];
 			for (const { item_id, ...data } of updates) {
-				const item = await updateItem(project_id, branch_id, item_id, userId, data);
+				const item = await updateItem(project_id, branch_id, item_id, userId, data, { viaMcp: true });
 				if (!item) {
 					results.push({ item_id, success: false, error: 'Item not found' });
 				} else {
@@ -723,6 +724,20 @@ function createMcpServer(userId: string): McpServer {
 				throw err;
 			}
 
+			await insertHistoryEntries([
+				{
+					projectId: project_id,
+					branchId: branch_id,
+					itemId: item_id,
+					userId,
+					action: 'update',
+					field: 'image',
+					oldValue: null,
+					newValue: originalName,
+					viaMcp: true
+				}
+			]);
+
 			return asText({
 				id: image.id,
 				item_id: item_id,
@@ -792,10 +807,31 @@ function createMcpServer(userId: string): McpServer {
 				throw new Error('Item not found in this branch.');
 			}
 
+			// Get image info before deletion for history
+			const images = await getItemImages(item_id);
+			const image = images.find((img) => img.id === image_id);
+			if (!image) {
+				throw new Error('Image not found for this item.');
+			}
+
 			const deleted = await deleteItemImage(project_id, item_id, image_id);
 			if (!deleted) {
 				throw new Error('Image not found for this item.');
 			}
+
+			await insertHistoryEntries([
+				{
+					projectId: project_id,
+					branchId: branch_id,
+					itemId: item_id,
+					userId,
+					action: 'update',
+					field: 'image',
+					oldValue: image.originalName ?? image.filename,
+					newValue: null,
+					viaMcp: true
+				}
+			]);
 
 			return asText({ success: true, image_id });
 		}

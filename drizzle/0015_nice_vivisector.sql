@@ -1,0 +1,1 @@
+ALTER TABLE "item_changes" ADD COLUMN "via_mcp" boolean DEFAULT false NOT NULL;

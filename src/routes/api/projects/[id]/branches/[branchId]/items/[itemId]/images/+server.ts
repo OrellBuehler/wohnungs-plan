@@ -11,6 +11,7 @@ import {
 	getItemImagePath,
 	getItemImageThumbPath
 } from '$lib/server/item-images';
+import { insertHistoryEntries } from '$lib/server/items';
 import { config } from '$lib/server/env';
 import { detectImageMime, EXT_BY_MIME } from '$lib/server/image-utils';
 import { unlink } from 'node:fs/promises';
@@ -95,6 +96,19 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 			mimeType: detectedMime,
 			sizeBytes: file.size
 		});
+
+		await insertHistoryEntries([
+			{
+				projectId: params.id,
+				branchId: params.branchId,
+				itemId: params.itemId,
+				userId: locals.user.id,
+				action: 'update',
+				field: 'image',
+				oldValue: null,
+				newValue: file.name
+			}
+		]);
 
 		return json({ image }, { status: 201 });
 	} catch (e) {

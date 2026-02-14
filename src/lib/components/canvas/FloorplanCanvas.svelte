@@ -1000,6 +1000,7 @@
 
 <div
   bind:this={containerEl}
+  role="application"
   class="w-full h-full bg-canvas-bg relative"
   onwheel={handleWheel}
   onpointerdown={handlePointerDown}
@@ -1022,7 +1023,7 @@
     onmouseup={handleMouseUp}
     onmouseleave={handleMouseUp}
   >
-    <Layer listening={false} hitGraphEnabled={false}>
+    <Layer listening={false}>
       <!-- Grid -->
       {#if gridVisible}
         <Shape
@@ -1049,7 +1050,7 @@
       <WallsDoorsLayer />
     </Layer>
 
-    <Layer listening={itemLayerListening} hitGraphEnabled={itemLayerListening}>
+    <Layer listening={itemLayerListening}>
       <!-- Furniture items -->
       {#each placedItems as item (item.id)}
         {@const isOverlapping = overlappingIds.has(item.id)}
@@ -1188,7 +1189,7 @@
 
     <!-- Distance indicators -->
     {#if distanceIndicators.length > 0}
-      <Layer listening={false} hitGraphEnabled={false}>
+      <Layer listening={false}>
         {#each distanceIndicators as indicator}
           {@const dx = indicator.pointB.x - indicator.pointA.x}
           {@const dy = indicator.pointB.y - indicator.pointA.y}
@@ -1268,7 +1269,7 @@
 
     <!-- Alignment guides -->
     {#if alignmentGuides.length > 0}
-      <Layer listening={false} hitGraphEnabled={false}>
+      <Layer listening={false}>
         {#each alignmentGuides as guide}
           {#if guide.type === 'v'}
             <Line

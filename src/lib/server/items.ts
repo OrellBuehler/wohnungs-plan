@@ -66,6 +66,7 @@ export interface ItemChangeWithUser {
 	field: string | null;
 	oldValue: string | null;
 	newValue: string | null;
+	viaMcp: boolean;
 	createdAt: Date | null;
 	userName: string | null;
 	userAvatarUrl: string | null;
@@ -106,7 +107,7 @@ function normalizeItemForHistory(item: Item): Record<string, unknown> {
 	};
 }
 
-async function insertHistoryEntries(entries: NewItemChange[]): Promise<void> {
+export async function insertHistoryEntries(entries: NewItemChange[]): Promise<void> {
 	if (entries.length === 0) return;
 	const db = getDB();
 	await db.insert(itemChanges).values(entries);
@@ -154,7 +155,8 @@ export async function createItem(
 	projectId: string,
 	branchId: string,
 	userId: string | null,
-	data: ItemCreateInput
+	data: ItemCreateInput,
+	options?: { viaMcp?: boolean }
 ): Promise<Item> {
 	const createdAt = new Date();
 	const item = await createItemDirect(projectId, branchId, data);
@@ -168,6 +170,7 @@ export async function createItem(
 			field: null,
 			oldValue: null,
 			newValue: toJsonValue(normalizeItemForHistory(item)),
+			viaMcp: options?.viaMcp ?? false,
 			createdAt
 		}
 	]);
@@ -198,7 +201,8 @@ export async function updateItem(
 	branchId: string,
 	itemId: string,
 	userId: string | null,
-	data: ItemUpdateInput
+	data: ItemUpdateInput,
+	options?: { viaMcp?: boolean }
 ): Promise<Item | null> {
 	const db = getDB();
 	const existing = await getItemById(projectId, branchId, itemId);
@@ -223,6 +227,7 @@ export async function updateItem(
 			field,
 			oldValue: toJsonValue(oldValue),
 			newValue: toJsonValue(newValue),
+			viaMcp: options?.viaMcp ?? false,
 			createdAt
 		});
 	}
@@ -246,7 +251,8 @@ export async function deleteItem(
 	projectId: string,
 	branchId: string,
 	itemId: string,
-	userId: string | null
+	userId: string | null,
+	options?: { viaMcp?: boolean }
 ): Promise<Item | null> {
 	const db = getDB();
 	const [item] = await db
@@ -266,6 +272,7 @@ export async function deleteItem(
 			field: null,
 			oldValue: toJsonValue(normalizeItemForHistory(item)),
 			newValue: null,
+			viaMcp: options?.viaMcp ?? false,
 			createdAt: new Date()
 		}
 	]);
@@ -318,6 +325,7 @@ export async function listItemChanges(
 			field: itemChanges.field,
 			oldValue: itemChanges.oldValue,
 			newValue: itemChanges.newValue,
+			viaMcp: itemChanges.viaMcp,
 			createdAt: itemChanges.createdAt,
 			userName: users.name,
 			userAvatarUrl: users.avatarUrl

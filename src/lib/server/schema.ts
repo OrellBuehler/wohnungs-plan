@@ -6,6 +6,7 @@ import {
 	timestamp,
 	integer,
 	real,
+	boolean,
 	primaryKey,
 	index,
 	uniqueIndex,
@@ -201,6 +202,7 @@ export const itemChanges = pgTable(
 		field: text('field'),
 		oldValue: text('old_value'),
 		newValue: text('new_value'),
+		viaMcp: boolean('via_mcp').default(false).notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 	},
 	(table) => [

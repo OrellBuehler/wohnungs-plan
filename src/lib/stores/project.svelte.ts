@@ -1044,7 +1044,10 @@ export async function uploadItemImage(itemId: string, file: File): Promise<ItemI
 			`/api/projects/${currentProject.id}/branches/${branchId}/items/${itemId}/images`,
 			{ method: 'POST', body: formData }
 		);
-		if (!response.ok) throw new Error('Failed to upload image');
+		if (!response.ok) {
+			const text = await response.text().catch(() => '');
+			throw new Error(`Failed to upload image: ${response.status} ${text}`);
+		}
 
 		const data = await response.json();
 		const apiImage: ApiItemImage = {
