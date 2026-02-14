@@ -120,27 +120,27 @@
 
 			{#if !readonly}
 				<!-- Quick Actions -->
-				<div class="flex flex-wrap gap-1.5 pb-3">
-					<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onRotate(item.id, 'ccw')} title="Rotate left">
-						<RotateCcw size={16} />
+				<div class="flex flex-wrap gap-2 pb-3">
+					<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onRotate(item.id, 'ccw')} title="Rotate left">
+						<RotateCcw size={18} />
 					</Button>
-					<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onRotate(item.id, 'cw')} title="Rotate right">
-						<RotateCw size={16} />
+					<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onRotate(item.id, 'cw')} title="Rotate right">
+						<RotateCw size={18} />
 					</Button>
 					{#if item.position}
-						<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onUnplace(item.id)} title="Remove from plan">
-							<MapPinOff size={16} />
+						<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onUnplace(item.id)} title="Remove from plan">
+							<MapPinOff size={18} />
 						</Button>
 					{:else}
-						<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onPlace(item.id)} title="Place on plan">
-							<MapPin size={16} />
+						<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onPlace(item.id)} title="Place on plan">
+							<MapPin size={18} />
 						</Button>
 					{/if}
-					<Button variant="outline" size="icon-sm" class="h-9 w-9" onclick={() => onDuplicate(item.id)} title="Duplicate">
-						<Copy size={16} />
+					<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onDuplicate(item.id)} title="Duplicate">
+						<Copy size={18} />
 					</Button>
-					<Button variant="destructive" size="icon-sm" class="h-9 w-9" onclick={() => onDelete(item.id)} title="Delete">
-						<Trash2 size={16} />
+					<Button variant="destructive" size="icon-sm" class="h-11 w-11" onclick={() => onDelete(item.id)} title="Delete">
+						<Trash2 size={18} />
 					</Button>
 				</div>
 			{/if}
