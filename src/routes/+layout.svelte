@@ -5,6 +5,7 @@
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import SEO from '$lib/components/SEO.svelte';
 	import AppSidebar from '$lib/components/layout/AppSidebar.svelte';
+	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import * as m from '$lib/paraglide/messages';
 
 	let { children } = $props();
@@ -39,3 +40,5 @@
 	</div>
 	<AppSidebar />
 </Tooltip.Provider>
+
+<Toaster />
