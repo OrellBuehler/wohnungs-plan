@@ -30,7 +30,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The HTML `lang` attribute in the document reflects the active locale (e.g., `lang="de"` after switching to German)
   4. On first visit with no cookie, the app auto-detects browser language and starts in the matching locale
   5. A toast notification can be triggered from any component and displays correctly styled in the root layout
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — Merge Paraglide worktree branch, install Sonner, verify build
+- [ ] 01-02-PLAN.md — Human verification of language switching, persistence, and toast
 
 ### Phase 2: String Extraction
 **Goal**: Every user-visible string in the app is translated into both English and German with no raw English visible in the German UI
@@ -89,7 +92,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. i18n Infrastructure | 0/? | Not started | - |
+| 1. i18n Infrastructure | 0/2 | Not started | - |
 | 2. String Extraction | 0/? | Not started | - |
 | 3. Error Handling + Loading States | 0/? | Not started | - |
 | 4. Mobile UX Hardening | 0/? | Not started | - |
