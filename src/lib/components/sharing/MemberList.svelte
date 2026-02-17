@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { Button } from '$lib/components/ui/button';
 	import * as Select from '$lib/components/ui/select';
 	import { UserMinus } from 'lucide-svelte';
@@ -26,16 +27,16 @@
 
 	let failedAvatars = $state(new Set<string>());
 
-	const roleOptions: { value: ProjectRole; label: string }[] = [
-		{ value: 'owner', label: 'Owner' },
-		{ value: 'editor', label: 'Editor' },
-		{ value: 'viewer', label: 'Viewer' }
+	const roleOptions: { value: ProjectRole; label: () => string }[] = [
+		{ value: 'owner', label: () => m.sharing_role_owner() },
+		{ value: 'editor', label: () => m.sharing_role_editor() },
+		{ value: 'viewer', label: () => m.sharing_role_viewer() }
 	];
 </script>
 
 <div class="space-y-3">
 	{#if members.length === 0}
-		<p class="text-sm text-muted-foreground">No members yet.</p>
+		<p class="text-sm text-muted-foreground">{m.sharing_members_empty()}</p>
 	{:else}
 		{#each members as member (member.userId)}
 			<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-slate-200 p-3">
@@ -56,7 +57,7 @@
 						<p class="text-sm font-medium truncate">
 							{member.name ?? member.email ?? 'Member'}
 							{#if currentUserId && member.userId === currentUserId}
-								<span class="text-xs text-muted-foreground">(You)</span>
+								<span class="text-xs text-muted-foreground">{m.sharing_member_you()}</span>
 							{/if}
 						</p>
 						{#if member.email}
@@ -73,16 +74,16 @@
 							onValueChange={(v) => onRoleChange(member.userId, v as ProjectRole)}
 						>
 							<Select.Trigger class="h-8 w-full sm:w-auto sm:min-w-[100px]">
-								{roleOptions.find((o) => o.value === member.role)?.label ?? 'Role'}
+								{roleOptions.find((o) => o.value === member.role)?.label() ?? 'Role'}
 							</Select.Trigger>
 							<Select.Content>
 								{#each roleOptions as option (option.value)}
-									<Select.Item value={option.value}>{option.label}</Select.Item>
+									<Select.Item value={option.value}>{option.label()}</Select.Item>
 								{/each}
 							</Select.Content>
 						</Select.Root>
 					{:else}
-						<span class="text-xs text-muted-foreground">{member.role}</span>
+						<span class="text-xs text-muted-foreground">{roleOptions.find((o) => o.value === member.role)?.label() ?? member.role}</span>
 					{/if}
 
 					{#if canManage && member.role !== 'owner'}

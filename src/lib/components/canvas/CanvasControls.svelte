@@ -4,6 +4,7 @@
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
   import { Separator } from '$lib/components/ui/separator';
+  import * as m from '$lib/paraglide/messages';
   import {
     getFloorplanAnalysis,
     toggleWallsDoors,
@@ -55,24 +56,24 @@
 <div class="flex-shrink-0 flex items-center gap-4 px-4 pb-4 text-sm">
   <Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
     <Checkbox bind:checked={showGrid} />
-    Grid
+    {m.canvas_control_grid()}
   </Label>
 
   <Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
     <Checkbox bind:checked={snapToGrid} />
-    Snap
+    {m.canvas_control_snap()}
   </Label>
 
   {#if hasAnalysis}
     <Label
       class="flex items-center gap-2 text-slate-600 cursor-pointer"
-      title="Show/hide AI-detected walls and doors"
+      title={m.canvas_control_walls_doors_title()}
     >
       <Checkbox
         checked={showWallsDoors}
         onchange={() => toggleWallsDoors()}
       />
-      Walls & Doors
+      {m.canvas_control_walls_doors()}
     </Label>
   {/if}
 
@@ -81,13 +82,13 @@
       checked={showComments}
       onchange={() => toggleCommentsVisibility()}
     />
-    Comments
+    {m.canvas_control_comments()}
   </Label>
 
   <Separator orientation="vertical" class="h-6" />
 
   <Label class="flex items-center gap-2 text-slate-600">
-    Grid size:
+    {m.canvas_control_gridsize()}
     <Input
       type="number"
       value={gridSize}
@@ -97,21 +98,20 @@
       step={1}
       class="w-16 h-8 font-mono text-sm"
     />
-    px
+    {m.canvas_control_px()}
   </Label>
 
   <div class="flex-1"></div>
 
   {#if hasAnalysis && showWallsDoors}
     <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-      {floorplanAnalysis.walls.length} walls,
-      {floorplanAnalysis.doors.length} doors
+      {m.canvas_control_analysis({ walls: floorplanAnalysis.walls.length.toString(), doors: floorplanAnalysis.doors.length.toString() })}
     </span>
   {/if}
 
   {#if showComments && commentCount > 0}
     <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-      {commentCount} comment{commentCount !== 1 ? 's' : ''}
+      {m.canvas_control_comments_count({ count: commentCount.toString() })}
     </span>
   {/if}
 
@@ -125,7 +125,7 @@
     class="text-slate-500 hover:text-slate-700"
     onclick={onRecalibrate}
   >
-    Recalibrate
+    {m.canvas_control_recalibrate()}
   </Button>
 
   <Button
@@ -134,6 +134,6 @@
     class="text-slate-500 hover:text-slate-700"
     onclick={onChangeFloorplan}
   >
-    Change Floorplan
+    {m.canvas_control_change_floorplan()}
   </Button>
 </div>

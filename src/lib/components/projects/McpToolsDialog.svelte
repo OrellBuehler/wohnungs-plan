@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Switch } from '$lib/components/ui/switch';
@@ -14,14 +15,14 @@
 
 	const TOOL_CATEGORIES = [
 		{
-			title: 'Project',
+			title: () => m.project_mcp_category_project(),
 			tools: [
 				{ name: 'list_branches', label: 'List Branches', description: 'View all branches in the project' },
 				{ name: 'create_branch', label: 'Create Branch', description: 'Create new branches to explore alternative layouts' }
 			]
 		},
 		{
-			title: 'Items',
+			title: () => m.project_mcp_category_items(),
 			tools: [
 				{ name: 'add_furniture_item', label: 'Add Item', description: 'Add new furniture to the inventory' },
 				{ name: 'update_furniture_item', label: 'Update Item', description: 'Change item properties or position' },
@@ -32,7 +33,7 @@
 			]
 		},
 		{
-			title: 'Images',
+			title: () => m.project_mcp_category_images(),
 			tools: [
 				{ name: 'add_item_image_from_url', label: 'Add Image from URL', description: 'Download and attach a product photo' },
 				{ name: 'list_item_images', label: 'List Images', description: 'View images attached to an item' },
@@ -40,18 +41,18 @@
 			]
 		},
 		{
-			title: 'Preview',
+			title: () => m.project_mcp_category_preview(),
 			tools: [{ name: 'get_project_preview', label: 'Get Preview', description: 'View a visual snapshot of the layout' }]
 		},
 		{
-			title: 'Floorplan',
+			title: () => m.project_mcp_category_floorplan(),
 			tools: [
 				{ name: 'save_floorplan_analysis', label: 'Save Analysis', description: 'Save detected rooms, walls, and doors' },
 				{ name: 'get_floorplan_analysis', label: 'Get Analysis', description: 'Read the saved floorplan structure' }
 			]
 		},
 		{
-			title: 'Spatial',
+			title: () => m.project_mcp_category_spatial(),
 			tools: [
 				{ name: 'get_room_contents', label: 'Room Contents', description: 'List items placed in a specific room' },
 				{ name: 'get_available_space', label: 'Available Space', description: 'Calculate remaining floor space in a room' },
@@ -60,7 +61,7 @@
 			]
 		},
 		{
-			title: 'Comments',
+			title: () => m.project_mcp_category_comments(),
 			tools: [
 				{ name: 'list_comments', label: 'List Comments', description: 'View all comment threads' },
 				{ name: 'add_comment_reply', label: 'Add Reply', description: 'Reply to an existing comment thread' }
@@ -144,15 +145,15 @@
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleCancel()}>
 	<Dialog.Content class="sm:max-w-lg max-h-[80vh] flex flex-col">
 		<Dialog.Header>
-			<Dialog.Title>MCP Tool Permissions</Dialog.Title>
+			<Dialog.Title>{m.project_mcp_title()}</Dialog.Title>
 			<Dialog.Description>
-				Control which tools AI assistants can use in this project.
+				{m.project_mcp_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 
 		{#if isLoading}
 			<div class="flex items-center justify-center py-8 text-sm text-slate-500">
-				Loading...
+				{m.common_loading()}
 			</div>
 		{:else if errorMessage}
 			<div class="text-sm text-red-600 py-4">{errorMessage}</div>
@@ -163,7 +164,7 @@
 						<Separator />
 					{/if}
 					<div>
-						<h3 class="text-sm font-medium text-slate-700 mb-2">{category.title}</h3>
+						<h3 class="text-sm font-medium text-slate-700 mb-2">{category.title()}</h3>
 						<div class="space-y-2">
 							{#each category.tools as tool}
 								<div class="flex items-center justify-between gap-4 py-1">
@@ -184,13 +185,13 @@
 		{/if}
 
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={handleCancel}>Cancel</Button>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={handleCancel}>{m.common_cancel()}</Button>
 			<Button
 				class="w-full sm:w-auto"
 				onclick={handleSave}
 				disabled={isSaving || isLoading || !hasChanges}
 			>
-				{isSaving ? 'Saving...' : 'Save'}
+				{isSaving ? m.common_saving() : m.common_save()}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

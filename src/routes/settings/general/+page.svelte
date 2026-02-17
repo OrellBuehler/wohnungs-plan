@@ -3,6 +3,8 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import type { PageData } from './$types';
+	import * as m from '$lib/paraglide/messages';
+	import LanguageSwitcher from '$lib/components/layout/LanguageSwitcher.svelte';
 
 	let { data }: { data: PageData } = $props();
 </script>
@@ -13,22 +15,22 @@
 
 <div class="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
 	<div>
-		<h1 class="text-3xl font-bold text-slate-900">General</h1>
-		<p class="text-slate-600 mt-1">Manage your account and preferences</p>
+		<h1 class="text-3xl font-bold text-slate-900">{m.settings_general_title()}</h1>
+		<p class="text-slate-600 mt-1">{m.settings_general_description()}</p>
 	</div>
 
 	<!-- Profile Card -->
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Profile</Card.Title>
+			<Card.Title>{m.settings_general_profile_title()}</Card.Title>
 			<Card.Description>
-				Your profile information is managed by your OAuth provider
+				{m.settings_general_profile_description()}
 			</Card.Description>
 		</Card.Header>
 
 		<Card.Content class="space-y-4">
 			<div class="space-y-2">
-				<Label for="name">Name</Label>
+				<Label for="name">{m.settings_general_name()}</Label>
 				<Input
 					id="name"
 					type="text"
@@ -39,7 +41,7 @@
 			</div>
 
 			<div class="space-y-2">
-				<Label for="email">Email</Label>
+				<Label for="email">{m.settings_general_email()}</Label>
 				<Input
 					id="email"
 					type="email"
@@ -54,12 +56,12 @@
 	<!-- Preferences Card -->
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Preferences</Card.Title>
-			<Card.Description>Customize your experience</Card.Description>
+			<Card.Title>{m.settings_general_preferences_title()}</Card.Title>
+			<Card.Description>{m.settings_general_preferences_description()}</Card.Description>
 		</Card.Header>
 
 		<Card.Content>
-			<p class="text-sm text-slate-500">More preferences coming soon.</p>
+			<LanguageSwitcher />
 		</Card.Content>
 	</Card.Root>
 </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
+	import * as m from '$lib/paraglide/messages';
 	import CommentThread from './CommentThread.svelte';
 	import {
 		getActiveComment,
@@ -137,27 +138,27 @@
 		const now = new Date();
 		const diffMs = now.getTime() - d.getTime();
 		const diffMins = Math.floor(diffMs / 60000);
-		if (diffMins < 1) return 'just now';
-		if (diffMins < 60) return `${diffMins}m ago`;
+		if (diffMins < 1) return m.time_just_now();
+		if (diffMins < 60) return m.time_minutes_ago({ count: diffMins.toString() });
 		const diffHrs = Math.floor(diffMins / 60);
-		if (diffHrs < 24) return `${diffHrs}h ago`;
+		if (diffHrs < 24) return m.time_hours_ago({ count: diffHrs.toString() });
 		const diffDays = Math.floor(diffHrs / 24);
-		return `${diffDays}d ago`;
+		return m.time_days_ago({ count: diffDays.toString() });
 	}
 
 	function getPreviewText(comment: ClientComment): string {
 		const lastReply = comment.replies[comment.replies.length - 1];
-		return lastReply?.body ?? '(no messages)';
+		return lastReply?.body ?? m.comments_panel_no_messages();
 	}
 </script>
 
 {#snippet pendingInput()}
 	<div class="flex flex-col gap-2">
-		<span class="text-xs text-slate-400">Type your comment:</span>
+		<span class="text-xs text-slate-400">{m.comments_panel_type_label()}</span>
 		<div class="flex flex-col gap-2">
 			<textarea
 				bind:value={pendingText}
-				placeholder="Add a comment..."
+				placeholder={m.comments_panel_placeholder()}
 				class="flex-1 min-h-[60px] max-h-32 resize-y rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-0"
 				onkeydown={handlePendingKeydown}
 				autofocus
@@ -168,7 +169,7 @@
 				disabled={!pendingText.trim() || pendingSubmitting}
 				onclick={handleSubmitPending}
 			>
-				Post
+				{m.common_post()}
 			</Button>
 		</div>
 	</div>
@@ -181,7 +182,7 @@
 			<div class="flex flex-col gap-2">
 				<textarea
 					bind:value={newCommentText}
-					placeholder="New comment..."
+					placeholder={m.comments_panel_new_placeholder()}
 					class="min-h-[60px] max-h-32 resize-y rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-0"
 					onkeydown={handleNewCommentKeydown}
 				></textarea>
@@ -196,7 +197,7 @@
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
 						</svg>
-						Pin to map
+						{m.comments_panel_pin()}
 					</Button>
 					<Button
 						size="sm"
@@ -204,7 +205,7 @@
 						disabled={!newCommentText.trim() || newCommentSubmitting}
 						onclick={handleNewComment}
 					>
-						Post
+						{m.common_post()}
 					</Button>
 				</div>
 			</div>
@@ -216,13 +217,13 @@
 			class="text-xs text-slate-400 hover:text-slate-600 text-left"
 			onclick={toggleShowResolved}
 		>
-			{showResolved ? 'Hide resolved' : 'Show resolved'}
+			{showResolved ? m.comments_panel_hide_resolved() : m.comments_panel_show_resolved()}
 		</button>
 
 		<!-- Comment list -->
 		<div class="flex-1 overflow-y-auto space-y-1.5 min-h-0">
 			{#if filteredComments.length === 0}
-				<p class="text-sm text-slate-400 text-center py-4">No comments yet</p>
+				<p class="text-sm text-slate-400 text-center py-4">{m.comments_panel_empty()}</p>
 			{:else}
 				{#each filteredComments as comment (comment.id)}
 					<button
@@ -239,7 +240,7 @@
 							<div class="flex-1 min-w-0">
 								<div class="flex items-center gap-1.5">
 									<span class="text-sm font-medium text-slate-700 truncate">
-										{comment.authorName ?? 'Unknown'}
+										{comment.authorName ?? m.comments_thread_unknown()}
 									</span>
 									<span class="text-xs text-slate-400 flex-shrink-0">{formatTime(comment.updatedAt ?? comment.createdAt)}</span>
 								</div>
@@ -252,7 +253,7 @@
 										<span class="text-[10px] px-1 py-0.5 rounded bg-green-50 text-green-600">resolved</span>
 									{/if}
 									{#if comment.replies.length > 0}
-										<span class="text-[10px] text-slate-400">{comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}</span>
+										<span class="text-[10px] text-slate-400">{m.comments_thread_reply_count({ count: comment.replies.length.toString() })}</span>
 									{/if}
 								</div>
 							</div>
@@ -281,20 +282,20 @@
 					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 					</svg>
-					Back
+					{m.common_back()}
 				</button>
 				<span class="text-sm font-medium text-slate-700">
-					{pendingComment ? 'New Comment' : 'Comment'}
+					{pendingComment ? m.comments_panel_new_header() : m.comments_panel_comment_header()}
 				</span>
 			{:else}
-				<span class="text-sm font-medium text-slate-700">Comments</span>
+				<span class="text-sm font-medium text-slate-700">{m.comments_panel_title()}</span>
 			{/if}
 			<div class="flex items-center gap-1">
 				<Button
 					variant="ghost"
 					size="sm"
 					class="h-7 w-7 p-0 {commentsVisible ? 'text-slate-500' : 'text-slate-300'}"
-					title={commentsVisible ? 'Hide pins on map' : 'Show pins on map'}
+					title={commentsVisible ? m.comments_panel_hide_pins() : m.comments_panel_show_pins()}
 					onclick={toggleCommentsVisibility}
 				>
 					{#if commentsVisible}

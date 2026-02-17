@@ -9,6 +9,7 @@
   import * as Dialog from '$lib/components/ui/dialog';
   import * as Select from '$lib/components/ui/select';
   import { ImagePlus, X, Loader2 } from 'lucide-svelte';
+  import * as m from '$lib/paraglide/messages';
 
   interface Props {
     open: boolean;
@@ -57,12 +58,12 @@
     '#1F2937', // Charcoal / black
   ];
 
-  const cutoutCornerOptions: { value: CutoutCorner; label: string }[] = [
-    { value: 'top-left', label: 'Top Left' },
-    { value: 'top-right', label: 'Top Right' },
-    { value: 'bottom-left', label: 'Bottom Left' },
-    { value: 'bottom-right', label: 'Bottom Right' },
-  ];
+  const cutoutCornerOptions = $derived<{ value: CutoutCorner; label: string }[]>([
+    { value: 'top-left', label: m.item_form_corner_top_left() },
+    { value: 'top-right', label: m.item_form_corner_top_right() },
+    { value: 'bottom-left', label: m.item_form_corner_bottom_left() },
+    { value: 'bottom-right', label: m.item_form_corner_bottom_right() },
+  ]);
 
   // Reset form when item changes
   $effect(() => {
@@ -194,18 +195,18 @@
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleClose()}>
   <Dialog.Content class="top-0 left-0 right-0 bottom-0 translate-x-0 translate-y-0 max-w-full max-h-[100dvh] flex flex-col overflow-hidden rounded-none p-4 sm:top-[50%] sm:left-[50%] sm:right-auto sm:bottom-auto sm:translate-x-[-50%] sm:translate-y-[-50%] sm:max-w-md sm:max-h-[min(90vh,700px)] sm:rounded-lg sm:p-6">
     <Dialog.Header>
-      <Dialog.Title>{item?.name ? 'Edit Item' : 'Add New Item'}</Dialog.Title>
+      <Dialog.Title>{item?.name ? m.item_form_edit_title() : m.item_form_add_title()}</Dialog.Title>
     </Dialog.Header>
 
     <form onsubmit={handleSubmit} class="space-y-4 overflow-y-auto flex-1 min-h-0 px-0.5">
       <div class="space-y-2">
-        <Label for="name">Name *</Label>
-        <Input id="name" bind:value={name} placeholder="e.g., Sofa, Bed, Desk" required />
+        <Label for="name">{m.item_form_name_label()}</Label>
+        <Input id="name" bind:value={name} placeholder={m.item_form_name_placeholder()} required />
       </div>
 
       <!-- Shape selector with preview -->
       <div class="space-y-2">
-        <Label>Shape</Label>
+        <Label>{m.item_form_shape_label()}</Label>
         <div class="flex items-center gap-4">
           <div class="flex gap-2">
             <Button
@@ -214,7 +215,7 @@
               size="sm"
               onclick={() => (shape = 'rectangle')}
             >
-              Rectangle
+              {m.item_form_shape_rectangle()}
             </Button>
             <Button
               type="button"
@@ -222,7 +223,7 @@
               size="sm"
               onclick={() => (shape = 'l-shape')}
             >
-              L-Shape
+              {m.item_form_shape_lshape()}
             </Button>
           </div>
           <svg width="60" height="40" class="border rounded bg-slate-50">
@@ -233,21 +234,21 @@
 
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-2">
-          <Label for="width">Width (cm) *</Label>
+          <Label for="width">{m.item_form_width_label()}</Label>
           <Input id="width" type="number" bind:value={width} min={1} required />
         </div>
         <div class="space-y-2">
-          <Label for="height">Length (cm) *</Label>
+          <Label for="height">{m.item_form_length_label()}</Label>
           <Input id="height" type="number" bind:value={height} min={1} required />
         </div>
       </div>
 
       {#if shape === 'l-shape'}
         <div class="p-3 bg-slate-50 rounded-lg space-y-3">
-          <Label class="text-slate-600">L-Shape Cutout</Label>
+          <Label class="text-slate-600">{m.item_form_lshape_cutout()}</Label>
           <div class="grid grid-cols-3 gap-3">
             <div class="space-y-1">
-              <Label for="cutoutWidth" class="text-xs">Cutout Width (cm)</Label>
+              <Label for="cutoutWidth" class="text-xs">{m.item_form_cutout_width()}</Label>
               <Input
                 id="cutoutWidth"
                 type="number"
@@ -257,7 +258,7 @@
               />
             </div>
             <div class="space-y-1">
-              <Label for="cutoutHeight" class="text-xs">Cutout Length (cm)</Label>
+              <Label for="cutoutHeight" class="text-xs">{m.item_form_cutout_length()}</Label>
               <Input
                 id="cutoutHeight"
                 type="number"
@@ -267,7 +268,7 @@
               />
             </div>
             <div class="space-y-1">
-              <Label class="text-xs">Corner</Label>
+              <Label class="text-xs">{m.item_form_corner_label()}</Label>
               <Select.Root
                 type="single"
                 value={cutoutCorner}
@@ -288,7 +289,7 @@
       {/if}
 
       <div class="space-y-2">
-        <Label>Color</Label>
+        <Label>{m.item_form_color_label()}</Label>
         <div class="flex gap-2 flex-wrap">
           {#each presetColors as presetColor}
             <Button
@@ -312,7 +313,7 @@
       </div>
 
       <div class="space-y-2">
-        <Label for="price">Price</Label>
+        <Label for="price">{m.item_form_price_label()}</Label>
         <div class="flex gap-2">
           <Input
             id="price"
@@ -320,7 +321,7 @@
             step="0.01"
             min={0}
             bind:value={price}
-            placeholder="Optional"
+            placeholder={m.item_form_price_placeholder()}
             class="flex-1"
           />
           <Select.Root
@@ -341,7 +342,7 @@
       </div>
 
       <div class="space-y-2">
-        <Label for="url">Product URL</Label>
+        <Label for="url">{m.item_form_url_label()}</Label>
         <Input
           id="url"
           type="url"
@@ -352,11 +353,11 @@
 
       <!-- Images section -->
       <div class="space-y-2">
-        <Label>Images</Label>
+        <Label>{m.item_form_images_label()}</Label>
         <div class="flex gap-2 flex-wrap">
           {#each existingImages as img (img.id)}
             <div class="relative group w-16 h-16 rounded border border-slate-200 overflow-hidden">
-              <img src={img.thumbUrl} alt={img.originalName ?? 'Item image'} class="w-full h-full object-cover" />
+              <img src={img.thumbUrl} alt={img.originalName ?? m.item_form_image_alt()} class="w-full h-full object-cover" />
               {#if onImageDelete}
                 <button
                   type="button"
@@ -370,7 +371,7 @@
           {/each}
           {#each pendingPreviews as preview, i}
             <div class="relative group w-16 h-16 rounded border border-dashed border-blue-300 overflow-hidden">
-              <img src={preview} alt="Pending upload" class="w-full h-full object-cover opacity-70" />
+              <img src={preview} alt={m.item_form_image_pending_alt()} class="w-full h-full object-cover opacity-70" />
               <button
                 type="button"
                 class="absolute top-0 right-0 bg-black/60 text-white rounded-bl p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -404,8 +405,8 @@
       </div>
 
       <Dialog.Footer>
-        <Button type="button" variant="outline" onclick={handleClose}>Cancel</Button>
-        <Button type="submit">Save</Button>
+        <Button type="button" variant="outline" onclick={handleClose}>{m.common_cancel()}</Button>
+        <Button type="submit">{m.common_save()}</Button>
       </Dialog.Footer>
     </form>
   </Dialog.Content>

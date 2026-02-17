@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button';
   import * as Dialog from '$lib/components/ui/dialog';
+  import * as m from '$lib/paraglide/messages';
 
   interface Props {
     onUpload: (imageData: string) => void;
@@ -51,9 +52,9 @@
     <svg class="w-16 h-16 mx-auto mb-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
-    <h2 class="text-xl font-semibold text-white mb-2">Upload Your Floorplan</h2>
+    <h2 class="text-xl font-semibold text-white mb-2">{m.canvas_upload_title()}</h2>
     <p class="text-slate-400 mb-6">
-      Drag and drop an image of your floorplan, or click to browse
+      {m.canvas_upload_description()}
     </p>
     <input
       bind:this={fileInput}
@@ -62,18 +63,18 @@
       class="hidden"
       onchange={handleFileSelect}
     />
-    <Button onclick={() => fileInput.click()}>Choose File</Button>
+    <Button onclick={() => fileInput.click()}>{m.canvas_upload_button()}</Button>
   </div>
 </div>
 
 <Dialog.Root bind:open={invalidFileDialogOpen}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Invalid File</Dialog.Title>
-      <Dialog.Description>Please upload an image file.</Dialog.Description>
+      <Dialog.Title>{m.canvas_upload_invalid_title()}</Dialog.Title>
+      <Dialog.Description>{m.canvas_upload_invalid_description()}</Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer>
-      <Button class="w-full sm:w-auto" onclick={() => (invalidFileDialogOpen = false)}>OK</Button>
+      <Button class="w-full sm:w-auto" onclick={() => (invalidFileDialogOpen = false)}>{m.common_ok()}</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

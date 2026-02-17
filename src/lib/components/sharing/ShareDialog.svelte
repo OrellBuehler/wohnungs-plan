@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
@@ -121,9 +122,9 @@
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleClose()}>
 	<Dialog.Content class="max-h-[100dvh] h-full w-full max-w-none rounded-none sm:h-auto sm:max-h-[85vh] sm:max-w-xl sm:rounded-lg flex flex-col">
 		<Dialog.Header class="flex-shrink-0">
-			<Dialog.Title>Share Project</Dialog.Title>
+			<Dialog.Title>{m.sharing_dialog_title()}</Dialog.Title>
 			<Dialog.Description>
-				Invite people to collaborate. Owners can manage roles and remove members.
+				{m.sharing_dialog_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 
@@ -133,7 +134,7 @@
 			{/if}
 
 			{#if isLoading}
-				<p class="text-sm text-muted-foreground">Loading members…</p>
+				<p class="text-sm text-muted-foreground">{m.sharing_members_loading()}</p>
 			{:else if errorMessage}
 				<p class="text-sm text-red-600">{errorMessage}</p>
 			{:else}
@@ -153,7 +154,7 @@
 		</div>
 
 		<Dialog.Footer class="flex-shrink-0">
-			<Button variant="outline" onclick={handleClose}>Close</Button>
+			<Button variant="outline" onclick={handleClose}>{m.common_close()}</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
@@ -161,24 +162,20 @@
 <Dialog.Root bind:open={removeConfirmOpen} onOpenChange={(open) => !open && closeRemoveConfirm()}>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>Remove Member</Dialog.Title>
+			<Dialog.Title>{m.sharing_remove_title()}</Dialog.Title>
 			<Dialog.Description class="break-words">
-				Remove
-				<strong>
-					{memberToRemove?.name ?? memberToRemove?.email ?? 'this member'}
-				</strong>
-				from this project?
+				{m.sharing_remove_description({ name: memberToRemove?.name ?? memberToRemove?.email ?? '' })}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={closeRemoveConfirm}>Cancel</Button>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={closeRemoveConfirm}>{m.common_cancel()}</Button>
 			<Button
 				variant="destructive"
 				class="w-full sm:w-auto"
 				onclick={confirmRemoveMember}
 				disabled={isRemovingMember}
 			>
-				Remove
+				{m.common_remove()}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
