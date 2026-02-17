@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { fetchUser, getUser, isAuthenticated } from '$lib/stores/auth.svelte';
+	import * as m from '$lib/paraglide/messages';
 
 	type InviteData = {
 		projectId: string;
@@ -46,8 +47,8 @@
 			const data = await response.json();
 			invite = data.invite;
 		} catch {
-			errorTitle = 'Unable to load invite';
-			errorMessage = 'Please check your connection and try again.';
+			errorTitle = m.invite_error_load_title();
+			errorMessage = m.invite_error_load_message();
 		} finally {
 			isLoading = false;
 		}
@@ -56,32 +57,32 @@
 	function setErrorFromStatus(status: number, detail: string) {
 		invite = null;
 		if (status === 404) {
-			errorTitle = 'Invite not found';
-			errorMessage = 'This invite link is invalid or no longer exists.';
+			errorTitle = m.invite_error_not_found_title();
+			errorMessage = m.invite_error_not_found_message();
 			return;
 		}
 		if (status === 410) {
 			if (detail.includes('expired')) {
-				errorTitle = 'Invite expired';
-				errorMessage = 'This invite has expired. Ask the project owner to send a new link.';
+				errorTitle = m.invite_error_expired_title();
+				errorMessage = m.invite_error_expired_message();
 				return;
 			}
-			errorTitle = 'Invite already used';
-			errorMessage = 'This invite has already been accepted.';
+			errorTitle = m.invite_error_used_title();
+			errorMessage = m.invite_error_used_message();
 			return;
 		}
 		if (status === 403) {
-			errorTitle = 'Email mismatch';
-			errorMessage = 'Sign in with the same email address that received this invite.';
+			errorTitle = m.invite_error_email_mismatch_title();
+			errorMessage = m.invite_error_email_mismatch_message();
 			return;
 		}
 		if (status === 401) {
-			errorTitle = 'Sign in required';
-			errorMessage = 'Please sign in to continue.';
+			errorTitle = m.invite_error_signin_required_title();
+			errorMessage = m.invite_error_signin_required_message();
 			return;
 		}
-		errorTitle = 'Invite error';
-		errorMessage = detail || 'Something went wrong while processing this invite.';
+		errorTitle = m.invite_error_generic_title();
+		errorMessage = detail || m.invite_error_generic_message();
 	}
 
 	function signIn() {
@@ -104,8 +105,8 @@
 			const data = await response.json();
 			await goto(`/projects/${data.projectId}`);
 		} catch {
-			errorTitle = 'Unable to accept invite';
-			errorMessage = 'Please try again.';
+			errorTitle = m.invite_error_accept_title();
+			errorMessage = m.invite_error_accept_message();
 		} finally {
 			isAccepting = false;
 		}
@@ -119,8 +120,8 @@
 				<div class="flex items-center gap-3 mb-2">
 					<img src="/icon.svg" alt="Floorplanner" class="size-10" />
 					<div>
-						<Card.Title class="text-xl">Project Invite</Card.Title>
-						<Card.Description>Join a shared Floorplanner project</Card.Description>
+						<Card.Title class="text-xl">{m.invite_page_title()}</Card.Title>
+						<Card.Description>{m.invite_page_description()}</Card.Description>
 					</div>
 				</div>
 			</Card.Header>
@@ -141,24 +142,24 @@
 					<div class="space-y-4">
 						<div class="space-y-2 text-sm">
 							<div class="flex justify-between gap-4">
-								<span class="text-slate-500">Project</span>
+								<span class="text-slate-500">{m.invite_details_project()}</span>
 								<span class="text-slate-800 font-medium text-right">
-									{invite.projectName ?? 'Untitled project'}
+									{invite.projectName ?? m.invite_details_untitled()}
 								</span>
 							</div>
 							<div class="flex justify-between gap-4">
-								<span class="text-slate-500">Role</span>
+								<span class="text-slate-500">{m.invite_details_role()}</span>
 								<span class="text-slate-800 font-medium capitalize">{invite.role}</span>
 							</div>
 							<div class="flex justify-between gap-4">
-								<span class="text-slate-500">Invited email</span>
-								<span class="text-slate-800 font-medium text-right">{invite.email ?? 'Any account'}</span>
+								<span class="text-slate-500">{m.invite_details_email()}</span>
+								<span class="text-slate-800 font-medium text-right">{invite.email ?? m.invite_details_any_account()}</span>
 							</div>
 						</div>
 
 						{#if isAuthed && currentUserEmail}
 							<p class="text-xs text-slate-500">
-								Signed in as <strong>{currentUserEmail}</strong>
+								{m.invite_signed_in_as()} <strong>{currentUserEmail}</strong>
 							</p>
 						{/if}
 					</div>
@@ -169,15 +170,15 @@
 				{#if !isLoading}
 					{#if !isAuthed}
 						<Button class="w-full" onclick={signIn}>
-							Sign in to accept
+							{m.invite_button_signin()}
 						</Button>
 					{:else if invite}
 						<Button class="w-full" onclick={acceptInvite} disabled={isAccepting}>
-							{isAccepting ? 'Accepting...' : 'Accept invite'}
+							{isAccepting ? m.invite_button_accepting() : m.invite_button_accept()}
 						</Button>
 					{:else}
 						<Button variant="outline" class="w-full" onclick={loadInvite}>
-							Try again
+							{m.invite_button_retry()}
 						</Button>
 					{/if}
 				{/if}

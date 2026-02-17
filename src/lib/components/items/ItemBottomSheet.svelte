@@ -4,6 +4,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { RotateCcw, RotateCw, MapPin, MapPinOff, Copy, Trash2 } from 'lucide-svelte';
+	import * as m from '$lib/paraglide/messages';
 	import ImageViewer from './ImageViewer.svelte';
 
 	interface Props {
@@ -34,7 +35,7 @@
 
 	const currencySymbol = $derived(item ? getCurrencySymbol(item.priceCurrency) : '');
 	const formattedPrice = $derived(
-		item && item.price !== null ? `${currencySymbol}${item.price.toFixed(2)}` : 'No price'
+		item && item.price !== null ? `${currencySymbol}${item.price.toFixed(2)}` : m.item_sheet_no_price()
 	);
 	const dimensions = $derived(
 		item ? `${item.width} × ${item.height} cm` : ''
@@ -65,7 +66,7 @@
 							class="w-full h-40 rounded-lg border border-slate-200 overflow-hidden"
 							onclick={() => openImageViewer(0)}
 						>
-							<img src={item.images[0].url} alt={item.images[0].originalName ?? 'Item image'} class="w-full h-full object-cover" />
+							<img src={item.images[0].url} alt={item.images[0].originalName ?? m.item_form_image_alt()} class="w-full h-full object-cover" />
 						</button>
 					{:else}
 						<div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory">
@@ -75,7 +76,7 @@
 									class="flex-shrink-0 w-36 h-28 rounded-lg border border-slate-200 overflow-hidden snap-start"
 									onclick={() => openImageViewer(i)}
 								>
-									<img src={img.thumbUrl} alt={img.originalName ?? 'Item image'} class="w-full h-full object-cover" />
+									<img src={img.thumbUrl} alt={img.originalName ?? m.item_form_image_alt()} class="w-full h-full object-cover" />
 								</button>
 							{/each}
 						</div>
@@ -85,15 +86,15 @@
 				<!-- Info grid -->
 				<div class="grid grid-cols-2 gap-3">
 					<div>
-						<p class="text-xs text-slate-500">Price</p>
+						<p class="text-xs text-slate-500">{m.item_sheet_price()}</p>
 						<p class="text-sm font-semibold">{formattedPrice}</p>
 					</div>
 					<div>
-						<p class="text-xs text-slate-500">Dimensions</p>
+						<p class="text-xs text-slate-500">{m.item_sheet_dimensions()}</p>
 						<p class="text-sm">{dimensions}</p>
 					</div>
 					<div>
-						<p class="text-xs text-slate-500">Color</p>
+						<p class="text-xs text-slate-500">{m.item_sheet_color()}</p>
 						<div class="flex items-center gap-1.5">
 							<div
 								class="w-5 h-5 rounded border border-slate-200"
@@ -104,14 +105,14 @@
 					</div>
 					{#if item.productUrl}
 						<div>
-							<p class="text-xs text-slate-500">Product</p>
+							<p class="text-xs text-slate-500">{m.item_sheet_product()}</p>
 							<a
 								href={item.productUrl}
 								target="_blank"
 								rel="noopener noreferrer"
 								class="text-blue-600 underline text-xs truncate block"
 							>
-								View product
+								{m.item_sheet_view_product()}
 							</a>
 						</div>
 					{/if}
@@ -121,25 +122,25 @@
 			{#if !readonly}
 				<!-- Quick Actions -->
 				<div class="flex flex-wrap gap-2 pb-3">
-					<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onRotate(item.id, 'ccw')} title="Rotate left">
+					<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onRotate(item.id, 'ccw')} title={m.item_sheet_rotate_left()}>
 						<RotateCcw size={18} />
 					</Button>
-					<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onRotate(item.id, 'cw')} title="Rotate right">
+					<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onRotate(item.id, 'cw')} title={m.item_sheet_rotate_right()}>
 						<RotateCw size={18} />
 					</Button>
 					{#if item.position}
-						<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onUnplace(item.id)} title="Remove from plan">
+						<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onUnplace(item.id)} title={m.item_sheet_unplace()}>
 							<MapPinOff size={18} />
 						</Button>
 					{:else}
-						<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onPlace(item.id)} title="Place on plan">
+						<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onPlace(item.id)} title={m.item_sheet_place()}>
 							<MapPin size={18} />
 						</Button>
 					{/if}
-					<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onDuplicate(item.id)} title="Duplicate">
+					<Button variant="outline" size="icon-sm" class="h-11 w-11" onclick={() => onDuplicate(item.id)} title={m.item_card_duplicate()}>
 						<Copy size={18} />
 					</Button>
-					<Button variant="destructive" size="icon-sm" class="h-11 w-11" onclick={() => onDelete(item.id)} title="Delete">
+					<Button variant="destructive" size="icon-sm" class="h-11 w-11" onclick={() => onDelete(item.id)} title={m.common_delete()}>
 						<Trash2 size={18} />
 					</Button>
 				</div>
@@ -147,11 +148,11 @@
 
 			<Sheet.Footer class="gap-2">
 				<Button variant="outline" size="lg" onclick={onClose} class="min-h-[44px]">
-					Close
+					{m.common_close()}
 				</Button>
 				{#if !readonly}
 					<Button size="lg" onclick={() => onEdit(item.id)} class="min-h-[44px]">
-						Edit Item
+						{m.item_form_edit_title()}
 					</Button>
 				{/if}
 			</Sheet.Footer>

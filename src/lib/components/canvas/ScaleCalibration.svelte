@@ -4,6 +4,7 @@
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
   import { Plus, Minus, RefreshCw } from 'lucide-svelte';
+  import * as m from '$lib/paraglide/messages';
   import type Konva from 'konva';
 
   interface Props {
@@ -348,11 +349,11 @@
 
 <div class="flex flex-col h-full">
   <div class="p-4 bg-blue-600 text-white">
-    <h2 class="font-semibold mb-1">Set Scale</h2>
+    <h2 class="font-semibold mb-1">{m.canvas_calibrate_title()}</h2>
     <p class="text-sm text-blue-100">
-      Tap two points to draw a reference line, then enter its real-world length.
-      <span class="hidden md:inline"><strong>Scroll to zoom, drag to pan.</strong></span>
-      <span class="md:hidden"><strong>Pinch to zoom, drag to pan.</strong></span>
+      {m.canvas_calibrate_description()}
+      <span class="hidden md:inline"><strong>{m.canvas_calibrate_desktop_hint()}</strong></span>
+      <span class="md:hidden"><strong>{m.canvas_calibrate_mobile_hint()}</strong></span>
     </p>
   </div>
 
@@ -457,7 +458,7 @@
   <div class="p-4 bg-white border-t border-slate-200">
     <div class="flex flex-col md:flex-row md:items-end gap-3 md:gap-4">
       <div class="flex-1">
-        <Label for="length">Reference Length (cm)</Label>
+        <Label for="length">{m.canvas_calibrate_length_label()}</Label>
         <Input
           id="length"
           type="number"
@@ -468,14 +469,14 @@
       </div>
       <div class="text-sm text-slate-600 pb-2">
         {#if scale > 0}
-          Scale: {scale.toFixed(2)} px/cm
+          {m.canvas_calibrate_scale({ scale: scale.toFixed(2) })}
         {:else}
-          Draw a reference line
+          {m.canvas_calibrate_no_line()}
         {/if}
       </div>
       <div class="flex gap-2">
-        <Button variant="outline" onclick={onCancel} class="flex-1 md:flex-initial min-h-[44px]">Cancel</Button>
-        <Button onclick={handleConfirm} disabled={scale === 0} class="flex-1 md:flex-initial min-h-[44px]">Confirm Scale</Button>
+        <Button variant="outline" onclick={onCancel} class="flex-1 md:flex-initial min-h-[44px]">{m.common_cancel()}</Button>
+        <Button onclick={handleConfirm} disabled={scale === 0} class="flex-1 md:flex-initial min-h-[44px]">{m.canvas_calibrate_confirm()}</Button>
       </div>
     </div>
   </div>

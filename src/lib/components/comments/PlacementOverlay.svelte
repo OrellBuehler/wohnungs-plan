@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
+	import * as m from '$lib/paraglide/messages';
 	import { isPlacementMode, exitPlacementMode } from '$lib/stores/comments.svelte';
 
 	interface Props {
@@ -33,15 +34,15 @@
 				class="absolute bottom-0 left-0 right-0 flex gap-3 justify-center p-4 bg-white/90 backdrop-blur-sm pointer-events-auto"
 				style="padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);"
 			>
-				<Button variant="outline" onclick={exitPlacementMode}>Cancel</Button>
-				<Button onclick={handlePlaceMobile}>Place Comment</Button>
+				<Button variant="outline" onclick={exitPlacementMode}>{m.common_cancel()}</Button>
+				<Button onclick={handlePlaceMobile}>{m.comments_placement_button()}</Button>
 			</div>
 		</div>
 	{:else}
 		<!-- Desktop: Banner -->
 		<div class="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-3 text-sm">
-			Click on the floorplan to place a comment
-			<Button variant="secondary" size="sm" onclick={exitPlacementMode}>Cancel</Button>
+			{m.comments_placement_message()}
+			<Button variant="secondary" size="sm" onclick={exitPlacementMode}>{m.common_cancel()}</Button>
 		</div>
 	{/if}
 {/if}

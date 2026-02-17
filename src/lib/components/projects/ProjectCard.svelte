@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import type { ProjectMeta } from '$lib/types';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
@@ -107,13 +108,13 @@
 					{#snippet child({ props })}
 						<Button {...props} variant="secondary" size="icon" class="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white">
 							<MoreVertical class="size-4" />
-							<span class="sr-only">Actions</span>
+							<span class="sr-only">{m.project_card_actions()}</span>
 						</Button>
 					{/snippet}
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="end" class="w-48">
 					<DropdownMenu.Item onclick={() => onOpen(project.id)}>
-						Open
+						{m.common_open()}
 					</DropdownMenu.Item>
 
 					{#if project.isLocal}
@@ -121,42 +122,42 @@
 							<Tooltip.Trigger class="w-full">
 								<DropdownMenu.Item disabled class="w-full">
 									<Share2 class="size-4" />
-									Share
+									{m.project_share()}
 								</DropdownMenu.Item>
 							</Tooltip.Trigger>
 							<Tooltip.Content side="left">
-								<p>Sync to cloud to share</p>
+								<p>{m.project_card_share_tooltip()}</p>
 							</Tooltip.Content>
 						</Tooltip.Root>
 					{:else}
 						<DropdownMenu.Item onclick={() => onShare(project.id)}>
 							<Share2 class="size-4" />
-							Share
+							{m.project_share()}
 						</DropdownMenu.Item>
 					{/if}
 
 					{#if project.isLocal && isAuthenticated()}
 						<DropdownMenu.Item onclick={() => onSync(project.id)}>
 							<Upload class="size-4" />
-							Sync to cloud
+							{m.project_card_sync()}
 						</DropdownMenu.Item>
 					{/if}
 
 					<DropdownMenu.Item onclick={() => onExport(project.id)}>
 						<Download class="size-4" />
-						Export JSON
+						{m.project_card_export()}
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item onclick={() => onDuplicate(project.id)}>
 						<Copy class="size-4" />
-						Duplicate
+						{m.project_card_duplicate()}
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Separator />
 
 					<DropdownMenu.Item variant="destructive" onclick={() => onDelete(project.id)}>
 						<Trash2 class="size-4" />
-						Delete
+						{m.common_delete()}
 					</DropdownMenu.Item>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
@@ -177,7 +178,7 @@
 						<HardDrive class="size-4 text-amber-500 flex-shrink-0" />
 					</Tooltip.Trigger>
 					<Tooltip.Content>
-						<p>Stored locally</p>
+						<p>{m.project_card_local()}</p>
 					</Tooltip.Content>
 				</Tooltip.Root>
 			{:else}
@@ -186,7 +187,7 @@
 						<Cloud class="size-4 text-blue-500 flex-shrink-0" />
 					</Tooltip.Trigger>
 					<Tooltip.Content>
-						<p>Synced to cloud</p>
+						<p>{m.project_card_cloud()}</p>
 					</Tooltip.Content>
 				</Tooltip.Root>
 			{/if}

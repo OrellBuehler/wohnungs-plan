@@ -2,15 +2,16 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import type { PageData } from './$types';
+	import * as m from '$lib/paraglide/messages';
 
 	let { data }: { data: PageData } = $props();
 
 	// Permissions that will be granted
-	const permissions = [
-		'View your projects and floor plans',
-		'Add and edit furniture items',
-		'Create new projects'
-	];
+	const permissions = $derived([
+		m.oauth_consent_permission_1(),
+		m.oauth_consent_permission_2(),
+		m.oauth_consent_permission_3()
+	]);
 </script>
 
 <div class="h-full overflow-y-auto bg-slate-50 flex items-center justify-center p-4">
@@ -20,8 +21,8 @@
 				<div class="flex items-center gap-3 mb-2">
 					<img src="/icon.svg" alt="Floorplanner" class="size-10" />
 					<div>
-						<Card.Title class="text-xl">Authorize MCP Access</Card.Title>
-						<Card.Description>Grant access to your Floorplanner data</Card.Description>
+						<Card.Title class="text-xl">{m.oauth_consent_title()}</Card.Title>
+						<Card.Description>{m.oauth_consent_description()}</Card.Description>
 					</div>
 				</div>
 			</Card.Header>
@@ -30,7 +31,7 @@
 				<div class="space-y-4">
 					<div>
 						<p class="text-sm text-slate-600 mb-3">
-							<strong>{data.clientName ?? 'An application'}</strong> is requesting access to your account with the following permissions:
+							<strong>{data.clientName ?? m.oauth_consent_default_app()}</strong> {m.oauth_consent_permissions_intro()}
 						</p>
 						<ul class="space-y-2">
 							{#each permissions as permission}
@@ -56,8 +57,7 @@
 
 					<div class="pt-4 border-t">
 						<p class="text-xs text-slate-500">
-							By approving, you allow this application to access your Floorplanner data on your
-							behalf. You can revoke access at any time from your account settings.
+							{m.oauth_consent_warning()}
 						</p>
 					</div>
 				</div>
@@ -69,7 +69,7 @@
 					<input type="hidden" name="redirect_uri" value={data.redirectUri} />
 					<input type="hidden" name="state" value={data.state} />
 					<Button type="submit" variant="outline" class="w-full">
-						Deny
+						{m.oauth_consent_deny()}
 					</Button>
 				</form>
 
@@ -80,7 +80,7 @@
 					<input type="hidden" name="code_challenge" value={data.codeChallenge} />
 					<input type="hidden" name="code_challenge_method" value={data.codeChallengeMethod} />
 					<Button type="submit" class="w-full">
-						Approve
+						{m.oauth_consent_approve()}
 					</Button>
 				</form>
 			</div>

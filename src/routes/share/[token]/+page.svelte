@@ -11,6 +11,7 @@
 	import FloorplanCanvas from '$lib/components/canvas/FloorplanCanvas.svelte';
 	import ItemList from '$lib/components/items/ItemList.svelte';
 	import ItemBottomSheet from '$lib/components/items/ItemBottomSheet.svelte';
+	import * as m from '$lib/paraglide/messages';
 
 	type ShareProject = {
 		name: string;
@@ -154,7 +155,7 @@
 			requiresPassword = false;
 			applySharePayload(payload);
 		} catch (err) {
-			loadError = err instanceof Error ? err.message : 'Failed to load shared project';
+			loadError = err instanceof Error ? err.message : m.share_error_load_failed();
 		} finally {
 			isLoading = false;
 			isBranchSwitching = false;
@@ -220,12 +221,12 @@
 			}
 
 			if (response.status === 429) {
-				passwordError = 'Too many attempts. Please try again later.';
+				passwordError = m.share_error_too_many_attempts();
 			} else {
-				passwordError = 'Incorrect password.';
+				passwordError = m.share_error_wrong_password();
 			}
 		} catch {
-			passwordError = 'Could not verify password.';
+			passwordError = m.share_error_verify_failed();
 		} finally {
 			isVerifyingPassword = false;
 		}
@@ -291,25 +292,25 @@
 {#if isInvalid}
 	<div class="flex-1 flex items-center justify-center p-6">
 		<div class="max-w-md w-full rounded-xl border bg-white p-6 text-center space-y-4">
-			<h1 class="text-xl font-semibold text-slate-900">This link is invalid or has expired</h1>
-			<p class="text-sm text-slate-600">Ask the owner for a new share link.</p>
+			<h1 class="text-xl font-semibold text-slate-900">{m.share_error_invalid_title()}</h1>
+			<p class="text-sm text-slate-600">{m.share_error_invalid_message()}</p>
 			<a href="/">
-				<Button variant="outline">Go to homepage</Button>
+				<Button variant="outline">{m.share_error_home()}</Button>
 			</a>
 		</div>
 	</div>
 {:else if requiresPassword}
 	<div class="flex-1 flex items-center justify-center p-6">
 		<form class="max-w-md w-full rounded-xl border bg-white p-6 space-y-4" onsubmit={handlePasswordSubmit}>
-			<h1 class="text-xl font-semibold text-slate-900">{projectName || 'Shared project'}</h1>
-			<p class="text-sm text-slate-600">This shared link is password-protected.</p>
+			<h1 class="text-xl font-semibold text-slate-900">{projectName || m.share_default_title()}</h1>
+			<p class="text-sm text-slate-600">{m.share_password_prompt()}</p>
 			<div class="space-y-2">
-				<label class="text-sm font-medium text-slate-700" for="share-password">Password</label>
+				<label class="text-sm font-medium text-slate-700" for="share-password">{m.share_password_label()}</label>
 				<Input
 					id="share-password"
 					type="password"
 					bind:value={password}
-					placeholder="Enter password"
+					placeholder={m.share_password_placeholder()}
 					disabled={isVerifyingPassword}
 				/>
 			</div>
@@ -317,7 +318,7 @@
 				<p class="text-sm text-red-600">{passwordError}</p>
 			{/if}
 			<Button class="w-full" type="submit" disabled={!password || isVerifyingPassword}>
-				{isVerifyingPassword ? 'Verifying...' : 'Continue'}
+				{isVerifyingPassword ? m.share_password_verifying() : m.common_continue()}
 			</Button>
 		</form>
 	</div>
@@ -330,7 +331,7 @@
 					<span class="text-sm md:text-base font-semibold text-slate-900">Floorplanner</span>
 				</a>
 				<span class="hidden md:inline text-slate-300">|</span>
-				<span class="truncate text-sm md:text-base text-slate-700">{projectName || 'Shared project'}</span>
+				<span class="truncate text-sm md:text-base text-slate-700">{projectName || m.share_default_title()}</span>
 			</div>
 
 			<div class="flex items-center gap-2 flex-shrink-0">
@@ -347,7 +348,7 @@
 					</select>
 				{/if}
 				<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
-					Shared view
+					{m.share_badge()}
 				</span>
 			</div>
 		</header>
@@ -357,13 +358,13 @@
 				<div class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden bg-white">
 					{#if isLoading}
 						<div class="h-full flex items-center justify-center text-sm text-slate-500">
-							Loading shared project...
+							{m.share_loading()}
 						</div>
 					{:else if loadError}
 						<div class="h-full flex flex-col items-center justify-center gap-3 text-center px-6">
 							<p class="text-sm text-red-600">{loadError}</p>
 							<Button variant="outline" onclick={() => loadShareData(activeBranchId ?? undefined)}>
-								Retry
+								{m.common_retry()}
 							</Button>
 						</div>
 					{:else if floorplan}
@@ -382,7 +383,7 @@
 						/>
 					{:else}
 						<div class="h-full flex items-center justify-center text-sm text-slate-500">
-							No floorplan uploaded for this project.
+							{m.share_no_floorplan()}
 						</div>
 					{/if}
 				</div>
@@ -410,7 +411,7 @@
 			{#if isBranchSwitching}
 				<div class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
 					<div class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
-						Switching branch...
+						{m.branch_switching()}
 					</div>
 				</div>
 			{/if}

@@ -5,6 +5,7 @@
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import SEO from '$lib/components/SEO.svelte';
 	import AppSidebar from '$lib/components/layout/AppSidebar.svelte';
+	import * as m from '$lib/paraglide/messages';
 
 	let { children } = $props();
 
@@ -16,8 +17,8 @@
 </script>
 
 <SEO
-	title="Floorplanner"
-	description="Create and share floor plans for your apartment"
+	title={m.app_title()}
+	description={m.app_description()}
 	image="{baseUrl}/og-image.png"
 	url={baseUrl}
 />
