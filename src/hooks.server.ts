@@ -112,4 +112,4 @@ const appHandle: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handle = sequence(paraglideHandle, appHandle);
+export const handle = sequence(appHandle, paraglideHandle);
