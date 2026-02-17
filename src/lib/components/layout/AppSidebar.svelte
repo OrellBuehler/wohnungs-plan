@@ -13,6 +13,7 @@
 	} from '$lib/stores/sidebar.svelte';
 	import { getInitials } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
+	import LanguageSwitcher from './LanguageSwitcher.svelte';
 
 	const user = $derived(getUser());
 	const authed = $derived(isAuthenticated());
@@ -200,9 +201,13 @@
 			{/if}
 		</div>
 
-		<!-- Sign out at bottom -->
+		<!-- Language + Sign out at bottom -->
+		<div class="mt-auto">
+			<div class="border-t border-sidebar-border px-4 py-3">
+				<LanguageSwitcher />
+			</div>
 		{#if authed}
-			<div class="mt-auto border-t border-sidebar-border px-2 py-2">
+			<div class="border-t border-sidebar-border px-2 py-2">
 				<button
 					type="button"
 					class="flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent/50"
@@ -213,5 +218,6 @@
 				</button>
 			</div>
 		{/if}
+		</div>
 	</Sheet.Content>
 </Sheet.Root>
