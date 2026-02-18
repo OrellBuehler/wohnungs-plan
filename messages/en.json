@@ -409,5 +409,37 @@
 	"history_column_field": "Field",
 	"history_column_change": "Change",
 	"history_item_deleted": "Deleted item",
-	"history_selection_count": "{selected} of {total} row(s) selected"
+	"history_selection_count": "{selected} of {total} row(s) selected",
+	"history_previous": "Previous",
+	"history_next": "Next",
+	"history_select_all": "Select all",
+	"history_select_row": "Select row",
+	"history_action_create": "create",
+	"history_action_update": "update",
+	"history_action_delete": "delete",
+	"history_source_user": "User",
+	"history_source_mcp": "MCP",
+
+	"project_sidebar_group_collaboration": "Collaboration",
+	"project_sidebar_group_canvas": "Canvas",
+	"project_sidebar_toggle_on": "On",
+	"project_sidebar_toggle_off": "Off",
+
+	"canvas_rotate_left": "Rotate Left",
+	"canvas_rotate_right": "Rotate Right",
+	"canvas_remove_from_plan": "Remove from Plan",
+	"canvas_zoom_in": "Zoom in",
+	"canvas_zoom_out": "Zoom out",
+	"canvas_reset_view": "Reset view",
+	"canvas_lock_zoom": "Lock zoom",
+	"canvas_unlock_zoom": "Unlock zoom",
+	"canvas_close_menu": "Close menu",
+	"canvas_scale_bar": "100 cm",
+
+	"online_users_fallback": "User",
+	"online_users_anonymous": "Anonymous",
+
+	"image_viewer_view_image": "View image {index}",
+
+	"item_list_count": "{count} {count, plural, one {item} other {items}}"
 }

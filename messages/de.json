@@ -409,5 +409,37 @@
 	"history_column_field": "Feld",
 	"history_column_change": "Änderung",
 	"history_item_deleted": "Gelöschtes Objekt",
-	"history_selection_count": "{selected} von {total} Zeile(n) ausgewählt"
+	"history_selection_count": "{selected} von {total} Zeile(n) ausgewählt",
+	"history_previous": "Zurück",
+	"history_next": "Weiter",
+	"history_select_all": "Alle auswählen",
+	"history_select_row": "Zeile auswählen",
+	"history_action_create": "erstellen",
+	"history_action_update": "aktualisieren",
+	"history_action_delete": "löschen",
+	"history_source_user": "Benutzer",
+	"history_source_mcp": "MCP",
+
+	"project_sidebar_group_collaboration": "Zusammenarbeit",
+	"project_sidebar_group_canvas": "Leinwand",
+	"project_sidebar_toggle_on": "An",
+	"project_sidebar_toggle_off": "Aus",
+
+	"canvas_rotate_left": "Links drehen",
+	"canvas_rotate_right": "Rechts drehen",
+	"canvas_remove_from_plan": "Vom Plan entfernen",
+	"canvas_zoom_in": "Vergrössern",
+	"canvas_zoom_out": "Verkleinern",
+	"canvas_reset_view": "Ansicht zurücksetzen",
+	"canvas_lock_zoom": "Zoom sperren",
+	"canvas_unlock_zoom": "Zoom entsperren",
+	"canvas_close_menu": "Menü schliessen",
+	"canvas_scale_bar": "100 cm",
+
+	"online_users_fallback": "Benutzer",
+	"online_users_anonymous": "Anonym",
+
+	"image_viewer_view_image": "Bild {index} ansehen",
+
+	"item_list_count": "{count} {count, plural, one {Element} other {Elemente}}"
 }
