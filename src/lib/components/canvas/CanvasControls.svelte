@@ -5,6 +5,7 @@
   import { Label } from '$lib/components/ui/label';
   import { Separator } from '$lib/components/ui/separator';
   import * as m from '$lib/paraglide/messages';
+  import { formatDecimal } from '$lib/utils/format';
   import {
     getFloorplanAnalysis,
     toggleWallsDoors,
@@ -116,7 +117,7 @@
   {/if}
 
   <span class="text-xs text-slate-400 font-mono">
-    {scale.toFixed(2)} px/cm
+    {formatDecimal(scale, 2)} px/cm
   </span>
 
   <Button

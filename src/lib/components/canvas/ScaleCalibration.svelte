@@ -427,7 +427,7 @@
         size="icon-sm"
         class="text-slate-600"
         onclick={zoomIn}
-        title="Zoom in"
+        title={m.canvas_zoom_in()}
       >
         <Plus size={16} />
       </Button>
@@ -439,7 +439,7 @@
         size="icon-sm"
         class="text-slate-600"
         onclick={zoomOut}
-        title="Zoom out"
+        title={m.canvas_zoom_out()}
       >
         <Minus size={16} />
       </Button>
@@ -448,7 +448,7 @@
         size="icon-sm"
         class="text-slate-600"
         onclick={resetView}
-        title="Reset view"
+        title={m.canvas_reset_view()}
       >
         <RefreshCw size={14} />
       </Button>
