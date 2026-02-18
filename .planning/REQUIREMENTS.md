@@ -14,7 +14,7 @@ Requirements for UX polish milestone. Each maps to roadmap phases.
 - [x] **I18N-03**: Locale persists across sessions via cookie
 - [x] **I18N-04**: Numbers and measurements formatted per locale (3,5 m in DE, 3.5 m in EN)
 - [x] **I18N-05**: Dates and relative times formatted per locale ("vor 2 Minuten" in DE)
-- [ ] **I18N-06**: Form validation messages translated
+- [x] **I18N-06**: Form validation messages translated
 - [x] **I18N-07**: HTML `lang` attribute updates dynamically per locale
 - [x] **I18N-08**: Browser language auto-detected on first visit
 - [x] **I18N-09**: Language switcher shows native names ("Deutsch", "English")
@@ -104,7 +104,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | I18N-02 | Phase 2 | Complete |
 | I18N-04 | Phase 2 | Complete |
 | I18N-05 | Phase 2 | Complete |
-| I18N-06 | Phase 2 | Pending |
+| I18N-06 | Phase 2 | Complete |
 | I18N-10 | Phase 2 | Complete |
 | ERRH-01 | Phase 3 | Pending |
 | ERRH-02 | Phase 3 | Pending |
