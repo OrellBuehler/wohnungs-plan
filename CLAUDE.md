@@ -6,6 +6,8 @@
 bun dev          # Start development server
 bun build        # Build for production
 bun check        # Type-check with svelte-check
+bun test         # Run tests (vitest)
+bun test:watch   # Run tests in watch mode
 ```
 
 ### Database (Drizzle)
@@ -24,10 +26,19 @@ bun db:studio    # Open Drizzle Studio
 - Use `bunx` instead of npx for executing packages
 - **Never use `npm`, `npx`, `pnpm`, or `yarn`** — always `bun` / `bunx`
 
+## i18n (Paraglide JS)
+
+- Locales: `en` (base), `de` — message files in `messages/{locale}.json`
+- Config: `project.inlang/settings.json`; generated runtime in `src/lib/paraglide/` (do not edit)
+- Import messages: `import * as m from '$lib/paraglide/messages'`, then `m.key_name()`
+- Import locale: `import { getLocale } from '$lib/paraglide/runtime'`
+- Locale-aware formatting: use `formatDecimal`, `formatDimension`, `formatRelativeTime` from `$lib/utils/format.ts` and `formatPrice` from `$lib/utils/currency.ts` — never use `.toFixed()` or `toLocaleDateString()` without passing `getLocale()`
+- Locale detection: cookie → browser preference → `en`
+
 ## UI Components
 
 - Always use shadcn-svelte components from `$lib/components/ui/`
-- Available: Button, Card, Dialog, Sheet, Tabs, Select, Dropdown Menu, Input, Label, Checkbox, Slider, Separator, Tooltip
+- Available: Badge, Button, Card, Checkbox, Context Menu, Data Table, Dialog, Dropdown Menu, Input, Label, Select, Separator, Sheet, Slider, Sonner (toast), Switch, Table, Tabs, Tooltip
 - Add new components via: `bunx shadcn-svelte@latest add <component>`
 
 ## Mobile Experience
@@ -53,13 +64,23 @@ bun db:studio    # Open Drizzle Studio
 - Network-first for API routes
 - Cache-first for images with 30-day expiration
 
+## Testing
+
+- Framework: Vitest with jsdom environment
+- Test files: `src/**/*.test.ts` and `src/**/*.svelte.test.ts`
+- Helpers: `src/lib/test-utils/` (factories, mock stores, request event builders)
+
+## Architecture Patterns
+
+- **Stores**: Svelte 5 rune stores in `src/lib/stores/*.svelte.ts` (e.g., `project.svelte.ts`, `collaboration.svelte.ts`)
+- **Server**: `src/lib/server/` — DB schema, sessions, OAuth, rate limiting, WebSocket handlers
+- **Adapter**: `svelte-adapter-bun` (not Node)
+
 ## Version Tracking
 
-- Git hash and build timestamp embedded in HTML comment during Docker build
-- View in browser: View Source → `<head>` → `<!-- version: abc1234 | built: 2026-02-03T10:30:00Z -->`
-- View in container: `docker exec <container> cat /app/version.txt`
-- Build with version: `docker build --build-arg GIT_HASH=$(git rev-parse --short HEAD) --build-arg BUILD_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ") .`
-- Development mode shows "dev" for both values
+- Git hash + build timestamp embedded via `GIT_HASH` and `BUILD_TIMESTAMP` Docker build args
+- Check in container: `docker exec <container> cat /app/version.txt`
+- Dev mode shows "dev" for both values
 
 ## SvelteKit Navigation
 
@@ -77,10 +98,9 @@ bun db:studio    # Open Drizzle Studio
 
 ## Documentation & Plans
 
-- All plans and documentation go in `docs/`
-- **Plans**: `docs/plans/<feature-name>.md` — implementation plans before non-trivial features
-- **In-progress work**: `docs/in-progress/<topic>.md` — active work that was interrupted or spans sessions. Always include a `## WHERE TO CONTINUE` section describing the exact next step, what was tried, and what remains.
-- **Finished work**: `docs/finished/<topic>.md` — move docs here from `in-progress/` when the work is complete
+- **Active planning**: `.planning/` — roadmaps, phase plans, research, and state tracking (managed by GSD)
+- **In-progress work**: `docs/in-progress/<topic>.md` — active work that spans sessions. Include a `## WHERE TO CONTINUE` section.
+- **Finished work**: `docs/finished/<topic>.md` — move docs here from `in-progress/` when complete
 
 ## Git Commits
 
