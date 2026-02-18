@@ -1,3 +1,5 @@
+import { getLocale } from '$lib/paraglide/runtime';
+
 export type CurrencyCode = 'EUR' | 'USD' | 'GBP' | 'CHF' | 'PLN' | 'SEK' | 'NOK' | 'DKK';
 
 export interface Currency {
@@ -25,5 +27,9 @@ export function getCurrencySymbol(code: CurrencyCode): string {
 
 export function formatPrice(amount: number, currencyCode: CurrencyCode): string {
   const symbol = getCurrencySymbol(currencyCode);
-  return `${symbol}${amount.toFixed(2)}`;
+  const formatted = new Intl.NumberFormat(getLocale(), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+  return `${symbol}${formatted}`;
 }
