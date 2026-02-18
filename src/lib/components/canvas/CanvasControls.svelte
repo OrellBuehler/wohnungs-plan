@@ -72,7 +72,7 @@
     >
       <Checkbox
         checked={showWallsDoors}
-        onchange={() => toggleWallsDoors()}
+        onCheckedChange={() => toggleWallsDoors()}
       />
       {m.canvas_control_walls_doors()}
     </Label>
@@ -81,7 +81,7 @@
   <Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
     <Checkbox
       checked={showComments}
-      onchange={() => toggleCommentsVisibility()}
+      onCheckedChange={() => toggleCommentsVisibility()}
     />
     {m.canvas_control_comments()}
   </Label>
