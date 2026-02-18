@@ -3,6 +3,7 @@
   import * as Dialog from '$lib/components/ui/dialog';
   import { Button } from '$lib/components/ui/button';
   import { ChevronLeft, ChevronRight, X } from 'lucide-svelte';
+  import * as m from '$lib/paraglide/messages';
 
   interface Props {
     images: ItemImage[];
@@ -80,7 +81,7 @@
       {#if currentImage}
         <img
           src={currentImage.url}
-          alt={currentImage.originalName ?? 'Item image'}
+          alt={currentImage.originalName ?? m.item_form_image_alt()}
           class="max-w-full max-h-full object-contain"
         />
       {/if}
@@ -125,7 +126,7 @@
               type="button"
               class="w-2 h-2 rounded-full transition-colors {i === currentIndex ? 'bg-white' : 'bg-white/40'}"
               onclick={() => (currentIndex = i)}
-              aria-label="View image {i + 1}"
+              aria-label={m.image_viewer_view_image({ index: i + 1 })}
             ></button>
           {/each}
         </div>

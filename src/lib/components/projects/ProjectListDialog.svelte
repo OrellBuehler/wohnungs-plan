@@ -1,5 +1,6 @@
 <script lang="ts">
   import * as m from '$lib/paraglide/messages';
+  import { getLocale } from '$lib/paraglide/runtime';
   import type { ProjectMeta } from '$lib/types';
   import { Button } from '$lib/components/ui/button';
   import * as Dialog from '$lib/components/ui/dialog';
@@ -17,7 +18,7 @@
   let pendingDeleteProject = $state<ProjectMeta | null>(null);
 
   function formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(getLocale(), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

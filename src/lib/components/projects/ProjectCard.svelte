@@ -7,6 +7,7 @@
 	import { Cloud, HardDrive, Users, MoreVertical, Trash2, Share2, Upload, Download, Copy } from 'lucide-svelte';
 	import { isAuthenticated } from '$lib/stores/auth.svelte';
 	import { getLocalFloorplanUrl } from '$lib/stores/project.svelte';
+	import { formatRelativeTime } from '$lib/utils/format';
 	import { getThumbnail as getLocalThumbnail } from '$lib/db';
 	import { onMount } from 'svelte';
 	import House from 'lucide-svelte/icons/house';
@@ -24,18 +25,6 @@
 	let { project, onOpen, onDelete, onShare, onSync, onExport, onDuplicate }: Props = $props();
 
 	let localPreviewUrl = $state<string | null>(null);
-
-	function formatRelativeTime(iso: string): string {
-		const diff = Date.now() - new Date(iso).getTime();
-		const minutes = Math.floor(diff / 60000);
-		if (minutes < 1) return 'just now';
-		if (minutes < 60) return `${minutes}m ago`;
-		const hours = Math.floor(minutes / 60);
-		if (hours < 24) return `${hours}h ago`;
-		const days = Math.floor(hours / 24);
-		if (days < 7) return `${days}d ago`;
-		return new Date(iso).toLocaleDateString();
-	}
 
 	const thumbnailUrl = $derived.by(() => {
 		if (project.isLocal) return localPreviewUrl;

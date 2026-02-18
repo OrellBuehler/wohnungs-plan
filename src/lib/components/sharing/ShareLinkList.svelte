@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { getLocale } from '$lib/paraglide/runtime';
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -43,7 +44,7 @@
 		if (!value) return m.sharing_link_expires_never();
 		const parsed = new Date(value);
 		if (Number.isNaN(parsed.getTime())) return 'Invalid date';
-		return parsed.toLocaleString();
+		return parsed.toLocaleString(getLocale());
 	}
 
 	async function loadLinks() {

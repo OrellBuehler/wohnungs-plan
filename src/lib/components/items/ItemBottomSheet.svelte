@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { Item } from '$lib/types';
-	import { getCurrencySymbol } from '$lib/utils/currency';
+	import { formatPrice } from '$lib/utils/currency';
 	import { Button } from '$lib/components/ui/button';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { RotateCcw, RotateCw, MapPin, MapPinOff, Copy, Trash2 } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { formatDimension } from '$lib/utils/format';
 	import ImageViewer from './ImageViewer.svelte';
 
 	interface Props {
@@ -33,12 +34,11 @@
 		onUnplace
 	}: Props = $props();
 
-	const currencySymbol = $derived(item ? getCurrencySymbol(item.priceCurrency) : '');
 	const formattedPrice = $derived(
-		item && item.price !== null ? `${currencySymbol}${item.price.toFixed(2)}` : m.item_sheet_no_price()
+		item && item.price !== null ? formatPrice(item.price, item.priceCurrency) : m.item_sheet_no_price()
 	);
 	const dimensions = $derived(
-		item ? `${item.width} × ${item.height} cm` : ''
+		item ? formatDimension(item.width, item.height) : ''
 	);
 
 	let showImageViewer = $state(false);

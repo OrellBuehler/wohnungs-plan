@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Item } from '$lib/types';
   import type { CurrencyCode } from '$lib/utils/currency';
-  import { CURRENCIES, getCurrencySymbol } from '$lib/utils/currency';
+  import { CURRENCIES, formatPrice } from '$lib/utils/currency';
   import { Button } from '$lib/components/ui/button';
   import { Separator } from '$lib/components/ui/separator';
   import * as Select from '$lib/components/ui/select';
@@ -43,7 +43,7 @@
     onDisplayCurrencyChange,
   }: Props = $props();
 
-  const currencySymbol = $derived(getCurrencySymbol(displayCurrency));
+  const formattedTotal = $derived(formatPrice(totalCost, displayCurrency));
 
   let sortBy = $state<'name' | 'price' | 'status'>('name');
   let filterBy = $state<'all' | 'placed' | 'unplaced'>('all');
@@ -178,7 +178,7 @@
         {#if isLoadingRates}
           <span class="text-xs text-slate-400">{m.item_list_updating()}</span>
         {/if}
-        <span class="text-lg font-semibold text-slate-800">{currencySymbol}{totalCost.toFixed(2)}</span>
+        <span class="text-lg font-semibold text-slate-800">{formattedTotal}</span>
       </div>
     </div>
   </div>

@@ -1,12 +1,13 @@
 <script lang="ts">
   import type { Item } from '$lib/types';
-  import { getCurrencySymbol } from '$lib/utils/currency';
+  import { formatPrice } from '$lib/utils/currency';
   import { getLShapePoints, getRectPoints } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
   import * as Card from '$lib/components/ui/card';
   import { Separator } from '$lib/components/ui/separator';
   import { Pencil, MapPin, MapPinOff, Copy, Trash2, ExternalLink } from 'lucide-svelte';
   import * as m from '$lib/paraglide/messages';
+  import { formatDimension } from '$lib/utils/format';
   import ImageViewer from './ImageViewer.svelte';
 
   interface Props {
@@ -23,8 +24,8 @@
 
   let { item, isSelected, readonly = false, onSelect, onEdit, onDelete, onDuplicate, onPlace, onUnplace }: Props = $props();
 
-  // Use the item's own currency
-  const currencySymbol = $derived(getCurrencySymbol(item.priceCurrency));
+  // Use the item's own currency for locale-aware formatting
+  const formattedPrice = $derived(item.price !== null ? formatPrice(item.price, item.priceCurrency) : null);
 
   // Generate SVG path for shape preview
   const previewPath = $derived.by(() => {
@@ -103,10 +104,10 @@
       <div class="flex-1 min-w-0">
         <h3 class="font-medium text-slate-800 truncate">{item.name}</h3>
         <p class="text-sm text-slate-500 font-mono">
-          {item.width} x {item.height} cm
+          {formatDimension(item.width, item.height)}
         </p>
-        {#if item.price !== null}
-          <p class="text-sm font-medium text-slate-700">{currencySymbol}{item.price.toFixed(2)}</p>
+        {#if formattedPrice}
+          <p class="text-sm font-medium text-slate-700">{formattedPrice}</p>
         {/if}
       </div>
 
