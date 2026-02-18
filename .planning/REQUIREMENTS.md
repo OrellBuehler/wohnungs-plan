@@ -10,7 +10,7 @@ Requirements for UX polish milestone. Each maps to roadmap phases.
 ### Internationalization
 
 - [x] **I18N-01**: User can switch between English and German via a visible language switcher
-- [ ] **I18N-02**: All UI strings display in the selected language (no raw English in German UI)
+- [x] **I18N-02**: All UI strings display in the selected language (no raw English in German UI)
 - [x] **I18N-03**: Locale persists across sessions via cookie
 - [x] **I18N-04**: Numbers and measurements formatted per locale (3,5 m in DE, 3.5 m in EN)
 - [x] **I18N-05**: Dates and relative times formatted per locale ("vor 2 Minuten" in DE)
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | I18N-07 | Phase 1 | Complete |
 | I18N-08 | Phase 1 | Complete |
 | I18N-09 | Phase 1 | Complete |
-| I18N-02 | Phase 2 | Pending |
+| I18N-02 | Phase 2 | Complete |
 | I18N-04 | Phase 2 | Complete |
 | I18N-05 | Phase 2 | Complete |
 | I18N-06 | Phase 2 | Pending |
