@@ -58,7 +58,11 @@ Plans:
   4. Visiting a project URL while logged out redirects to the login page with a message explaining why (not a blank page or generic error)
   5. The project list shows skeleton loading cards while data is fetching instead of a blank flash
   6. The offline sync queue displays a badge with the count of pending changes when the device is offline
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 03-01-PLAN.md — Toast error wiring + auth redirect + form errors
+- [ ] 03-02-PLAN.md — Skeleton loading states + offline sync badge
+- [ ] 03-03-PLAN.md — Upload progress tracking + confirmation dialog audit
 
 ### Phase 4: Mobile UX Hardening
 **Goal**: The app is fully usable on a phone with no content cut off, no frustratingly small tap targets, and an offline indicator visible when disconnected
