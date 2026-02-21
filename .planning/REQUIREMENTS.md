@@ -33,7 +33,7 @@ Requirements for UX polish milestone. Each maps to roadmap phases.
 
 - [ ] **VISD-01**: Consistent spacing rhythm (4px/8px grid) across all pages
 - [ ] **VISD-02**: Consistent text hierarchy (primary font size per heading level)
-- [ ] **VISD-03**: Loading skeletons on project list and data-fetching views
+- [x] **VISD-03**: Loading skeletons on project list and data-fetching views
 - [ ] **VISD-04**: Empty states with icon, explanation text, and CTA on all screens
 - [ ] **VISD-05**: Saving/sync indicator visible during data writes
 - [ ] **VISD-06**: Subtle animations on item add/remove (slide in, fade out)
@@ -46,7 +46,7 @@ Requirements for UX polish milestone. Each maps to roadmap phases.
 - [ ] **ERRH-04**: Upload progress indicator for floorplan/image uploads
 - [ ] **ERRH-05**: Destructive actions use shadcn Dialog confirmation (not native confirm())
 - [ ] **ERRH-06**: 401 responses redirect to login with meaningful message
-- [ ] **ERRH-07**: Offline queue shows pending changes count badge
+- [x] **ERRH-07**: Offline queue shows pending changes count badge
 
 ## v2 Requirements
 
@@ -112,8 +112,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ERRH-04 | Phase 3 | Pending |
 | ERRH-05 | Phase 3 | Pending |
 | ERRH-06 | Phase 3 | Pending |
-| ERRH-07 | Phase 3 | Pending |
-| VISD-03 | Phase 3 | Pending |
+| ERRH-07 | Phase 3 | Complete |
+| VISD-03 | Phase 3 | Complete |
 | MOBI-01 | Phase 4 | Pending |
 | MOBI-02 | Phase 4 | Pending |
 | MOBI-03 | Phase 4 | Pending |
