@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
+	import { page } from '$app/stores';
 	import type { ProjectMeta } from '$lib/types';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
@@ -21,6 +22,7 @@
 	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
 	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
 	import * as m from '$lib/paraglide/messages';
+	import { toast } from 'svelte-sonner';
 
 	// State
 	let projects = $state<ProjectMeta[]>([]);
@@ -41,6 +43,13 @@
 	const showSignInBanner = $derived(!authenticated && projects.length > 0);
 
 	onMount(async () => {
+		const reason = $page.url.searchParams.get('reason');
+		if (reason === 'auth_required') {
+			toast.info(m.auth_login_required());
+			const url = new URL($page.url);
+			url.searchParams.delete('reason');
+			replaceState(url, {});
+		}
 		await fetchUser();
 		await loadProjects();
 	});

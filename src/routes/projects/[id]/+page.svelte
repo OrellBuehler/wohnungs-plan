@@ -9,6 +9,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, Grid3x3, Magnet, Image, Crosshair, MessageSquare, Settings2 } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { toast } from 'svelte-sonner';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import OfflineBadge from '$lib/components/shared/OfflineBadge.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
@@ -396,6 +397,7 @@
 				loadComments(loaded.id, loaded.activeBranchId);
 			}
 		} else {
+			toast.error(m.error_load_project());
 			goto('/');
 		}
 	});
