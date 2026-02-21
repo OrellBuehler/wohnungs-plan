@@ -477,5 +477,10 @@
 	"auth_login_required": "Bitte melden Sie sich an, um fortzufahren",
 
 	"offline_pending_changes": "{count} ausstehend",
-	"offline_status": "Offline"
+	"offline_status": "Offline",
+
+	"upload_in_progress": "Wird hochgeladen...",
+	"upload_success": "Upload abgeschlossen",
+	"upload_failed": "Upload fehlgeschlagen",
+	"confirm_delete_image": "Dieses Bild löschen?"
 }

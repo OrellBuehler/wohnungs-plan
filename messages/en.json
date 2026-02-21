@@ -477,5 +477,10 @@
 	"auth_login_required": "Please log in to continue",
 
 	"offline_pending_changes": "{count} pending",
-	"offline_status": "Offline"
+	"offline_status": "Offline",
+
+	"upload_in_progress": "Uploading...",
+	"upload_success": "Upload complete",
+	"upload_failed": "Upload failed",
+	"confirm_delete_image": "Delete this image?"
 }
