@@ -388,9 +388,32 @@
 	<!-- Data table -->
 	<div class="flex-1 min-h-0 overflow-auto px-4">
 		{#if loading}
-			<div class="flex items-center justify-center py-12">
-				<p class="text-muted-foreground">{m.history_loading()}</p>
-			</div>
+			<Table.Root>
+				<Table.Header>
+					<Table.Row>
+						<Table.Head><div class="h-4 w-4 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-20 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-24 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-32 rounded bg-muted animate-pulse"></div></Table.Head>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body>
+					{#each Array(6) as _}
+						<Table.Row>
+							<Table.Cell><div class="h-4 w-4 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-20 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-24 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-5 w-14 rounded-full bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-28 rounded bg-muted animate-pulse"></div></Table.Cell>
+						</Table.Row>
+					{/each}
+				</Table.Body>
+			</Table.Root>
 		{:else if filteredData.length === 0}
 			<div class="flex items-center justify-center py-12">
 				<p class="text-muted-foreground">
