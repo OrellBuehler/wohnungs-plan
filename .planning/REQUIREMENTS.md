@@ -43,8 +43,8 @@ Requirements for UX polish milestone. Each maps to roadmap phases.
 - [x] **ERRH-01**: Network errors show user-visible toast message (no silent failures)
 - [x] **ERRH-02**: Form submission errors displayed inline with the form
 - [x] **ERRH-03**: Project load failure shows error with retry CTA
-- [ ] **ERRH-04**: Upload progress indicator for floorplan/image uploads
-- [ ] **ERRH-05**: Destructive actions use shadcn Dialog confirmation (not native confirm())
+- [x] **ERRH-04**: Upload progress indicator for floorplan/image uploads
+- [x] **ERRH-05**: Destructive actions use shadcn Dialog confirmation (not native confirm())
 - [x] **ERRH-06**: 401 responses redirect to login with meaningful message
 - [x] **ERRH-07**: Offline queue shows pending changes count badge
 
@@ -109,8 +109,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ERRH-01 | Phase 3 | Complete |
 | ERRH-02 | Phase 3 | Complete |
 | ERRH-03 | Phase 3 | Complete |
-| ERRH-04 | Phase 3 | Pending |
-| ERRH-05 | Phase 3 | Pending |
+| ERRH-04 | Phase 3 | Complete |
+| ERRH-05 | Phase 3 | Complete |
 | ERRH-06 | Phase 3 | Complete |
 | ERRH-07 | Phase 3 | Complete |
 | VISD-03 | Phase 3 | Complete |
