@@ -4,6 +4,8 @@ import { parseDataUrl } from '$lib/utils/data';
 import { DEFAULT_CURRENCY } from '$lib/utils/currency';
 import { toast } from 'svelte-sonner';
 import * as m from '$lib/paraglide/messages';
+import { uploadWithProgress } from '$lib/utils/upload';
+import UploadProgress from '$lib/components/shared/UploadProgress.svelte';
 import {
 	getAllProjects as getLocalProjects,
 	getProject as loadLocalProject,
@@ -247,25 +249,45 @@ async function uploadFloorplan(projectId: string, floorplan: Floorplan): Promise
 	const formData = new FormData();
 	formData.set('file', file);
 
-	const response = await authFetch(`/api/projects/${projectId}/floorplan`, {
-		method: 'POST',
-		body: formData
+	const toastId = toast.custom(UploadProgress, {
+		duration: Infinity,
+		componentProps: { progress: 0, filename: file.name }
 	});
 
-	if (!response.ok) {
-		throw new Error('Failed to upload floorplan');
-	}
+	try {
+		const response = await uploadWithProgress(
+			`/api/projects/${projectId}/floorplan`,
+			formData,
+			(percent) => {
+				toast.custom(UploadProgress, {
+					id: toastId,
+					duration: Infinity,
+					componentProps: { progress: percent, filename: file.name }
+				});
+			}
+		);
 
-	// Update scale after uploading
-	if (floorplan.scale && floorplan.referenceLength) {
-		await authFetch(`/api/projects/${projectId}/floorplan`, {
-			method: 'PATCH',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				scale: floorplan.scale,
-				referenceLength: floorplan.referenceLength
-			})
-		});
+		if (!response.ok) {
+			throw new Error('Failed to upload floorplan');
+		}
+
+		toast.dismiss(toastId);
+		toast.success(m.upload_success());
+
+		// Update scale after uploading
+		if (floorplan.scale && floorplan.referenceLength) {
+			await authFetch(`/api/projects/${projectId}/floorplan`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					scale: floorplan.scale,
+					referenceLength: floorplan.referenceLength
+				})
+			});
+		}
+	} catch {
+		toast.dismiss(toastId);
+		throw new Error('Failed to upload floorplan');
 	}
 }
 
@@ -1052,17 +1074,33 @@ export async function uploadItemImage(itemId: string, file: File): Promise<ItemI
 	const formData = new FormData();
 	formData.set('file', file);
 
+	const toastId = toast.custom(UploadProgress, {
+		duration: Infinity,
+		componentProps: { progress: 0, filename: file.name }
+	});
+
 	try {
-		const response = await authFetch(
+		const response = await uploadWithProgress(
 			`/api/projects/${currentProject.id}/branches/${branchId}/items/${itemId}/images`,
-			{ method: 'POST', body: formData }
+			formData,
+			(percent) => {
+				toast.custom(UploadProgress, {
+					id: toastId,
+					duration: Infinity,
+					componentProps: { progress: percent, filename: file.name }
+				});
+			}
 		);
+
 		if (!response.ok) {
 			const text = await response.text().catch(() => '');
 			throw new Error(`Failed to upload image: ${response.status} ${text}`);
 		}
 
-		const data = await response.json();
+		toast.dismiss(toastId);
+		toast.success(m.upload_success());
+
+		const data = await response.json() as { image: ApiItemImage };
 		const apiImage: ApiItemImage = {
 			...data.image,
 			projectId: currentProject.id,
@@ -1075,8 +1113,9 @@ export async function uploadItemImage(itemId: string, file: File): Promise<ItemI
 		);
 		return newImage;
 	} catch (err) {
+		toast.dismiss(toastId);
 		console.error('Failed to upload item image:', err);
-		toast.error(m.error_upload_image());
+		toast.error(m.upload_failed());
 		return null;
 	}
 }

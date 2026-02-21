@@ -8,6 +8,7 @@
   import { Label } from '$lib/components/ui/label';
   import * as Dialog from '$lib/components/ui/dialog';
   import * as Select from '$lib/components/ui/select';
+  import * as AlertDialog from '$lib/components/ui/alert-dialog';
   import { ImagePlus, X, Loader2 } from 'lucide-svelte';
   import * as m from '$lib/paraglide/messages';
 
@@ -42,6 +43,8 @@
   let pendingPreviews = $state<string[]>([]);
   let isUploading = $state(false);
   let fileInputEl = $state<HTMLInputElement | null>(null);
+  let deleteImageId = $state<string | null>(null);
+  let showDeleteConfirm = $state(false);
 
   const isEditing = $derived(!!item?.id);
 
@@ -362,7 +365,7 @@
                 <button
                   type="button"
                   class="absolute top-0 right-0 bg-black/60 text-white rounded-bl p-0.5 opacity-70 hover:opacity-100 transition-opacity"
-                  onclick={() => onImageDelete?.(img.id)}
+                  onclick={() => { deleteImageId = img.id; showDeleteConfirm = true; }}
                 >
                   <X size={12} />
                 </button>
@@ -411,3 +414,25 @@
     </form>
   </Dialog.Content>
 </Dialog.Root>
+
+<AlertDialog.Root bind:open={showDeleteConfirm}>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>{m.confirm_delete_image()}</AlertDialog.Title>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel>{m.common_cancel()}</AlertDialog.Cancel>
+      <AlertDialog.Action
+        class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+        onclick={() => {
+          if (deleteImageId && onImageDelete) {
+            onImageDelete(deleteImageId);
+          }
+          deleteImageId = null;
+        }}
+      >
+        {m.common_delete()}
+      </AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>
