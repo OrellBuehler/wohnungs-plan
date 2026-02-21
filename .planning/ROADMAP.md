@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: i18n Infrastructure** - Wire Paraglide and Sonner; language switcher visible and locale-persisting
 - [ ] **Phase 2: String Extraction** - All UI strings translated; German UI fully usable
-- [ ] **Phase 3: Error Handling + Loading States** - No silent failures; every error surfaces; upload progress visible
+- [x] **Phase 3: Error Handling + Loading States** - No silent failures; every error surfaces; upload progress visible (completed 2026-02-21)
 - [ ] **Phase 4: Mobile UX Hardening** - Touch targets, keyboard handling, offline indicator audited across all routes
 - [ ] **Phase 5: Visual Design Polish** - Consistent spacing, typography, empty states, and animations throughout
 
@@ -98,6 +98,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. i18n Infrastructure | 2/2 | Complete | 2026-02-17 |
 | 2. String Extraction | 4/4 | Complete | 2026-02-18 |
-| 3. Error Handling + Loading States | 0/? | Not started | - |
+| 3. Error Handling + Loading States | 0/? | Complete    | 2026-02-21 |
 | 4. Mobile UX Hardening | 0/? | Not started | - |
 | 5. Visual Design Polish | 0/? | Not started | - |
