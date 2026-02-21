@@ -5,6 +5,8 @@ import {
 	sendCommentDeleted
 } from './collaboration.svelte';
 import { authFetch } from './auth.svelte';
+import { toast } from 'svelte-sonner';
+import * as m from '$lib/paraglide/messages';
 
 // Client-side types (no server imports)
 export interface ClientComment {
@@ -187,6 +189,7 @@ export async function loadComments(projectId: string, branchId: string): Promise
 		} catch {}
 	} catch (err) {
 		console.error('Failed to load comments:', err);
+		toast.error(m.error_load_comments());
 	} finally {
 		state.loading = false;
 	}
@@ -217,6 +220,7 @@ export async function createComment(
 		return comment;
 	} catch (err) {
 		console.error('Failed to create comment:', err);
+		toast.error(m.error_create_comment());
 		return null;
 	}
 }
@@ -246,6 +250,7 @@ export async function addReplyToComment(
 		return reply;
 	} catch (err) {
 		console.error('Failed to add reply:', err);
+		toast.error(m.error_add_reply());
 		return null;
 	}
 }
@@ -280,6 +285,7 @@ export async function toggleResolve(projectId: string, commentId: string): Promi
 			c.id === commentId ? { ...c, resolved: previousResolved } : c
 		);
 		console.error('Failed to toggle resolve:', err);
+		toast.error(m.error_resolve_comment());
 	}
 }
 
@@ -310,6 +316,7 @@ export async function updateCommentPosition(
 	} catch (err) {
 		state.comments = previous;
 		console.error('Failed to update comment position:', err);
+		toast.error(m.error_update_comment_position());
 		return false;
 	}
 }
@@ -335,6 +342,7 @@ export async function removeComment(projectId: string, commentId: string): Promi
 	} catch (err) {
 		state.comments = previous;
 		console.error('Failed to delete comment:', err);
+		toast.error(m.error_delete_comment());
 	}
 }
 
