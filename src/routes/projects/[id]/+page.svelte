@@ -10,6 +10,7 @@
 	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, Grid3x3, Magnet, Image, Crosshair, MessageSquare, Settings2 } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
+	import OfflineBadge from '$lib/components/shared/OfflineBadge.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
 	import { isAuthenticated, waitForAuth } from '$lib/stores/auth.svelte';
@@ -949,6 +950,7 @@
 					</span>
 				{/if}
 			</Button>
+			<OfflineBadge />
 			<SidebarTrigger />
 		</div>
 	</header>

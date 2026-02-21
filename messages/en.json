@@ -441,5 +441,41 @@
 
 	"image_viewer_view_image": "View image {index}",
 
-	"item_list_count": "{count} {count, plural, one {item} other {items}}"
+	"item_list_count": "{count} {count, plural, one {item} other {items}}",
+
+	"error_network": "Network error — please try again",
+	"error_load_projects": "Could not load projects",
+	"error_load_project": "Could not load project",
+	"error_save_project": "Could not save project",
+	"error_create_project": "Could not create project",
+	"error_delete_project": "Could not delete project",
+	"error_update_item": "Could not update item",
+	"error_delete_item": "Could not delete item",
+	"error_add_item": "Could not add item",
+	"error_duplicate_item": "Could not duplicate item",
+	"error_upload_floorplan": "Could not upload floorplan",
+	"error_upload_image": "Could not upload image",
+	"error_delete_image": "Could not delete image",
+	"error_sync": "Could not sync changes",
+	"error_branch_create": "Could not create branch",
+	"error_branch_rename": "Could not rename branch",
+	"error_branch_delete": "Could not delete branch",
+	"error_update_scale": "Could not update scale",
+	"error_clear_floorplan": "Could not clear floorplan",
+	"error_form_submission": "Please fix the errors above",
+	"error_duplicate_project": "Could not duplicate project",
+	"error_sync_project": "Could not sync project to cloud",
+	"error_revert_history": "Could not revert changes",
+
+	"error_load_comments": "Could not load comments",
+	"error_create_comment": "Could not create comment",
+	"error_add_reply": "Could not add reply",
+	"error_resolve_comment": "Could not update comment",
+	"error_update_comment_position": "Could not update comment position",
+	"error_delete_comment": "Could not delete comment",
+
+	"auth_login_required": "Please log in to continue",
+
+	"offline_pending_changes": "{count} pending",
+	"offline_status": "Offline"
 }

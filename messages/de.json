@@ -441,5 +441,41 @@
 
 	"image_viewer_view_image": "Bild {index} ansehen",
 
-	"item_list_count": "{count} {count, plural, one {Element} other {Elemente}}"
+	"item_list_count": "{count} {count, plural, one {Element} other {Elemente}}",
+
+	"error_network": "Netzwerkfehler — bitte erneut versuchen",
+	"error_load_projects": "Projekte konnten nicht geladen werden",
+	"error_load_project": "Projekt konnte nicht geladen werden",
+	"error_save_project": "Projekt konnte nicht gespeichert werden",
+	"error_create_project": "Projekt konnte nicht erstellt werden",
+	"error_delete_project": "Projekt konnte nicht gelöscht werden",
+	"error_update_item": "Element konnte nicht aktualisiert werden",
+	"error_delete_item": "Element konnte nicht gelöscht werden",
+	"error_add_item": "Element konnte nicht hinzugefügt werden",
+	"error_duplicate_item": "Element konnte nicht dupliziert werden",
+	"error_upload_floorplan": "Grundriss konnte nicht hochgeladen werden",
+	"error_upload_image": "Bild konnte nicht hochgeladen werden",
+	"error_delete_image": "Bild konnte nicht gelöscht werden",
+	"error_sync": "Änderungen konnten nicht synchronisiert werden",
+	"error_branch_create": "Variante konnte nicht erstellt werden",
+	"error_branch_rename": "Variante konnte nicht umbenannt werden",
+	"error_branch_delete": "Variante konnte nicht gelöscht werden",
+	"error_update_scale": "Maßstab konnte nicht aktualisiert werden",
+	"error_clear_floorplan": "Grundriss konnte nicht entfernt werden",
+	"error_form_submission": "Bitte beheben Sie die oben angezeigten Fehler",
+	"error_duplicate_project": "Projekt konnte nicht dupliziert werden",
+	"error_sync_project": "Projekt konnte nicht in die Cloud synchronisiert werden",
+	"error_revert_history": "Änderungen konnten nicht rückgängig gemacht werden",
+
+	"error_load_comments": "Kommentare konnten nicht geladen werden",
+	"error_create_comment": "Kommentar konnte nicht erstellt werden",
+	"error_add_reply": "Antwort konnte nicht hinzugefügt werden",
+	"error_resolve_comment": "Kommentar konnte nicht aktualisiert werden",
+	"error_update_comment_position": "Kommentarposition konnte nicht aktualisiert werden",
+	"error_delete_comment": "Kommentar konnte nicht gelöscht werden",
+
+	"auth_login_required": "Bitte melden Sie sich an, um fortzufahren",
+
+	"offline_pending_changes": "{count} ausstehend",
+	"offline_status": "Offline"
 }
