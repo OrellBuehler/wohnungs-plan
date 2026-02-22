@@ -1130,7 +1130,7 @@
             />
           {/if}
           {#if renderLabels.showName || renderLabels.showDimensions}
-            {#if renderLabels.showName}
+            {#if renderLabels.showName && item.name}
               <!-- Item name -->
               <Text
                 x={0}
@@ -1145,18 +1145,20 @@
                 listening={false}
               />
             {/if}
-            <!-- Item dimensions -->
-            <Text
-              x={0}
-              y={renderLabels.showName ? itemHeightPx / 2 + 2 : (itemHeightPx - itemDimensionsFontSize) / 2}
-              text={formatDimension(item.width, item.height)}
-              fontSize={itemDimensionsFontSize}
-              fontFamily="system-ui, sans-serif"
-              fill="#475569"
-              align="center"
-              width={itemWidthPx}
-              listening={false}
-            />
+            {#if renderLabels.showDimensions && itemWidthPx > 0}
+              <!-- Item dimensions -->
+              <Text
+                x={0}
+                y={renderLabels.showName && item.name ? itemHeightPx / 2 + 2 : (itemHeightPx - itemDimensionsFontSize) / 2}
+                text={formatDimension(item.width, item.height)}
+                fontSize={itemDimensionsFontSize}
+                fontFamily="system-ui, sans-serif"
+                fill="#475569"
+                align="center"
+                width={itemWidthPx}
+                listening={false}
+              />
+            {/if}
           {/if}
           {#if isCommentsVisible() && getItemCommentCount(item.id) > 0}
             {@const badgeRadius = 8}
