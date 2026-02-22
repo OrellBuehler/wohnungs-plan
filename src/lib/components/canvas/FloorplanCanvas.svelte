@@ -399,12 +399,25 @@
     }
   }
 
-  function handleItemContextMenu(itemId: string, e: { evt: MouseEvent }) {
+  function handleStageContextMenu(e: { evt: MouseEvent; target: Konva.Node }) {
+    if (mobileMode) return;
     e.evt.preventDefault();
-    contextMenuItemId = itemId;
-    contextMenuPosition = { x: e.evt.clientX, y: e.evt.clientY };
-    contextMenuOpen = true;
-    onItemSelect(itemId);
+    // Find the item that was right-clicked by walking up the Konva tree
+    let node: Konva.Node | null = e.target;
+    while (node && node.getClassName() !== 'Stage') {
+      const name: string = node.name() ?? '';
+      if (name.startsWith('item-')) {
+        const itemId = name.slice(5);
+        contextMenuItemId = itemId;
+        contextMenuPosition = { x: e.evt.clientX, y: e.evt.clientY };
+        contextMenuOpen = true;
+        onItemSelect(itemId);
+        return;
+      }
+      node = node.getParent();
+    }
+    // Right-clicked on background — close any open menu
+    contextMenuOpen = false;
   }
 
   function handleContextMenuAction(action: 'rotate-cw' | 'rotate-ccw' | 'unplace') {
@@ -1020,6 +1033,7 @@
     x={panX}
     y={panY}
     onpointerclick={handleStageClick}
+    oncontextmenu={handleStageContextMenu}
     onmousedown={handleMouseDown}
     onmousemove={handleMouseMove}
     onmouseup={handleMouseUp}
@@ -1084,9 +1098,8 @@
           y={displayPos.y}
           rotation={item.rotation}
           draggable={!mobileMode && itemLayerListening}
-          config={{ name: `item-${item.id}` }}
+          name={`item-${item.id}`}
           onpointerclick={() => onItemSelect(item.id)}
-          oncontextmenu={mobileMode ? undefined : (e) => handleItemContextMenu(item.id, e)}
           ondragstart={mobileMode ? undefined : () => handleDragStart(item.id)}
           ondragmove={mobileMode ? undefined : (e) => handleDragMove(item.id, e)}
           ondragend={mobileMode ? undefined : (e) => handleDragEnd(item.id, e)}
