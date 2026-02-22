@@ -1,11 +1,12 @@
 <script lang="ts">
   import type { Item } from '$lib/types';
   import type { CurrencyCode } from '$lib/utils/currency';
-  import { CURRENCIES, getCurrencySymbol } from '$lib/utils/currency';
+  import { CURRENCIES, formatPrice } from '$lib/utils/currency';
   import { Button } from '$lib/components/ui/button';
   import { Separator } from '$lib/components/ui/separator';
   import * as Select from '$lib/components/ui/select';
   import { Plus } from 'lucide-svelte';
+  import * as m from '$lib/paraglide/messages';
   import ItemCard from './ItemCard.svelte';
 
   interface Props {
@@ -42,25 +43,25 @@
     onDisplayCurrencyChange,
   }: Props = $props();
 
-  const currencySymbol = $derived(getCurrencySymbol(displayCurrency));
+  const formattedTotal = $derived(formatPrice(totalCost, displayCurrency));
 
   let sortBy = $state<'name' | 'price' | 'status'>('name');
   let filterBy = $state<'all' | 'placed' | 'unplaced'>('all');
 
-  const filterOptions = [
-    { value: 'all', label: 'All' },
-    { value: 'placed', label: 'Placed' },
-    { value: 'unplaced', label: 'Unplaced' },
-  ] as const;
+  const filterOptions = $derived([
+    { value: 'all', label: m.item_filter_all() },
+    { value: 'placed', label: m.item_filter_placed() },
+    { value: 'unplaced', label: m.item_filter_unplaced() },
+  ] as const);
 
-  const sortOptions = [
-    { value: 'name', label: 'Name' },
-    { value: 'price', label: 'Price' },
-    { value: 'status', label: 'Status' },
-  ] as const;
+  const sortOptions = $derived([
+    { value: 'name', label: m.item_sort_name() },
+    { value: 'price', label: m.item_sort_price() },
+    { value: 'status', label: m.item_sort_status() },
+  ] as const);
 
-  const filterLabel = $derived(filterOptions.find(o => o.value === filterBy)?.label ?? 'All');
-  const sortLabel = $derived(sortOptions.find(o => o.value === sortBy)?.label ?? 'Name');
+  const filterLabel = $derived(filterOptions.find(o => o.value === filterBy)?.label ?? m.item_filter_all());
+  const sortLabel = $derived(sortOptions.find(o => o.value === sortBy)?.label ?? m.item_sort_name());
 
   const filteredItems = $derived.by(() => {
     let result = [...items];
@@ -89,9 +90,9 @@
 <div class="flex flex-col h-full min-h-0">
   <div class="flex-shrink-0 p-4">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="font-semibold text-slate-800">Items ({items.length})</h2>
+      <h2 class="font-semibold text-slate-800">{m.item_list_title({ count: items.length.toString() })}</h2>
       {#if !readonly}
-        <Button size="sm" onclick={onAddItem}><Plus size={16} class="mr-1" /> Add</Button>
+        <Button size="sm" onclick={onAddItem}><Plus size={16} class="mr-1" /> {m.item_list_add()}</Button>
       {/if}
     </div>
 
@@ -133,7 +134,7 @@
   <div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
     {#if filteredItems.length === 0}
       <p class="text-slate-500 text-sm text-center py-8">
-        {items.length === 0 ? 'No items yet. Add your first item!' : 'No items match filter.'}
+        {items.length === 0 ? m.item_list_empty_new() : m.item_list_empty_filtered()}
       </p>
     {:else}
       {#each filteredItems as item (item.id)}
@@ -157,7 +158,7 @@
   <div class="flex-shrink-0 p-4 bg-slate-50">
     <div class="flex justify-between items-center">
       <div class="flex items-center gap-2">
-        <span class="text-sm text-slate-600">Total</span>
+        <span class="text-sm text-slate-600">{m.item_list_total()}</span>
         <Select.Root
           type="single"
           value={displayCurrency}
@@ -175,9 +176,9 @@
       </div>
       <div class="flex items-center gap-2">
         {#if isLoadingRates}
-          <span class="text-xs text-slate-400">updating...</span>
+          <span class="text-xs text-slate-400">{m.item_list_updating()}</span>
         {/if}
-        <span class="text-lg font-semibold text-slate-800">{currencySymbol}{totalCost.toFixed(2)}</span>
+        <span class="text-lg font-semibold text-slate-800">{formattedTotal}</span>
       </div>
     </div>
   </div>

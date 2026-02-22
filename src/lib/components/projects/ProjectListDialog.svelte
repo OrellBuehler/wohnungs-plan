@@ -1,4 +1,6 @@
 <script lang="ts">
+  import * as m from '$lib/paraglide/messages';
+  import { getLocale } from '$lib/paraglide/runtime';
   import type { ProjectMeta } from '$lib/types';
   import { Button } from '$lib/components/ui/button';
   import * as Dialog from '$lib/components/ui/dialog';
@@ -16,7 +18,7 @@
   let pendingDeleteProject = $state<ProjectMeta | null>(null);
 
   function formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(getLocale(), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -48,12 +50,12 @@
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleClose()}>
   <Dialog.Content class="sm:max-w-lg">
     <Dialog.Header>
-      <Dialog.Title>Open Project</Dialog.Title>
+      <Dialog.Title>{m.project_list_title()}</Dialog.Title>
     </Dialog.Header>
 
     <div class="max-h-96 overflow-y-auto">
       {#if projects.length === 0}
-        <p class="text-center text-slate-500 py-8">No saved projects</p>
+        <p class="text-center text-slate-500 py-8">{m.project_list_empty()}</p>
       {:else}
         <div class="space-y-2">
           {#each projects as project (project.id)}
@@ -65,7 +67,7 @@
               >
                 <div class="flex flex-col items-start">
                   <h3 class="font-medium text-slate-800">{project.name}</h3>
-                  <p class="text-sm text-slate-500">Updated {formatDate(project.updatedAt)}</p>
+                  <p class="text-sm text-slate-500">{m.project_list_updated({ date: formatDate(project.updatedAt) })}</p>
                 </div>
               </Button>
               <Button
@@ -74,7 +76,7 @@
                 class="text-red-600 hover:text-red-700 hover:bg-red-50"
                 onclick={() => requestDelete(project)}
               >
-                Delete
+                {m.common_delete()}
               </Button>
             </div>
           {/each}
@@ -83,7 +85,7 @@
     </div>
 
     <Dialog.Footer>
-      <Button variant="outline" onclick={handleClose}>Cancel</Button>
+      <Button variant="outline" onclick={handleClose}>{m.common_cancel()}</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>
@@ -91,14 +93,14 @@
 <Dialog.Root bind:open={deleteConfirmOpen}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Delete Project</Dialog.Title>
+      <Dialog.Title>{m.project_list_delete_title()}</Dialog.Title>
       <Dialog.Description class="break-words">
-        Delete "{pendingDeleteProject?.name}"?
+        {m.project_list_delete_description({ name: pendingDeleteProject?.name ?? '' })}
       </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer class="gap-2">
-      <Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteConfirmOpen = false)}>Cancel</Button>
-      <Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}>Delete</Button>
+      <Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteConfirmOpen = false)}>{m.common_cancel()}</Button>
+      <Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}>{m.common_delete()}</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

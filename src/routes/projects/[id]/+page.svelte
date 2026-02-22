@@ -8,7 +8,10 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, Grid3x3, Magnet, Image, Crosshair, MessageSquare, Settings2 } from 'lucide-svelte';
+	import * as m from '$lib/paraglide/messages';
+	import { toast } from 'svelte-sonner';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
+	import OfflineBadge from '$lib/components/shared/OfflineBadge.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SEO from '$lib/components/SEO.svelte';
 	import { isAuthenticated, waitForAuth } from '$lib/stores/auth.svelte';
@@ -306,9 +309,9 @@
 		if (!activeBranch) return;
 		const branch = activeBranch;
 		openConfirmDialog({
-			title: 'Delete Branch',
-			description: `Delete branch "${branch.name}"?`,
-			actionLabel: 'Delete',
+			title: m.branch_delete_title(),
+			description: m.branch_delete_description({ name: branch.name }),
+			actionLabel: m.common_delete(),
 			actionVariant: 'destructive',
 			action: async () => {
 				const deleted = await deleteProjectBranch(branch.id);
@@ -394,6 +397,7 @@
 				loadComments(loaded.id, loaded.activeBranchId);
 			}
 		} else {
+			toast.error(m.error_load_project());
 			goto('/');
 		}
 	});
@@ -425,23 +429,23 @@
 		if (!project) return;
 
 		const collaborationActions: ProjectActionGroup = {
-			title: 'Collaboration',
+			title: m.project_sidebar_group_collaboration(),
 			actions: [
 				...(!isLocalProject
 					? [
 							{
-								label: 'Share',
+								label: m.project_share(),
 								icon: Share2,
 								onclick: () => (showShareDialog = true)
 							},
 							{
-								label: 'Refresh',
+								label: m.project_refresh(),
 								icon: RefreshCw,
 								onclick: () => refreshProject(),
 								disabled: isRefreshing
 							},
 							{
-								label: 'MCP Tools',
+								label: m.project_mcp_tools(),
 								icon: Settings2,
 								onclick: () => (showMcpToolsDialog = true)
 							}
@@ -451,31 +455,31 @@
 		};
 
 		const canvasActions: ProjectActionGroup = {
-			title: 'Canvas',
+			title: m.project_sidebar_group_canvas(),
 			actions: [
 				...(project.floorplan
 					? [
 							{
-								label: 'Recalibrate Scale',
+								label: m.project_recalibrate(),
 								icon: Crosshair,
 								onclick: () => handleRecalibrate()
 							},
 							{
-								label: 'Change Floorplan',
+								label: m.project_change_floorplan(),
 								icon: Image,
 								onclick: () => handleChangeFloorplan()
 							},
 							{
-								label: showGrid ? 'Hide Grid' : 'Show Grid',
+								label: showGrid ? m.project_hide_grid() : m.project_show_grid(),
 								icon: Grid3x3,
 								onclick: () => (showGrid = !showGrid),
-								indicator: showGrid ? 'On' : 'Off'
+								indicator: showGrid ? m.project_sidebar_toggle_on() : m.project_sidebar_toggle_off()
 							},
 							{
-								label: snapToGrid ? 'Disable Snap' : 'Enable Snap',
+								label: snapToGrid ? m.project_disable_snap() : m.project_enable_snap(),
 								icon: Magnet,
 								onclick: () => (snapToGrid = !snapToGrid),
-								indicator: snapToGrid ? 'On' : 'Off'
+								indicator: snapToGrid ? m.project_sidebar_toggle_on() : m.project_sidebar_toggle_off()
 							}
 						]
 					: [])
@@ -591,9 +595,9 @@
 
 	function handleChangeFloorplan() {
 		openConfirmDialog({
-			title: 'Change Floorplan',
-			description: 'Change floorplan? Item positions will be kept.',
-			actionLabel: 'Change',
+			title: m.project_change_floorplan_title(),
+			description: m.project_change_floorplan_description(),
+			actionLabel: m.common_change(),
 			actionVariant: 'destructive',
 			action: () => {
 				clearFloorplan();
@@ -646,9 +650,9 @@
 
 	function handleDeleteItem(id: string) {
 		openConfirmDialog({
-			title: 'Delete Item',
-			description: 'Delete this item?',
-			actionLabel: 'Delete',
+			title: m.item_delete_title(),
+			description: m.item_delete_description(),
+			actionLabel: m.common_delete(),
 			actionVariant: 'destructive',
 			action: () => {
 				deleteItem(id);
@@ -894,7 +898,7 @@
 						size="icon-sm"
 						onclick={handleCreateBranch}
 						disabled={isBranchSwitching}
-						title="Create branch"
+						title={m.branch_create_title()}
 					>
 						<GitBranchPlus size={14} />
 					</Button>
@@ -903,7 +907,7 @@
 						size="icon-sm"
 						onclick={handleRenameBranch}
 						disabled={!activeBranch || isBranchSwitching}
-						title="Rename branch"
+						title={m.branch_rename_title()}
 					>
 						<Pencil size={14} />
 					</Button>
@@ -912,7 +916,7 @@
 						size="icon-sm"
 						onclick={handleDeleteBranch}
 						disabled={!activeBranch || branches.length <= 1 || isBranchSwitching}
-						title="Delete branch"
+						title={m.branch_delete_title()}
 					>
 						<Trash2 size={14} />
 					</Button>
@@ -924,14 +928,14 @@
 			{#if !isLocalProject}
 				<Button variant="outline" size="sm" class="hidden md:inline-flex" onclick={() => (showShareDialog = true)}>
 					<Share2 size={16} class="mr-1" />
-					Share
+					{m.project_share()}
 				</Button>
 				<Button variant="outline" size="sm" class="hidden md:inline-flex" onclick={handleOpenHistory}>
-					History
+					{m.project_history()}
 				</Button>
 				<Button variant="outline" size="icon-sm" class="hidden md:inline-flex" onclick={refreshProject} disabled={isRefreshing}>
 					<RefreshCw size={16} class={isRefreshing ? 'animate-spin' : ''} />
-					<span class="sr-only">Refresh</span>
+					<span class="sr-only">{m.project_refresh()}</span>
 				</Button>
 			{/if}
 			<Button
@@ -948,6 +952,7 @@
 					</span>
 				{/if}
 			</Button>
+			<OfflineBadge />
 			<SidebarTrigger />
 		</div>
 	</header>
@@ -1033,7 +1038,7 @@
 						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
 						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
 					</svg>
-					Refreshing...
+					{m.project_refreshing()}
 				</div>
 			{/if}
 			<ItemList
@@ -1074,7 +1079,7 @@
 		{#if isBranchSwitching}
 			<div class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
 				<div class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
-					Switching branch...
+					{m.branch_switching()}
 				</div>
 			</div>
 		{/if}
@@ -1124,27 +1129,27 @@
 	<Dialog.Root bind:open={showBranchNameDialog} onOpenChange={(open) => !open && closeBranchNameDialog()}>
 		<Dialog.Content class="sm:max-w-md">
 			<Dialog.Header>
-				<Dialog.Title>{branchDialogMode === 'create' ? 'Create Branch' : 'Rename Branch'}</Dialog.Title>
+				<Dialog.Title>{branchDialogMode === 'create' ? m.branch_create_title() : m.branch_rename_title()}</Dialog.Title>
 				<Dialog.Description>
 					{branchDialogMode === 'create'
-						? 'Enter a name for the new branch.'
-						: 'Update the selected branch name.'}
+						? m.branch_create_description()
+						: m.branch_rename_description()}
 				</Dialog.Description>
 			</Dialog.Header>
 			<form onsubmit={handleBranchDialogSubmit} class="space-y-4">
 				<Input
 					bind:ref={branchNameInputEl}
 					bind:value={branchNameInputValue}
-					placeholder="Branch name"
+					placeholder={m.branch_name_placeholder()}
 				/>
 				<Dialog.Footer class="gap-2">
-					<Button type="button" variant="outline" class="w-full sm:w-auto" onclick={closeBranchNameDialog}>Cancel</Button>
+					<Button type="button" variant="outline" class="w-full sm:w-auto" onclick={closeBranchNameDialog}>{m.common_cancel()}</Button>
 					<Button
 						type="submit"
 						class="w-full sm:w-auto"
 						disabled={isBranchDialogSubmitting || !branchNameInputValue.trim()}
 					>
-						{branchDialogMode === 'create' ? 'Create' : 'Save'}
+						{branchDialogMode === 'create' ? m.common_create() : m.common_save()}
 					</Button>
 				</Dialog.Footer>
 			</form>
@@ -1158,7 +1163,7 @@
 				<Dialog.Description class="break-words">{confirmDialogDescription}</Dialog.Description>
 			</Dialog.Header>
 			<Dialog.Footer class="gap-2">
-				<Button type="button" variant="outline" class="w-full sm:w-auto" onclick={closeConfirmDialog}>Cancel</Button>
+				<Button type="button" variant="outline" class="w-full sm:w-auto" onclick={closeConfirmDialog}>{m.common_cancel()}</Button>
 				<Button
 					type="button"
 					class="w-full sm:w-auto"

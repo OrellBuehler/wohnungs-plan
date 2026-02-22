@@ -65,7 +65,7 @@ function handleUnauthorized(): void {
 	redirecting = true;
 	state.user = null;
 	state.isAuthenticated = false;
-	login();
+	window.location.href = '/api/auth/login?reason=auth_required';
 }
 
 export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {

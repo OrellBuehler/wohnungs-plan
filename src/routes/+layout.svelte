@@ -5,6 +5,8 @@
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import SEO from '$lib/components/SEO.svelte';
 	import AppSidebar from '$lib/components/layout/AppSidebar.svelte';
+	import { Toaster } from '$lib/components/ui/sonner/index.js';
+	import * as m from '$lib/paraglide/messages';
 
 	let { children } = $props();
 
@@ -16,14 +18,14 @@
 </script>
 
 <SEO
-	title="Floorplanner"
-	description="Create and share floor plans for your apartment"
+	title={m.app_title()}
+	description={m.app_description()}
 	image="{baseUrl}/og-image.png"
 	url={baseUrl}
 />
 
 <svelte:head>
-	<!-- version: {import.meta.env.VITE_GIT_HASH || 'dev'} | built: {import.meta.env.VITE_BUILD_TIMESTAMP || 'dev'} -->
+	<!-- version: {import.meta.env.VITE_APP_VERSION || 'dev'} -->
 	<link rel="icon" href="/icon.svg" type="image/svg+xml" />
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 	<link rel="manifest" href="/manifest.json" />
@@ -38,3 +40,5 @@
 	</div>
 	<AppSidebar />
 </Tooltip.Provider>
+
+<Toaster />

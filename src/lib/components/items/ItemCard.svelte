@@ -1,11 +1,13 @@
 <script lang="ts">
   import type { Item } from '$lib/types';
-  import { getCurrencySymbol } from '$lib/utils/currency';
+  import { formatPrice } from '$lib/utils/currency';
   import { getLShapePoints, getRectPoints } from '$lib/utils/geometry';
   import { Button } from '$lib/components/ui/button';
   import * as Card from '$lib/components/ui/card';
   import { Separator } from '$lib/components/ui/separator';
   import { Pencil, MapPin, MapPinOff, Copy, Trash2, ExternalLink } from 'lucide-svelte';
+  import * as m from '$lib/paraglide/messages';
+  import { formatDimension } from '$lib/utils/format';
   import ImageViewer from './ImageViewer.svelte';
 
   interface Props {
@@ -22,8 +24,8 @@
 
   let { item, isSelected, readonly = false, onSelect, onEdit, onDelete, onDuplicate, onPlace, onUnplace }: Props = $props();
 
-  // Use the item's own currency
-  const currencySymbol = $derived(getCurrencySymbol(item.priceCurrency));
+  // Use the item's own currency for locale-aware formatting
+  const formattedPrice = $derived(item.price !== null ? formatPrice(item.price, item.priceCurrency) : null);
 
   // Generate SVG path for shape preview
   const previewPath = $derived.by(() => {
@@ -102,18 +104,18 @@
       <div class="flex-1 min-w-0">
         <h3 class="font-medium text-slate-800 truncate">{item.name}</h3>
         <p class="text-sm text-slate-500 font-mono">
-          {item.width} x {item.height} cm
+          {formatDimension(item.width, item.height)}
         </p>
-        {#if item.price !== null}
-          <p class="text-sm font-medium text-slate-700">{currencySymbol}{item.price.toFixed(2)}</p>
+        {#if formattedPrice}
+          <p class="text-sm font-medium text-slate-700">{formattedPrice}</p>
         {/if}
       </div>
 
       <div class="flex flex-col gap-1">
         {#if item.position}
-          <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Placed</span>
+          <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">{m.item_card_placed()}</span>
         {:else}
-          <span class="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded">Unplaced</span>
+          <span class="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded">{m.item_card_unplaced()}</span>
         {/if}
         {#if item.productUrl}
           <a
@@ -123,7 +125,7 @@
             class="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
             onclick={(e) => e.stopPropagation()}
           >
-            <ExternalLink size={12} /> View
+            <ExternalLink size={12} /> {m.item_card_view()}
           </a>
         {/if}
       </div>
@@ -139,7 +141,7 @@
               class="flex-shrink-0 w-20 h-16 rounded border border-slate-200 overflow-hidden snap-start hover:border-blue-400 transition-colors"
               onclick={withStopPropagation(() => openImageViewer(i))}
             >
-              <img src={img.thumbUrl} alt={img.originalName ?? 'Item image'} class="w-full h-full object-cover" />
+              <img src={img.thumbUrl} alt={img.originalName ?? m.item_form_image_alt()} class="w-full h-full object-cover" />
             </button>
           {/each}
         </div>
@@ -147,24 +149,24 @@
       <Separator class="my-3" />
       <div class="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" class="min-h-[44px]" onclick={withStopPropagation(onEdit)}>
-          <Pencil size={14} class="mr-1" /> Edit
+          <Pencil size={14} class="mr-1" /> {m.common_edit()}
         </Button>
         {#if item.position && !readonly}
           <Button size="sm" variant="outline" class="min-h-[44px]" onclick={withStopPropagation(onUnplace)}>
-            <MapPinOff size={14} class="mr-1" /> Unplace
+            <MapPinOff size={14} class="mr-1" /> {m.item_card_unplace()}
           </Button>
         {:else if !readonly}
           <Button size="sm" variant="outline" class="min-h-[44px]" onclick={withStopPropagation(onPlace)}>
-            <MapPin size={14} class="mr-1" /> Place
+            <MapPin size={14} class="mr-1" /> {m.item_card_place()}
           </Button>
         {/if}
         {#if !readonly}
           <Button size="sm" variant="outline" class="min-h-[44px]" onclick={withStopPropagation(onDuplicate)}>
-            <Copy size={14} class="mr-1" /> Duplicate
+            <Copy size={14} class="mr-1" /> {m.item_card_duplicate()}
           </Button>
         {/if}
         <Button size="sm" variant="destructive" class="min-h-[44px]" onclick={withStopPropagation(onDelete)}>
-          <Trash2 size={14} class="mr-1" /> Delete
+          <Trash2 size={14} class="mr-1" /> {m.common_delete()}
         </Button>
       </div>
     {/if}

@@ -21,14 +21,41 @@ describe('shouldRenderGrid', () => {
 });
 
 describe('shouldRenderItemLabels', () => {
-  it('keeps labels visible when not interacting', () => {
+  const large = { itemWidthPx: 100, itemHeightPx: 80, itemNameFontPx: 12 };
+  const medium = { itemWidthPx: 30, itemHeightPx: 30, itemNameFontPx: 12 };
+  const tiny = { itemWidthPx: 20, itemHeightPx: 20, itemNameFontPx: 12 };
+
+  it('shows both labels on large items when not interacting', () => {
     expect(
       shouldRenderItemLabels({
         isInteractionActive: false,
         isSelected: false,
         isDragging: false,
+        ...large,
       })
-    ).toBe(true);
+    ).toEqual({ showName: true, showDimensions: true });
+  });
+
+  it('shows only dimensions on medium items', () => {
+    expect(
+      shouldRenderItemLabels({
+        isInteractionActive: false,
+        isSelected: false,
+        isDragging: false,
+        ...medium,
+      })
+    ).toEqual({ showName: false, showDimensions: true });
+  });
+
+  it('hides all labels on tiny items', () => {
+    expect(
+      shouldRenderItemLabels({
+        isInteractionActive: false,
+        isSelected: false,
+        isDragging: false,
+        ...tiny,
+      })
+    ).toEqual({ showName: false, showDimensions: false });
   });
 
   it('keeps active item labels visible during interaction', () => {
@@ -37,15 +64,17 @@ describe('shouldRenderItemLabels', () => {
         isInteractionActive: true,
         isSelected: true,
         isDragging: false,
+        ...large,
       })
-    ).toBe(true);
+    ).toEqual({ showName: true, showDimensions: true });
     expect(
       shouldRenderItemLabels({
         isInteractionActive: true,
         isSelected: false,
         isDragging: true,
+        ...large,
       })
-    ).toBe(true);
+    ).toEqual({ showName: true, showDimensions: true });
   });
 
   it('hides non-active labels during interaction', () => {
@@ -54,8 +83,9 @@ describe('shouldRenderItemLabels', () => {
         isInteractionActive: true,
         isSelected: false,
         isDragging: false,
+        ...large,
       })
-    ).toBe(false);
+    ).toEqual({ showName: false, showDimensions: false });
   });
 });
 
@@ -186,10 +216,18 @@ describe('getGridStepCount', () => {
 });
 
 describe('getCanvasLabelFontSizes', () => {
-  it('returns larger default item label sizes', () => {
+  it('returns desktop item label sizes', () => {
     expect(getCanvasLabelFontSizes({ rootFontPx: 16, mobileMode: false, zoom: 1 })).toEqual({
-      itemNamePx: 10,
-      itemDimensionsPx: 8,
+      itemNamePx: 12,
+      itemDimensionsPx: 9,
+      distanceLabelPx: 9,
+    });
+  });
+
+  it('returns smaller mobile item label sizes', () => {
+    expect(getCanvasLabelFontSizes({ rootFontPx: 16, mobileMode: true, zoom: 1 })).toEqual({
+      itemNamePx: 8,
+      itemDimensionsPx: 6,
       distanceLabelPx: 9,
     });
   });

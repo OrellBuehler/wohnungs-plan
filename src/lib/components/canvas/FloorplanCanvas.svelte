@@ -38,6 +38,8 @@
   } from '$lib/utils/canvas-math';
   import { Button } from '$lib/components/ui/button';
   import { Plus, Minus, RotateCcw, RotateCw, Lock, Unlock, RefreshCw, MapPinOff } from 'lucide-svelte';
+  import * as m from '$lib/paraglide/messages';
+  import { formatDimension, formatDecimal } from '$lib/utils/format';
 
   interface Props {
     floorplan: Floorplan | null;
@@ -397,12 +399,25 @@
     }
   }
 
-  function handleItemContextMenu(itemId: string, e: { evt: MouseEvent }) {
+  function handleStageContextMenu(e: { evt: MouseEvent; target: Konva.Node }) {
+    if (mobileMode) return;
     e.evt.preventDefault();
-    contextMenuItemId = itemId;
-    contextMenuPosition = { x: e.evt.clientX, y: e.evt.clientY };
-    contextMenuOpen = true;
-    onItemSelect(itemId);
+    // Find the item that was right-clicked by walking up the Konva tree
+    let node: Konva.Node | null = e.target;
+    while (node && node.getClassName() !== 'Stage') {
+      const name: string = node.name() ?? '';
+      if (name.startsWith('item-')) {
+        const itemId = name.slice(5);
+        contextMenuItemId = itemId;
+        contextMenuPosition = { x: e.evt.clientX, y: e.evt.clientY };
+        contextMenuOpen = true;
+        onItemSelect(itemId);
+        return;
+      }
+      node = node.getParent();
+    }
+    // Right-clicked on background — close any open menu
+    contextMenuOpen = false;
   }
 
   function handleContextMenuAction(action: 'rotate-cw' | 'rotate-ccw' | 'unplace') {
@@ -1018,6 +1033,7 @@
     x={panX}
     y={panY}
     onpointerclick={handleStageClick}
+    oncontextmenu={handleStageContextMenu}
     onmousedown={handleMouseDown}
     onmousemove={handleMouseMove}
     onmouseup={handleMouseUp}
@@ -1072,16 +1088,18 @@
         {@const renderLabels = shouldRenderItemLabels({
           isInteractionActive,
           isSelected: selectedItemId === item.id,
-          isDragging: draggingItemId === item.id || longPressItemId === item.id
+          isDragging: draggingItemId === item.id || longPressItemId === item.id,
+          itemWidthPx,
+          itemHeightPx,
+          itemNameFontPx: itemNameFontSize
         })}
         <Group
           x={displayPos.x}
           y={displayPos.y}
           rotation={item.rotation}
           draggable={!mobileMode && itemLayerListening}
-          config={{ name: `item-${item.id}` }}
+          name={`item-${item.id}`}
           onpointerclick={() => onItemSelect(item.id)}
-          oncontextmenu={mobileMode ? undefined : (e) => handleItemContextMenu(item.id, e)}
           ondragstart={mobileMode ? undefined : () => handleDragStart(item.id)}
           ondragmove={mobileMode ? undefined : (e) => handleDragMove(item.id, e)}
           ondragend={mobileMode ? undefined : (e) => handleDragEnd(item.id, e)}
@@ -1124,31 +1142,36 @@
               cornerRadius={2}
             />
           {/if}
-          {#if renderLabels}
-            <!-- Item label -->
-            <Text
-              x={0}
-              y={itemHeightPx / 2 - 12}
-              text={item.name}
-              fontSize={itemNameFontSize}
-              fontFamily="system-ui, sans-serif"
-              fontStyle="bold"
-              fill="#1e293b"
-              align="center"
-              width={itemWidthPx}
-              listening={false}
-            />
-            <Text
-              x={0}
-              y={itemHeightPx / 2 + 2}
-              text={`${item.width} × ${item.height} cm`}
-              fontSize={itemDimensionsFontSize}
-              fontFamily="system-ui, sans-serif"
-              fill="#475569"
-              align="center"
-              width={itemWidthPx}
-              listening={false}
-            />
+          {#if renderLabels.showName || renderLabels.showDimensions}
+            {#if renderLabels.showName && item.name}
+              <!-- Item name -->
+              <Text
+                x={0}
+                y={itemHeightPx / 2 - 12}
+                text={item.name}
+                fontSize={itemNameFontSize}
+                fontFamily="system-ui, sans-serif"
+                fontStyle="bold"
+                fill="#1e293b"
+                align="center"
+                width={itemWidthPx}
+                listening={false}
+              />
+            {/if}
+            {#if renderLabels.showDimensions && itemWidthPx > 0}
+              <!-- Item dimensions -->
+              <Text
+                x={0}
+                y={renderLabels.showName && item.name ? itemHeightPx / 2 + 2 : (itemHeightPx - itemDimensionsFontSize) / 2}
+                text={formatDimension(item.width, item.height)}
+                fontSize={itemDimensionsFontSize}
+                fontFamily="system-ui, sans-serif"
+                fill="#475569"
+                align="center"
+                width={itemWidthPx}
+                listening={false}
+              />
+            {/if}
           {/if}
           {#if isCommentsVisible() && getItemCommentCount(item.id) > 0}
             {@const badgeRadius = 8}
@@ -1196,7 +1219,7 @@
           {@const angle = Math.atan2(dy, dx)}
           {@const midX = (indicator.pointA.x + indicator.pointB.x) / 2}
           {@const midY = (indicator.pointA.y + indicator.pointB.y) / 2}
-          {@const labelText = `${Math.round(indicator.distanceCm)} cm`}
+          {@const labelText = `${formatDecimal(Math.round(indicator.distanceCm), 0)} cm`}
           {@const endCapLength = END_CAP_LENGTH / zoom}
 
           <!-- Main dimension line -->
@@ -1300,7 +1323,7 @@
       size="icon-sm"
       class="text-slate-600"
       onclick={zoomIn}
-      title="Zoom in"
+      title={m.canvas_zoom_in()}
       disabled={zoomLocked}
     >
       <Plus size={16} />
@@ -1313,7 +1336,7 @@
       size="icon-sm"
       class="text-slate-600"
       onclick={zoomOut}
-      title="Zoom out"
+      title={m.canvas_zoom_out()}
       disabled={zoomLocked}
     >
       <Minus size={16} />
@@ -1323,7 +1346,7 @@
       size="icon-sm"
       class="text-slate-600"
       onclick={resetView}
-      title="Reset view"
+      title={m.canvas_reset_view()}
     >
       <RefreshCw size={14} />
     </Button>
@@ -1332,7 +1355,7 @@
       size="icon-sm"
       class={zoomLocked ? 'text-blue-600 bg-blue-50' : 'text-slate-600'}
       onclick={() => zoomLocked = !zoomLocked}
-      title={zoomLocked ? 'Unlock zoom' : 'Lock zoom'}
+      title={zoomLocked ? m.canvas_unlock_zoom() : m.canvas_lock_zoom()}
     >
       {#if zoomLocked}
         <Lock size={14} />
@@ -1350,7 +1373,7 @@
         class="h-1.5 bg-slate-700 rounded-sm"
         style="width: {Math.max(20, Math.min(200, scaleBarWidth))}px;"
       ></div>
-      <span class="text-xs text-slate-600 font-mono">100 cm</span>
+      <span class="text-xs text-slate-600 font-mono">{m.canvas_scale_bar()}</span>
     </div>
   {/if}
 
@@ -1362,7 +1385,7 @@
       class="fixed inset-0 z-40"
       onclick={() => contextMenuOpen = false}
       oncontextmenu={(e) => { e.preventDefault(); contextMenuOpen = false; }}
-      aria-label="Close menu"
+      aria-label={m.canvas_close_menu()}
     ></button>
     <div
       class="fixed z-50 min-w-[160px] rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
@@ -1376,7 +1399,7 @@
         role="menuitem"
       >
         <RotateCcw class="mr-2 size-4" />
-        Rotate Left
+        {m.canvas_rotate_left()}
       </button>
       <button
         type="button"
@@ -1385,7 +1408,7 @@
         role="menuitem"
       >
         <RotateCw class="mr-2 size-4" />
-        Rotate Right
+        {m.canvas_rotate_right()}
       </button>
       <div class="-mx-1 my-1 h-px bg-muted"></div>
       <button
@@ -1395,7 +1418,7 @@
         role="menuitem"
       >
         <MapPinOff class="mr-2 size-4" />
-        Remove from Plan
+        {m.canvas_remove_from_plan()}
       </button>
     </div>
   {/if}

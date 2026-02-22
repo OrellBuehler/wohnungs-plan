@@ -1,4 +1,6 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
+	import { getLocale } from '$lib/paraglide/runtime';
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -39,10 +41,10 @@
 	}
 
 	function formatDate(value: string | null): string {
-		if (!value) return 'Never';
+		if (!value) return m.sharing_link_expires_never();
 		const parsed = new Date(value);
 		if (Number.isNaN(parsed.getTime())) return 'Invalid date';
-		return parsed.toLocaleString();
+		return parsed.toLocaleString(getLocale());
 	}
 
 	async function loadLinks() {
@@ -157,35 +159,35 @@
 
 <section class="space-y-4">
 	<div>
-		<h3 class="text-sm font-semibold text-slate-900">Public share links</h3>
-		<p class="text-xs text-slate-500">Create read-only links for anonymous viewers.</p>
+		<h3 class="text-sm font-semibold text-slate-900">{m.sharing_links_title()}</h3>
+		<p class="text-xs text-slate-500">{m.sharing_links_description()}</p>
 	</div>
 
 	<form class="space-y-3 rounded-lg border border-slate-200 p-3" onsubmit={handleSubmit}>
 		<div class="space-y-1.5">
-			<Label for="share-link-label">Label (optional)</Label>
-			<Input id="share-link-label" bind:value={label} placeholder="e.g. Agent viewing link" />
+			<Label for="share-link-label">{m.sharing_link_label_label()}</Label>
+			<Input id="share-link-label" bind:value={label} placeholder={m.sharing_link_label_placeholder()} />
 		</div>
 
 		<div class="space-y-1.5">
-			<Label for="share-link-password">Password (optional)</Label>
-			<Input id="share-link-password" type="password" bind:value={password} placeholder="Protect with password" />
+			<Label for="share-link-password">{m.sharing_link_password_label()}</Label>
+			<Input id="share-link-password" type="password" bind:value={password} placeholder={m.sharing_link_password_placeholder()} />
 		</div>
 
 		<div class="space-y-1.5">
-			<Label for="share-link-expiry">Expires at (optional)</Label>
+			<Label for="share-link-expiry">{m.sharing_link_expiry_label()}</Label>
 			<Input id="share-link-expiry" type="date" bind:value={expiresAt} />
 		</div>
 
 		{#if showNoPasswordWarning}
 			<div class="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
-				<p class="font-medium">Anyone with this link can view your floorplan.</p>
+				<p class="font-medium">{m.sharing_link_no_password_warning()}</p>
 				<div class="flex gap-2">
 					<Button type="button" size="sm" variant="outline" onclick={() => (showNoPasswordWarning = false)}>
-						Cancel
+						{m.common_cancel()}
 					</Button>
 					<Button type="button" size="sm" onclick={() => createLink(true)}>
-						Create without password
+						{m.sharing_link_create_no_password()}
 					</Button>
 				</div>
 			</div>
@@ -196,7 +198,7 @@
 		{/if}
 
 		<Button class="w-full sm:w-auto" type="submit" disabled={isCreating}>
-			{isCreating ? 'Creating...' : 'Create Share Link'}
+			{isCreating ? m.sharing_link_creating() : m.sharing_link_create()}
 		</Button>
 	</form>
 
@@ -216,28 +218,28 @@
 	<Separator />
 
 	<div class="space-y-2">
-		<h4 class="text-sm font-medium text-slate-800">Active links</h4>
+		<h4 class="text-sm font-medium text-slate-800">{m.sharing_links_active()}</h4>
 		{#if isLoading}
-			<p class="text-sm text-slate-500">Loading share links...</p>
+			<p class="text-sm text-slate-500">{m.sharing_links_loading()}</p>
 		{:else if loadError}
 			<p class="text-sm text-red-600">{loadError}</p>
 		{:else if links.length === 0}
-			<p class="text-sm text-slate-500">No share links yet.</p>
+			<p class="text-sm text-slate-500">{m.sharing_links_empty()}</p>
 		{:else}
 			{#each links as link (link.id)}
 				<div class="rounded-lg border border-slate-200 p-3 space-y-2">
 					<div class="flex items-start justify-between gap-2">
 						<div class="min-w-0">
 							<p class="text-sm font-medium text-slate-900 truncate">
-								{link.label || 'Untitled link'}
+								{link.label || m.sharing_link_untitled()}
 							</p>
-							<p class="text-xs text-slate-500">Created: {formatDate(link.createdAt)}</p>
-							<p class="text-xs text-slate-500">Expires: {formatDate(link.expiresAt)}</p>
+							<p class="text-xs text-slate-500">{m.sharing_link_created()} {formatDate(link.createdAt)}</p>
+							<p class="text-xs text-slate-500">{m.sharing_link_expires()} {formatDate(link.expiresAt)}</p>
 						</div>
 						{#if link.hasPassword}
 							<span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
 								<Lock class="h-3 w-3" />
-								Password
+								{m.sharing_link_password_indicator()}
 							</span>
 						{/if}
 					</div>
@@ -246,10 +248,10 @@
 						<Button type="button" variant="outline" size="sm" onclick={() => copyLink(link.token, link.id)}>
 							{#if copiedId === link.id}
 								<Check class="mr-1.5 h-4 w-4" />
-								Copied
+								{m.sharing_link_copied()}
 							{:else}
 								<Copy class="mr-1.5 h-4 w-4" />
-								Copy link
+								{m.sharing_link_copy()}
 							{/if}
 						</Button>
 						<Button
@@ -260,7 +262,7 @@
 							onclick={() => revokeLink(link)}
 						>
 							<Trash2 class="mr-1.5 h-4 w-4" />
-							Revoke
+							{m.sharing_link_revoke()}
 						</Button>
 					</div>
 				</div>

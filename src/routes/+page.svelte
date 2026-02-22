@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
+	import { page } from '$app/stores';
 	import type { ProjectMeta } from '$lib/types';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
@@ -20,6 +21,8 @@
 	import { isAuthenticated, fetchUser, login } from '$lib/stores/auth.svelte';
 	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
 	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
+	import * as m from '$lib/paraglide/messages';
+	import { toast } from 'svelte-sonner';
 
 	// State
 	let projects = $state<ProjectMeta[]>([]);
@@ -40,6 +43,13 @@
 	const showSignInBanner = $derived(!authenticated && projects.length > 0);
 
 	onMount(async () => {
+		const reason = $page.url.searchParams.get('reason');
+		if (reason === 'auth_required') {
+			toast.info(m.auth_login_required());
+			const url = new URL($page.url);
+			url.searchParams.delete('reason');
+			replaceState(url, {});
+		}
 		await fetchUser();
 		await loadProjects();
 	});
@@ -161,8 +171,8 @@
 	<!-- Header -->
 	<header class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0" style="padding-top: max(0.75rem, env(safe-area-inset-top));">
 		<a href="/" class="flex items-center gap-2">
-			<img src="/icon.svg" alt="Floorplanner" class="size-8" />
-			<h1 class="text-xl font-semibold text-slate-800">Floorplanner</h1>
+			<img src="/icon.svg" alt={m.app_title()} class="size-8" />
+			<h1 class="text-xl font-semibold text-slate-800">{m.app_title()}</h1>
 		</a>
 		<div class="flex-shrink-0">
 			<SidebarTrigger />
@@ -174,15 +184,15 @@
 		<div class="p-4 md:p-8 max-w-6xl mx-auto w-full" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
 		<!-- Title + New button -->
 		<div class="flex items-center justify-between flex-wrap gap-4 mb-6">
-			<h2 class="text-2xl font-bold text-slate-800">My Projects</h2>
+			<h2 class="text-2xl font-bold text-slate-800">{m.home_title()}</h2>
 			<div class="flex items-center gap-2">
 				<Button variant="outline" onclick={handleImport}>
 					<Upload class="size-4 mr-2" />
-					Import JSON
+					{m.home_import_json()}
 				</Button>
 				<Button onclick={handleNew}>
 					<Plus class="size-4 mr-2" />
-					New Project
+					{m.home_new_project()}
 				</Button>
 			</div>
 		</div>
@@ -205,18 +215,18 @@
 		{:else if error}
 			<div class="flex flex-col items-center justify-center py-16 text-center">
 				<p class="text-red-600 mb-4">{error}</p>
-				<Button variant="outline" onclick={loadProjects}>Retry</Button>
+				<Button variant="outline" onclick={loadProjects}>{m.common_retry()}</Button>
 			</div>
 
 		<!-- Empty state -->
 		{:else if projects.length === 0}
 			<div class="flex flex-col items-center justify-center py-16 text-center">
 				<House class="size-16 text-slate-300 mb-4" />
-				<h3 class="text-lg font-medium text-slate-800 mb-2">No projects yet</h3>
-				<p class="text-slate-500 mb-6">Create your first floor plan project to get started.</p>
+				<h3 class="text-lg font-medium text-slate-800 mb-2">{m.home_empty_title()}</h3>
+				<p class="text-slate-500 mb-6">{m.home_empty_description()}</p>
 				<Button onclick={handleNew}>
 					<Plus class="size-4 mr-2" />
-					Create your first project
+					{m.home_empty_cta()}
 				</Button>
 			</div>
 
@@ -241,9 +251,9 @@
 		{#if showSignInBanner}
 			<div class="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between">
 				<p class="text-sm text-blue-800">
-					Sign in to sync and share your projects across devices
+					{m.home_sign_in_banner()}
 				</p>
-				<Button variant="outline" onclick={login}>Sign in</Button>
+				<Button variant="outline" onclick={login}>{m.common_sign_in()}</Button>
 			</div>
 		{/if}
 		</div>
@@ -266,14 +276,14 @@
 <Dialog.Root bind:open={deleteDialogOpen}>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>Delete Project</Dialog.Title>
+			<Dialog.Title>{m.home_delete_title()}</Dialog.Title>
 			<Dialog.Description class="break-words">
-				Are you sure you want to delete "{deleteProject?.name}"? This action cannot be undone.
+				{m.home_delete_description({ name: deleteProject?.name ?? '' })}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteDialogOpen = false)}>Cancel</Button>
-			<Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}>Delete</Button>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteDialogOpen = false)}>{m.common_cancel()}</Button>
+			<Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}>{m.common_delete()}</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
@@ -281,13 +291,13 @@
 <Dialog.Root bind:open={invalidImportDialogOpen}>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>Invalid Import File</Dialog.Title>
+			<Dialog.Title>{m.home_invalid_import_title()}</Dialog.Title>
 			<Dialog.Description>
-				The selected file is not a valid project export.
+				{m.home_invalid_import_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
-			<Button class="w-full sm:w-auto" onclick={() => (invalidImportDialogOpen = false)}>OK</Button>
+			<Button class="w-full sm:w-auto" onclick={() => (invalidImportDialogOpen = false)}>{m.common_ok()}</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

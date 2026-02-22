@@ -29,6 +29,9 @@
 		getItemHistory,
 		revertHistoryChanges
 	} from '$lib/stores/project.svelte';
+	import * as m from '$lib/paraglide/messages';
+	import { getLocale } from '$lib/paraglide/runtime';
+	import { formatRelativeTime } from '$lib/utils/format';
 
 	const projectId = $derived($page.params.id);
 	const project = $derived(getProject());
@@ -66,10 +69,10 @@
 	});
 
 	const filterItemLabel = $derived(
-		filterItem ? (itemOptions.find((o) => o.value === filterItem)?.label ?? 'All items') : 'All items'
+		filterItem ? (itemOptions.find((o) => o.value === filterItem)?.label ?? m.history_filter_items_all()) : m.history_filter_items_all()
 	);
 	const filterUserLabel = $derived(
-		filterUser ? (userOptions.find((o) => o.value === filterUser)?.label ?? 'All users') : 'All users'
+		filterUser ? (userOptions.find((o) => o.value === filterUser)?.label ?? m.history_filter_users_all()) : m.history_filter_users_all()
 	);
 
 	// Grouping: changes within 2s by same user on same item
@@ -110,22 +113,8 @@
 
 	const groupStarts = $derived(computeGroups(filteredData));
 
-	// Relative time helper
-	function relativeTime(dateStr: string): string {
-		const now = Date.now();
-		const then = new Date(dateStr).getTime();
-		const diffSec = Math.floor((now - then) / 1000);
-		if (diffSec < 60) return `${diffSec}s ago`;
-		const diffMin = Math.floor(diffSec / 60);
-		if (diffMin < 60) return `${diffMin}m ago`;
-		const diffHr = Math.floor(diffMin / 60);
-		if (diffHr < 24) return `${diffHr}h ago`;
-		const diffDay = Math.floor(diffHr / 24);
-		return `${diffDay}d ago`;
-	}
-
 	function resolveItemName(itemId: string): string {
-		return items.find((i) => i.id === itemId)?.name ?? 'Deleted item';
+		return items.find((i) => i.id === itemId)?.name ?? m.history_item_deleted();
 	}
 
 	// Pagination
@@ -143,27 +132,27 @@
 					checked: table.getIsAllPageRowsSelected(),
 					indeterminate: table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected(),
 					onCheckedChange: (value: boolean) => table.toggleAllPageRowsSelected(!!value),
-					'aria-label': 'Select all'
+					'aria-label': m.history_select_all()
 				}),
 			cell: ({ row }) =>
 				renderComponent(Checkbox, {
 					checked: row.getIsSelected(),
 					onCheckedChange: (value: boolean) => row.toggleSelected(!!value),
-					'aria-label': 'Select row'
+					'aria-label': m.history_select_row()
 				}),
 			enableSorting: false,
 			enableHiding: false
 		},
 		{
 			accessorKey: 'createdAt',
-			header: 'Time',
+			header: m.history_column_time(),
 			cell: ({ row }) => {
 				const value = row.original.createdAt;
 				const isStart = groupStarts.has(row.original.id);
 				return renderSnippet(
 					createRawSnippet(() => ({
 						render: () =>
-							`<span class="${isStart ? '' : 'text-muted-foreground'}" title="${new Date(value).toLocaleString()}">${relativeTime(value)}</span>`
+							`<span class="${isStart ? '' : 'text-muted-foreground'}" title="${new Date(value).toLocaleString(getLocale())}">${formatRelativeTime(value)}</span>`
 					})),
 					undefined as never
 				);
@@ -171,7 +160,7 @@
 		},
 		{
 			accessorKey: 'userName',
-			header: 'User',
+			header: m.history_column_user(),
 			cell: ({ row }) => {
 				const value = row.original.userName ?? 'Unknown';
 				const isStart = groupStarts.has(row.original.id);
@@ -186,7 +175,7 @@
 		},
 		{
 			id: 'item',
-			header: 'Item',
+			header: m.history_column_item(),
 			cell: ({ row }) => {
 				const name = resolveItemName(row.original.itemId);
 				const isStart = groupStarts.has(row.original.id);
@@ -201,7 +190,7 @@
 		},
 		{
 			accessorKey: 'action',
-			header: 'Action',
+			header: m.history_column_action(),
 			cell: ({ row }) =>
 				renderComponent(HistoryActionBadge, {
 					action: row.original.action,
@@ -210,7 +199,7 @@
 		},
 		{
 			accessorKey: 'field',
-			header: 'Field',
+			header: m.history_column_field(),
 			cell: ({ row }) => {
 				const value = row.original.field;
 				return renderSnippet(
@@ -223,7 +212,7 @@
 		},
 		{
 			id: 'change',
-			header: 'Change',
+			header: m.history_column_change(),
 			cell: ({ row }) => {
 				const { action, field, oldValue, newValue } = row.original;
 				if (action !== 'update') {
@@ -319,7 +308,7 @@
 					<ArrowLeft size={20} />
 				</Button>
 				<div>
-					<h1 class="text-lg font-semibold">Change History</h1>
+					<h1 class="text-lg font-semibold">{m.history_title()}</h1>
 					{#if project}
 						<p class="text-sm text-muted-foreground">{project.name}</p>
 					{/if}
@@ -332,7 +321,7 @@
 				onclick={handleRevert}
 			>
 				<RotateCcw size={14} class="mr-1" />
-				Revert ({selectedCount})
+				{m.history_revert_button({ count: selectedCount })}
 			</Button>
 		</div>
 	</div>
@@ -351,7 +340,7 @@
 				{filterItemLabel}
 			</Select.Trigger>
 			<Select.Content>
-				<Select.Item value="">All items</Select.Item>
+				<Select.Item value="">{m.history_filter_items_all()}</Select.Item>
 				{#each itemOptions as opt (opt.value)}
 					<Select.Item value={opt.value}>{opt.label}</Select.Item>
 				{/each}
@@ -370,7 +359,7 @@
 				{filterUserLabel}
 			</Select.Trigger>
 			<Select.Content>
-				<Select.Item value="">All users</Select.Item>
+				<Select.Item value="">{m.history_filter_users_all()}</Select.Item>
 				{#each userOptions as opt (opt.value)}
 					<Select.Item value={opt.value}>{opt.label}</Select.Item>
 				{/each}
@@ -386,12 +375,12 @@
 			}}
 		>
 			<Select.Trigger class="w-[140px] h-8">
-				{filterSource === 'mcp' ? 'MCP' : filterSource === 'user' ? 'User' : 'All sources'}
+				{filterSource === 'mcp' ? m.history_filter_source_mcp() : filterSource === 'user' ? m.history_filter_source_user() : m.history_filter_sources_all()}
 			</Select.Trigger>
 			<Select.Content>
-				<Select.Item value="">All sources</Select.Item>
-				<Select.Item value="user">User</Select.Item>
-				<Select.Item value="mcp">MCP</Select.Item>
+				<Select.Item value="">{m.history_filter_sources_all()}</Select.Item>
+				<Select.Item value="user">{m.history_filter_source_user()}</Select.Item>
+				<Select.Item value="mcp">{m.history_filter_source_mcp()}</Select.Item>
 			</Select.Content>
 		</Select.Root>
 	</div>
@@ -399,13 +388,36 @@
 	<!-- Data table -->
 	<div class="flex-1 min-h-0 overflow-auto px-4">
 		{#if loading}
-			<div class="flex items-center justify-center py-12">
-				<p class="text-muted-foreground">Loading history...</p>
-			</div>
+			<Table.Root>
+				<Table.Header>
+					<Table.Row>
+						<Table.Head><div class="h-4 w-4 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-20 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-24 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Head>
+						<Table.Head><div class="h-4 w-32 rounded bg-muted animate-pulse"></div></Table.Head>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body>
+					{#each Array(6) as _}
+						<Table.Row>
+							<Table.Cell><div class="h-4 w-4 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-20 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-24 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-5 w-14 rounded-full bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell><div class="h-4 w-28 rounded bg-muted animate-pulse"></div></Table.Cell>
+						</Table.Row>
+					{/each}
+				</Table.Body>
+			</Table.Root>
 		{:else if filteredData.length === 0}
 			<div class="flex items-center justify-center py-12">
 				<p class="text-muted-foreground">
-					{changes.length === 0 ? 'No change history yet.' : 'No changes match the current filters.'}
+					{changes.length === 0 ? m.history_empty() : m.history_empty_filtered()}
 				</p>
 			</div>
 		{:else}
@@ -448,7 +460,7 @@
 	<!-- Pagination -->
 	<div class="flex-shrink-0 border-t px-4 py-3 flex items-center justify-between">
 		<p class="text-sm text-muted-foreground">
-			{selectedCount} of {table.getFilteredRowModel().rows.length} row(s) selected
+			{m.history_selection_count({ selected: selectedCount, total: table.getFilteredRowModel().rows.length })}
 		</p>
 		<div class="flex gap-2">
 			<Button
@@ -457,7 +469,7 @@
 				disabled={!table.getCanPreviousPage()}
 				onclick={() => table.previousPage()}
 			>
-				Previous
+				{m.history_previous()}
 			</Button>
 			<Button
 				variant="outline"
@@ -465,7 +477,7 @@
 				disabled={!table.getCanNextPage()}
 				onclick={() => table.nextPage()}
 			>
-				Next
+				{m.history_next()}
 			</Button>
 		</div>
 	</div>

@@ -2,6 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { page } from '$app/stores';
+	import * as m from '$lib/paraglide/messages';
 
 	const errorCodes: Record<string, { title: string; description: string; suggestions: string[] }> =
 		{
@@ -105,7 +106,7 @@
 					</div>
 					<div>
 						<Card.Title class="text-xl">{error.title}</Card.Title>
-						<Card.Description>OAuth Authorization Error</Card.Description>
+						<Card.Description>{m.oauth_error_page_subtitle()}</Card.Description>
 					</div>
 				</div>
 			</Card.Header>
@@ -122,7 +123,7 @@
 					{/if}
 
 					<div>
-						<p class="text-sm font-medium text-slate-700 mb-2">How to fix this</p>
+						<p class="text-sm font-medium text-slate-700 mb-2">{m.oauth_error_suggestions_title()}</p>
 						<ul class="space-y-2">
 							{#each error.suggestions as suggestion}
 								<li class="flex items-start gap-2 text-sm">
@@ -149,10 +150,10 @@
 
 			<div class="flex gap-3 px-6">
 				<a href="/settings/mcp" class="flex-1">
-					<Button variant="outline" class="w-full">MCP Settings</Button>
+					<Button variant="outline" class="w-full">{m.oauth_error_settings_link()}</Button>
 				</a>
 				<a href="/" class="flex-1">
-					<Button class="w-full">Go Home</Button>
+					<Button class="w-full">{m.oauth_error_home_link()}</Button>
 				</a>
 			</div>
 		</Card.Root>

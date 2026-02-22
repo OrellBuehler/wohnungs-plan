@@ -2,6 +2,10 @@ import type { Project, Item, ItemImage, Floorplan, Position, ProjectMeta, Projec
 import type { CurrencyCode } from '$lib/utils/currency';
 import { parseDataUrl } from '$lib/utils/data';
 import { DEFAULT_CURRENCY } from '$lib/utils/currency';
+import { toast } from 'svelte-sonner';
+import * as m from '$lib/paraglide/messages';
+import { uploadWithProgress } from '$lib/utils/upload';
+import UploadProgress from '$lib/components/shared/UploadProgress.svelte';
 import {
 	getAllProjects as getLocalProjects,
 	getProject as loadLocalProject,
@@ -245,25 +249,45 @@ async function uploadFloorplan(projectId: string, floorplan: Floorplan): Promise
 	const formData = new FormData();
 	formData.set('file', file);
 
-	const response = await authFetch(`/api/projects/${projectId}/floorplan`, {
-		method: 'POST',
-		body: formData
+	const toastId = toast.custom(UploadProgress, {
+		duration: Infinity,
+		componentProps: { progress: 0, filename: file.name }
 	});
 
-	if (!response.ok) {
-		throw new Error('Failed to upload floorplan');
-	}
+	try {
+		const response = await uploadWithProgress(
+			`/api/projects/${projectId}/floorplan`,
+			formData,
+			(percent) => {
+				toast.custom(UploadProgress, {
+					id: toastId,
+					duration: Infinity,
+					componentProps: { progress: percent, filename: file.name }
+				});
+			}
+		);
 
-	// Update scale after uploading
-	if (floorplan.scale && floorplan.referenceLength) {
-		await authFetch(`/api/projects/${projectId}/floorplan`, {
-			method: 'PATCH',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				scale: floorplan.scale,
-				referenceLength: floorplan.referenceLength
-			})
-		});
+		if (!response.ok) {
+			throw new Error('Failed to upload floorplan');
+		}
+
+		toast.dismiss(toastId);
+		toast.success(m.upload_success());
+
+		// Update scale after uploading
+		if (floorplan.scale && floorplan.referenceLength) {
+			await authFetch(`/api/projects/${projectId}/floorplan`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					scale: floorplan.scale,
+					referenceLength: floorplan.referenceLength
+				})
+			});
+		}
+	} catch {
+		toast.dismiss(toastId);
+		throw new Error('Failed to upload floorplan');
 	}
 }
 
@@ -325,6 +349,7 @@ export async function listProjects(): Promise<ProjectMeta[]> {
 		);
 	} catch (error) {
 		console.error('Failed to load remote projects:', error);
+		toast.error(m.error_load_projects());
 		return localMetas;
 	}
 }
@@ -386,6 +411,7 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 		return true;
 	} catch (error) {
 		console.error('Failed to sync project:', error);
+		toast.error(m.error_sync_project());
 		return false;
 	}
 }
@@ -436,6 +462,7 @@ export async function loadProjectById(id: string, branchId?: string): Promise<Pr
 		return project;
 	} catch (error) {
 		console.error('Failed to load remote project:', error);
+		toast.error(m.error_load_project());
 		// Fallback to local version if API fails
 		return local ? { ...local, isLocal: true } : null;
 	}
@@ -465,6 +492,7 @@ export async function setActiveBranch(branchId: string): Promise<boolean> {
 			}
 		} catch (error) {
 			console.error('Failed to load branch items from cloud:', error);
+			toast.error(m.error_sync());
 		}
 	}
 
@@ -517,6 +545,7 @@ export async function createProjectBranch(
 		return branch;
 	} catch (error) {
 		console.error('Failed to create branch:', error);
+		toast.error(m.error_branch_create());
 		return null;
 	}
 }
@@ -549,6 +578,7 @@ export async function renameProjectBranch(branchId: string, name: string): Promi
 		return true;
 	} catch (error) {
 		console.error('Failed to rename branch:', error);
+		toast.error(m.error_branch_rename());
 		return false;
 	}
 }
@@ -602,6 +632,7 @@ export async function deleteProjectBranch(branchId: string): Promise<boolean> {
 			}
 		}
 		console.error('Failed to delete branch:', error);
+		toast.error(m.error_branch_delete());
 		return false;
 	}
 }
@@ -627,6 +658,7 @@ export async function getItemHistory(limit = 50, offset = 0): Promise<ItemChange
 		}));
 	} catch (error) {
 		console.error('Failed to load item history:', error);
+		toast.error(m.error_sync());
 		return [];
 	}
 }
@@ -651,6 +683,7 @@ export async function revertHistoryChanges(changeIds: string[]): Promise<boolean
 		return true;
 	} catch (error) {
 		console.error('Failed to revert history changes:', error);
+		toast.error(m.error_revert_history());
 		return false;
 	}
 }
@@ -661,6 +694,7 @@ export async function removeProject(id: string): Promise<void> {
 			await authFetch(`/api/projects/${id}`, { method: 'DELETE' });
 		} catch (error) {
 			console.error('Failed to delete remote project:', error);
+			toast.error(m.error_delete_project());
 		}
 	} else if (shouldQueue()) {
 		queueChange({
@@ -731,6 +765,7 @@ export async function duplicateProject(id: string): Promise<ProjectMeta | null> 
 		};
 	} catch (error) {
 		console.error('Failed to duplicate project:', error);
+		toast.error(m.error_duplicate_project());
 		return null;
 	}
 }
@@ -749,7 +784,7 @@ export function createProject(name?: string) {
 				currency: currentProject.currency,
 				gridSize: currentProject.gridSize
 			})
-		});
+		}).catch(() => toast.error(m.error_create_project()));
 	} else if (shouldQueue()) {
 		queueChange({
 			type: 'create',
@@ -776,7 +811,7 @@ export function updateProjectName(name: string) {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name })
-			});
+			}).catch(() => toast.error(m.error_save_project()));
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'update',
@@ -794,7 +829,7 @@ export function setFloorplan(floorplan: Floorplan) {
 		debounceAutoSave();
 
 		if (shouldSyncProject()) {
-			void uploadFloorplan(currentProject.id, floorplan);
+			void uploadFloorplan(currentProject.id, floorplan).catch(() => toast.error(m.error_upload_floorplan()));
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'create',
@@ -824,7 +859,7 @@ export function updateFloorplanScale(scale: number, referenceLength: number) {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ scale, referenceLength })
-			});
+			}).catch(() => toast.error(m.error_update_scale()));
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'update',
@@ -844,7 +879,7 @@ export function clearFloorplan() {
 		if (shouldSyncProject()) {
 			void authFetch(`/api/projects/${currentProject.id}/floorplan`, {
 				method: 'DELETE'
-			});
+			}).catch(() => toast.error(m.error_clear_floorplan()));
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'delete',
@@ -874,7 +909,7 @@ export function addItem(item: Omit<Item, 'id'>) {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(buildItemPayload(newItem))
-			});
+			}).catch(() => toast.error(m.error_add_item()));
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'create',
@@ -910,7 +945,7 @@ export function updateItem(id: string, updates: Partial<Item>) {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(buildItemPayload(updatedItem))
-			});
+			}).catch(() => toast.error(m.error_update_item()));
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'update',
@@ -937,7 +972,7 @@ export function deleteItem(id: string) {
 		if (shouldSyncProject()) {
 			void authFetch(`${baseUrl}/${id}`, {
 				method: 'DELETE'
-			});
+			}).catch(() => toast.error(m.error_delete_item()));
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'delete',
@@ -982,7 +1017,7 @@ export function duplicateItem(id: string) {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(buildItemPayload(newItem))
-				});
+				}).catch(() => toast.error(m.error_duplicate_item()));
 			} else if (shouldQueueProject()) {
 				queueChange({
 					type: 'create',
@@ -1039,17 +1074,33 @@ export async function uploadItemImage(itemId: string, file: File): Promise<ItemI
 	const formData = new FormData();
 	formData.set('file', file);
 
+	const toastId = toast.custom(UploadProgress, {
+		duration: Infinity,
+		componentProps: { progress: 0, filename: file.name }
+	});
+
 	try {
-		const response = await authFetch(
+		const response = await uploadWithProgress(
 			`/api/projects/${currentProject.id}/branches/${branchId}/items/${itemId}/images`,
-			{ method: 'POST', body: formData }
+			formData,
+			(percent) => {
+				toast.custom(UploadProgress, {
+					id: toastId,
+					duration: Infinity,
+					componentProps: { progress: percent, filename: file.name }
+				});
+			}
 		);
+
 		if (!response.ok) {
 			const text = await response.text().catch(() => '');
 			throw new Error(`Failed to upload image: ${response.status} ${text}`);
 		}
 
-		const data = await response.json();
+		toast.dismiss(toastId);
+		toast.success(m.upload_success());
+
+		const data = await response.json() as { image: ApiItemImage };
 		const apiImage: ApiItemImage = {
 			...data.image,
 			projectId: currentProject.id,
@@ -1062,7 +1113,9 @@ export async function uploadItemImage(itemId: string, file: File): Promise<ItemI
 		);
 		return newImage;
 	} catch (err) {
+		toast.dismiss(toastId);
 		console.error('Failed to upload item image:', err);
+		toast.error(m.upload_failed());
 		return null;
 	}
 }
@@ -1097,6 +1150,7 @@ export async function deleteItemImage(itemId: string, imageId: string): Promise<
 		return true;
 	} catch (err) {
 		console.error('Failed to delete item image:', err);
+		toast.error(m.error_delete_image());
 		return false;
 	}
 }
@@ -1138,6 +1192,7 @@ export async function reorderItemImages(itemId: string, imageIds: string[]): Pro
 		return true;
 	} catch (err) {
 		console.error('Failed to reorder item images:', err);
+		toast.error(m.error_sync());
 		return false;
 	}
 }
@@ -1175,7 +1230,7 @@ export function setCurrency(currency: CurrencyCode) {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ currency })
-			});
+			}).catch(() => toast.error(m.error_save_project()));
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'update',
@@ -1201,7 +1256,7 @@ export function setGridSize(gridSize: number) {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ gridSize: currentProject.gridSize })
-			});
+			}).catch(() => toast.error(m.error_save_project()));
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'update',

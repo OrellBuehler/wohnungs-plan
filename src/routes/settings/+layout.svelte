@@ -6,12 +6,13 @@
 	import Settings from 'lucide-svelte/icons/settings';
 	import Plug from 'lucide-svelte/icons/plug';
 	import type { Snippet } from 'svelte';
+	import * as m from '$lib/paraglide/messages';
 
 	let { children }: { children: Snippet } = $props();
 
 	const navItems = [
-		{ href: '/settings/general', label: 'General', icon: Settings },
-		{ href: '/settings/mcp', label: 'MCP Integration', icon: Plug }
+		{ href: '/settings/general', label: m.settings_nav_general(), icon: Settings },
+		{ href: '/settings/mcp', label: m.settings_nav_mcp(), icon: Plug }
 	];
 
 	function isActive(href: string): boolean {
@@ -27,7 +28,7 @@
 	>
 		<a href="/" class="flex items-center gap-2">
 			<img src="/icon.svg" alt="Floorplanner" class="size-8" />
-			<h1 class="text-xl font-semibold text-slate-800">Settings</h1>
+			<h1 class="text-xl font-semibold text-slate-800">{m.settings_title()}</h1>
 		</a>
 		<div class="flex-shrink-0">
 			<SidebarTrigger />

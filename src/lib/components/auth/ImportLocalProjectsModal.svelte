@@ -5,6 +5,8 @@
 	import { getAllProjects, getProject } from '$lib/db';
 	import type { Project, ProjectMeta } from '$lib/types';
 	import { Upload, FolderOpen } from 'lucide-svelte';
+	import * as m from '$lib/paraglide/messages';
+	import { getLocale } from '$lib/paraglide/runtime';
 
 	interface Props {
 		open: boolean;
@@ -84,19 +86,18 @@
 		<Dialog.Header>
 			<Dialog.Title class="flex items-center gap-2">
 				<Upload class="h-5 w-5" />
-				Import Local Projects
+				{m.auth_import_title()}
 			</Dialog.Title>
 			<Dialog.Description>
-				You have {localProjects.length} project{localProjects.length !== 1 ? 's' : ''} saved locally.
-				Select which ones to import to your account.
+				{m.auth_import_description({ count: localProjects.length.toString() })}
 			</Dialog.Description>
 		</Dialog.Header>
 
 		{#if isLoading}
-			<div class="py-8 text-center text-muted-foreground">Loading...</div>
+			<div class="py-8 text-center text-muted-foreground">{m.common_loading()}</div>
 		{:else if localProjects.length === 0}
 			<div class="py-8 text-center text-muted-foreground">
-				No local projects found.
+				{m.auth_import_empty()}
 			</div>
 		{:else}
 			<div class="space-y-3 max-h-64 overflow-y-auto py-4">
@@ -105,7 +106,7 @@
 						checked={selectedIds.size === localProjects.length}
 						onCheckedChange={toggleAll}
 					/>
-					<span class="text-sm font-medium">Select all</span>
+					<span class="text-sm font-medium">{m.auth_import_select_all()}</span>
 				</div>
 
 				{#each localProjects as project (project.id)}
@@ -118,7 +119,7 @@
 						<div class="flex-1 min-w-0">
 							<p class="text-sm font-medium truncate">{project.name}</p>
 							<p class="text-xs text-muted-foreground">
-								Updated {new Date(project.updatedAt).toLocaleDateString()}
+								{m.auth_import_updated({ date: new Date(project.updatedAt).toLocaleDateString(getLocale()) })}
 							</p>
 						</div>
 					</div>
@@ -128,13 +129,13 @@
 
 		<Dialog.Footer class="gap-2">
 			<Button variant="outline" onclick={onClose}>
-				Skip
+				{m.auth_import_skip()}
 			</Button>
 			<Button
 				onclick={handleImport}
 				disabled={isImporting || selectedIds.size === 0}
 			>
-				{isImporting ? 'Importing...' : `Import ${selectedIds.size} project${selectedIds.size !== 1 ? 's' : ''}`}
+				{isImporting ? m.auth_import_importing() : m.auth_import_button({ count: selectedIds.size.toString() })}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

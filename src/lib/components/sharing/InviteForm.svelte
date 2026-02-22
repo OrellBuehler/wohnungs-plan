@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
@@ -18,8 +19,8 @@
 	let isSubmitting = $state(false);
 
 	const roleOptions = [
-		{ value: 'editor', label: 'Editor' },
-		{ value: 'viewer', label: 'Viewer' }
+		{ value: 'editor', label: () => m.sharing_role_editor() },
+		{ value: 'viewer', label: () => m.sharing_role_viewer() }
 	] as const;
 
 	async function handleInvite() {
@@ -49,7 +50,7 @@
 	<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
 		<Input
 			class="w-full sm:flex-1"
-			placeholder="Invite by email"
+			placeholder={m.sharing_invite_placeholder()}
 			value={email}
 			oninput={(e) => (email = (e.target as HTMLInputElement).value)}
 		/>
@@ -60,18 +61,18 @@
 			onValueChange={(v) => (role = v as ProjectRole)}
 		>
 			<Select.Trigger class="h-9 w-full sm:w-auto sm:min-w-[110px]">
-				{roleOptions.find((o) => o.value === role)?.label ?? 'Role'}
+				{roleOptions.find((o) => o.value === role)?.label() ?? 'Role'}
 			</Select.Trigger>
 			<Select.Content>
 				{#each roleOptions as option (option.value)}
-					<Select.Item value={option.value}>{option.label}</Select.Item>
+					<Select.Item value={option.value}>{option.label()}</Select.Item>
 				{/each}
 			</Select.Content>
 		</Select.Root>
 
 		<Button class="w-full sm:w-auto" onclick={handleInvite} disabled={isSubmitting || !email}>
 			<Send class="mr-2 h-4 w-4" />
-			Invite
+			{m.common_invite()}
 		</Button>
 	</div>
 

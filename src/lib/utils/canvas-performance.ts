@@ -2,6 +2,9 @@ export interface LabelVisibilityInput {
   isInteractionActive: boolean;
   isSelected: boolean;
   isDragging: boolean;
+  itemWidthPx: number;
+  itemHeightPx: number;
+  itemNameFontPx: number;
 }
 
 export interface ItemShadowStyle {
@@ -48,8 +51,10 @@ export interface ItemDimensionsPx {
   heightPx: number;
 }
 
-const BASE_ITEM_NAME_REM = 0.625; // 10px at default browser font size
-const BASE_ITEM_DIMENSIONS_REM = 0.5; // 8px
+const BASE_ITEM_NAME_REM = 0.75; // 12px
+const BASE_ITEM_DIMENSIONS_REM = 0.5625; // 9px
+const MOBILE_ITEM_NAME_REM = 0.5; // 8px
+const MOBILE_ITEM_DIMENSIONS_REM = 0.375; // 6px
 const BASE_DISTANCE_LABEL_REM = 0.5625; // 9px
 
 export function remToPx(rem: number, rootFontPx: number): number {
@@ -61,8 +66,11 @@ export function getCanvasLabelFontSizes(
 ): CanvasLabelFontSizes {
   const safeZoom = input.zoom > 0 ? input.zoom : 1;
 
-  const itemNamePx = remToPx(BASE_ITEM_NAME_REM, input.rootFontPx);
-  const itemDimensionsPx = remToPx(BASE_ITEM_DIMENSIONS_REM, input.rootFontPx);
+  const nameRem = input.mobileMode ? MOBILE_ITEM_NAME_REM : BASE_ITEM_NAME_REM;
+  const dimsRem = input.mobileMode ? MOBILE_ITEM_DIMENSIONS_REM : BASE_ITEM_DIMENSIONS_REM;
+
+  const itemNamePx = remToPx(nameRem, input.rootFontPx);
+  const itemDimensionsPx = remToPx(dimsRem, input.rootFontPx);
   const distanceLabelPx = remToPx(BASE_DISTANCE_LABEL_REM, input.rootFontPx) / safeZoom;
 
   return {
@@ -102,9 +110,26 @@ export function shouldRenderGrid(showGrid: boolean, isInteractionActive: boolean
   return showGrid && !isInteractionActive;
 }
 
-export function shouldRenderItemLabels(input: LabelVisibilityInput): boolean {
-  if (!input.isInteractionActive) return true;
-  return input.isSelected || input.isDragging;
+const MIN_LABEL_SIZE_MULTIPLIER = 3;
+const MIN_DIMENSIONS_ONLY_MULTIPLIER = 2;
+
+export interface ItemLabelVisibility {
+  showName: boolean;
+  showDimensions: boolean;
+}
+
+export function shouldRenderItemLabels(input: LabelVisibilityInput): ItemLabelVisibility {
+  const hidden = { showName: false, showDimensions: false };
+  const minW = input.itemWidthPx;
+  const minH = input.itemHeightPx;
+  const font = input.itemNameFontPx;
+
+  if (minW < MIN_DIMENSIONS_ONLY_MULTIPLIER * font || minH < MIN_DIMENSIONS_ONLY_MULTIPLIER * font) return hidden;
+
+  if (input.isInteractionActive && !input.isSelected && !input.isDragging) return hidden;
+
+  const fitsFullLabel = minW >= MIN_LABEL_SIZE_MULTIPLIER * font && minH >= MIN_LABEL_SIZE_MULTIPLIER * font;
+  return { showName: fitsFullLabel, showDimensions: true };
 }
 
 export function getItemShadowStyle(isInteractionActive: boolean): ItemShadowStyle {
