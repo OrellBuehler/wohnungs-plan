@@ -186,10 +186,18 @@ describe('getGridStepCount', () => {
 });
 
 describe('getCanvasLabelFontSizes', () => {
-  it('returns larger default item label sizes', () => {
+  it('returns desktop item label sizes', () => {
     expect(getCanvasLabelFontSizes({ rootFontPx: 16, mobileMode: false, zoom: 1 })).toEqual({
-      itemNamePx: 10,
-      itemDimensionsPx: 8,
+      itemNamePx: 12,
+      itemDimensionsPx: 9,
+      distanceLabelPx: 9,
+    });
+  });
+
+  it('returns smaller mobile item label sizes', () => {
+    expect(getCanvasLabelFontSizes({ rootFontPx: 16, mobileMode: true, zoom: 1 })).toEqual({
+      itemNamePx: 8,
+      itemDimensionsPx: 6,
       distanceLabelPx: 9,
     });
   });

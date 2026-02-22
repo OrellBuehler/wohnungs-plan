@@ -48,8 +48,10 @@ export interface ItemDimensionsPx {
   heightPx: number;
 }
 
-const BASE_ITEM_NAME_REM = 0.625; // 10px at default browser font size
-const BASE_ITEM_DIMENSIONS_REM = 0.5; // 8px
+const BASE_ITEM_NAME_REM = 0.75; // 12px
+const BASE_ITEM_DIMENSIONS_REM = 0.5625; // 9px
+const MOBILE_ITEM_NAME_REM = 0.5; // 8px
+const MOBILE_ITEM_DIMENSIONS_REM = 0.375; // 6px
 const BASE_DISTANCE_LABEL_REM = 0.5625; // 9px
 
 export function remToPx(rem: number, rootFontPx: number): number {
@@ -61,8 +63,11 @@ export function getCanvasLabelFontSizes(
 ): CanvasLabelFontSizes {
   const safeZoom = input.zoom > 0 ? input.zoom : 1;
 
-  const itemNamePx = remToPx(BASE_ITEM_NAME_REM, input.rootFontPx);
-  const itemDimensionsPx = remToPx(BASE_ITEM_DIMENSIONS_REM, input.rootFontPx);
+  const nameRem = input.mobileMode ? MOBILE_ITEM_NAME_REM : BASE_ITEM_NAME_REM;
+  const dimsRem = input.mobileMode ? MOBILE_ITEM_DIMENSIONS_REM : BASE_ITEM_DIMENSIONS_REM;
+
+  const itemNamePx = remToPx(nameRem, input.rootFontPx);
+  const itemDimensionsPx = remToPx(dimsRem, input.rootFontPx);
   const distanceLabelPx = remToPx(BASE_DISTANCE_LABEL_REM, input.rootFontPx) / safeZoom;
 
   return {
