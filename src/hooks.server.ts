@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 import { getSessionWithUser, parseSessionCookie } from '$lib/server/session';
@@ -113,3 +113,30 @@ const appHandle: Handle = async ({ event, resolve }) => {
 };
 
 export const handle = sequence(appHandle, paraglideHandle);
+
+const KNOWN_BOT_PATHS = [
+	'/favicon.ico',
+	'/.well-known/',
+	'/_profiler/',
+	'/wp-',
+	'/php',
+	'/admin',
+	'/login',
+	'/.env',
+	'/xmlrpc',
+	'/config',
+	'/cgi-bin'
+];
+
+export const handleError: HandleServerError = ({ status, event }) => {
+	if (status === 404) {
+		const path = event.url.pathname;
+		const ext = path.split('.').pop();
+		const isBotProbe =
+			KNOWN_BOT_PATHS.some((p) => path.startsWith(p)) ||
+			(ext && ['js', 'css', 'php', 'asp', 'aspx', 'jsp', 'json'].includes(ext) &&
+				!path.startsWith('/api/'));
+		if (isBotProbe) return;
+	}
+	console.error(`[${status}] ${event.request.method} ${event.url.pathname}`);
+};
