@@ -64,4 +64,6 @@
 			<LanguageSwitcher />
 		</Card.Content>
 	</Card.Root>
+
+	<p class="text-xs text-slate-400">Version {import.meta.env.VITE_APP_VERSION || 'dev'}</p>
 </div>

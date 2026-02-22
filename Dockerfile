@@ -15,16 +15,14 @@ FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
 # Accept build arguments for version tracking
-ARG GIT_HASH=unknown
-ARG BUILD_TIMESTAMP=unknown
+ARG APP_VERSION=dev
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Set environment variables for Vite (will be embedded in build)
-ENV VITE_GIT_HASH=${GIT_HASH}
-ENV VITE_BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
+ENV VITE_APP_VERSION=${APP_VERSION}
 
 # Build the application
 # SESSION_SECRET is needed at build time because SvelteKit evaluates server
@@ -32,8 +30,7 @@ ENV VITE_BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
 RUN SESSION_SECRET=build-placeholder bun --bun run build
 
 # Write version info to file for container inspection
-RUN echo "GIT_HASH=${GIT_HASH}" > /app/version.txt && \
-    echo "BUILD_TIMESTAMP=${BUILD_TIMESTAMP}" >> /app/version.txt
+RUN echo "APP_VERSION=${APP_VERSION}" > /app/version.txt
 
 # Production deps - install only production dependencies
 FROM oven/bun:1-alpine AS prod-deps
@@ -70,6 +67,8 @@ USER sveltekit
 EXPOSE 3000
 
 # Set environment variables
+ARG APP_VERSION=dev
+ENV APP_VERSION=${APP_VERSION}
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
