@@ -2,6 +2,9 @@ export interface LabelVisibilityInput {
   isInteractionActive: boolean;
   isSelected: boolean;
   isDragging: boolean;
+  itemWidthPx: number;
+  itemHeightPx: number;
+  itemNameFontPx: number;
 }
 
 export interface ItemShadowStyle {
@@ -107,9 +110,26 @@ export function shouldRenderGrid(showGrid: boolean, isInteractionActive: boolean
   return showGrid && !isInteractionActive;
 }
 
-export function shouldRenderItemLabels(input: LabelVisibilityInput): boolean {
-  if (!input.isInteractionActive) return true;
-  return input.isSelected || input.isDragging;
+const MIN_LABEL_SIZE_MULTIPLIER = 3;
+const MIN_DIMENSIONS_ONLY_MULTIPLIER = 2;
+
+export interface ItemLabelVisibility {
+  showName: boolean;
+  showDimensions: boolean;
+}
+
+export function shouldRenderItemLabels(input: LabelVisibilityInput): ItemLabelVisibility {
+  const hidden = { showName: false, showDimensions: false };
+  const minW = input.itemWidthPx;
+  const minH = input.itemHeightPx;
+  const font = input.itemNameFontPx;
+
+  if (minW < MIN_DIMENSIONS_ONLY_MULTIPLIER * font || minH < MIN_DIMENSIONS_ONLY_MULTIPLIER * font) return hidden;
+
+  if (input.isInteractionActive && !input.isSelected && !input.isDragging) return hidden;
+
+  const fitsFullLabel = minW >= MIN_LABEL_SIZE_MULTIPLIER * font && minH >= MIN_LABEL_SIZE_MULTIPLIER * font;
+  return { showName: fitsFullLabel, showDimensions: true };
 }
 
 export function getItemShadowStyle(isInteractionActive: boolean): ItemShadowStyle {

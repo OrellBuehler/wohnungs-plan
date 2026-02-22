@@ -1074,7 +1074,10 @@
         {@const renderLabels = shouldRenderItemLabels({
           isInteractionActive,
           isSelected: selectedItemId === item.id,
-          isDragging: draggingItemId === item.id || longPressItemId === item.id
+          isDragging: draggingItemId === item.id || longPressItemId === item.id,
+          itemWidthPx,
+          itemHeightPx,
+          itemNameFontPx: itemNameFontSize
         })}
         <Group
           x={displayPos.x}
@@ -1126,23 +1129,26 @@
               cornerRadius={2}
             />
           {/if}
-          {#if renderLabels}
-            <!-- Item label -->
+          {#if renderLabels.showName || renderLabels.showDimensions}
+            {#if renderLabels.showName}
+              <!-- Item name -->
+              <Text
+                x={0}
+                y={itemHeightPx / 2 - 12}
+                text={item.name}
+                fontSize={itemNameFontSize}
+                fontFamily="system-ui, sans-serif"
+                fontStyle="bold"
+                fill="#1e293b"
+                align="center"
+                width={itemWidthPx}
+                listening={false}
+              />
+            {/if}
+            <!-- Item dimensions -->
             <Text
               x={0}
-              y={itemHeightPx / 2 - 12}
-              text={item.name}
-              fontSize={itemNameFontSize}
-              fontFamily="system-ui, sans-serif"
-              fontStyle="bold"
-              fill="#1e293b"
-              align="center"
-              width={itemWidthPx}
-              listening={false}
-            />
-            <Text
-              x={0}
-              y={itemHeightPx / 2 + 2}
+              y={renderLabels.showName ? itemHeightPx / 2 + 2 : (itemHeightPx - itemDimensionsFontSize) / 2}
               text={formatDimension(item.width, item.height)}
               fontSize={itemDimensionsFontSize}
               fontFamily="system-ui, sans-serif"
