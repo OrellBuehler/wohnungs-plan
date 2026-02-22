@@ -826,8 +826,8 @@
 			if (project.isLocal) {
 				// Save to IndexedDB for local projects
 				await saveThumbnail(project.id, dataUrl);
-			} else {
-				// Upload to server for cloud projects
+			} else if (authed) {
+				// Upload to server for cloud projects (only when authenticated)
 				const response = await fetch('/api/thumbnails', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
