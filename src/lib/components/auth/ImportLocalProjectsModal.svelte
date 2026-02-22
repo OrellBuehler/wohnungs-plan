@@ -6,6 +6,7 @@
 	import type { Project, ProjectMeta } from '$lib/types';
 	import { Upload, FolderOpen } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { getLocale } from '$lib/paraglide/runtime';
 
 	interface Props {
 		open: boolean;
@@ -118,7 +119,7 @@
 						<div class="flex-1 min-w-0">
 							<p class="text-sm font-medium truncate">{project.name}</p>
 							<p class="text-xs text-muted-foreground">
-								{m.auth_import_updated({ date: new Date(project.updatedAt).toLocaleDateString() })}
+								{m.auth_import_updated({ date: new Date(project.updatedAt).toLocaleDateString(getLocale()) })}
 							</p>
 						</div>
 					</div>
