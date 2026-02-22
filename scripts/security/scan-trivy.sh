@@ -48,6 +48,7 @@ echo ""
 echo "=== Trivy IaC config scan ==="
 if ! trivy config "${REPO_ROOT}" \
     --severity CRITICAL,HIGH \
+    --skip-dirs node_modules,.svelte-kit,build,.worktrees \
     --exit-code 1; then
   EXIT_CODE=1
 fi
