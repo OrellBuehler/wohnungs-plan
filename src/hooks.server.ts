@@ -114,7 +114,7 @@ const appHandle: Handle = async ({ event, resolve }) => {
 
 export const handle = sequence(appHandle, paraglideHandle);
 
-const KNOWN_BOT_PATHS = [
+const BOT_PATH_PREFIXES = [
 	'/favicon.ico',
 	'/.well-known/',
 	'/_profiler/',
@@ -122,20 +122,51 @@ const KNOWN_BOT_PATHS = [
 	'/php',
 	'/admin',
 	'/login',
+	'/signin',
+	'/signup',
 	'/.env',
 	'/xmlrpc',
 	'/config',
-	'/cgi-bin'
+	'/cgi-bin',
+	'/_next',
+	'/_ignition',
+	'/_debugbar',
+	'/debugbar',
+	'/telescope',
+	'/dashboard',
+	'/app/',
+	'/api-docs',
+	'/v2/api-docs',
+	'/v3/api-docs',
+	'/swagger',
+	'/graphql',
+	'/.aws',
+	'/.s3cfg',
+	'/.git',
+	'/.svn',
+	'/aws-credentials',
+	'/security.txt',
+	'/env',
+	'/backend/',
+	'/actuator',
+	'/vendor/',
+	'/node_modules/',
+	'/debug/',
+	'/console',
+	'/solr/',
+	'/manager/',
+	'/jmx-console'
 ];
+
+const BOT_PATH_CONTAINS = ['/.env', '/credentials', '/api-docs'];
 
 export const handleError: HandleServerError = ({ status, event }) => {
 	if (status === 404) {
 		const path = event.url.pathname;
-		const ext = path.split('.').pop();
 		const isBotProbe =
-			KNOWN_BOT_PATHS.some((p) => path.startsWith(p)) ||
-			(ext && ['js', 'css', 'php', 'asp', 'aspx', 'jsp', 'json'].includes(ext) &&
-				!path.startsWith('/api/'));
+			BOT_PATH_PREFIXES.some((p) => path.startsWith(p)) ||
+			BOT_PATH_CONTAINS.some((p) => path.includes(p)) ||
+			/\.(php|asp|aspx|jsp|cgi|sql|bak|old|orig|swp|log)(\?|$)/.test(path);
 		if (isBotProbe) return;
 	}
 	console.error(`[${status}] ${event.request.method} ${event.url.pathname}`);
