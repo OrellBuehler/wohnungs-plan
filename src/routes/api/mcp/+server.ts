@@ -56,9 +56,24 @@ const REQUIRED_SCOPE = 'mcp:access';
 type SessionState = {
 	transport: WebStandardStreamableHTTPServerTransport;
 	userId: string;
+	lastAccess: number;
 };
 
 const sessionTransports = new Map<string, SessionState>();
+
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+
+setInterval(() => {
+	const now = Date.now();
+	for (const [sessionId, state] of sessionTransports) {
+		if (now - state.lastAccess > SESSION_TIMEOUT_MS) {
+			sessionTransports.delete(sessionId);
+			if (typeof state.transport.close === 'function') {
+				state.transport.close();
+			}
+		}
+	}
+}, 5 * 60 * 1000);
 
 function getBaseUrl(url: URL): string {
 	const base = config.publicUrl || url.origin;
@@ -1519,7 +1534,7 @@ async function createSessionTransport(userId: string): Promise<WebStandardStream
 	transport = new WebStandardStreamableHTTPServerTransport({
 		sessionIdGenerator: () => randomUUID(),
 		onsessioninitialized: (sessionId) => {
-			sessionTransports.set(sessionId, { transport, userId });
+			sessionTransports.set(sessionId, { transport, userId, lastAccess: Date.now() });
 		},
 		onsessionclosed: (sessionId) => {
 			sessionTransports.delete(sessionId);
@@ -1542,6 +1557,7 @@ function getSessionTransport(sessionId: string, userId: string): WebStandardStre
 	if (!session || session.userId !== userId) {
 		return null;
 	}
+	session.lastAccess = Date.now();
 	return session.transport;
 }
 
