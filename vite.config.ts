@@ -1,22 +1,18 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
-import { defineConfig, type Plugin } from 'vitest/config';
+import { defineConfig } from 'vitest/config';
 
-// Vite plugin to handle "bun" imports in test mode.
-// The bun runtime module is unavailable in vitest/node, but db.ts
-// imports from it. This plugin provides a stub so vite doesn't fail
-// during static import analysis.
-function stubBunForTests(): Plugin {
+function stubBunForTests() {
 	return {
 		name: 'stub-bun-for-tests',
-		enforce: 'pre',
-		resolveId(id) {
+		enforce: 'pre' as const,
+		resolveId(id: string) {
 			if (id === 'bun') {
 				return '\0virtual:bun';
 			}
 		},
-		load(id) {
+		load(id: string) {
 			if (id === '\0virtual:bun') {
 				return 'export class SQL {}';
 			}
@@ -25,6 +21,7 @@ function stubBunForTests(): Plugin {
 }
 
 export default defineConfig({
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	plugins: [
 		tailwindcss(),
 		sveltekit(),
@@ -34,7 +31,7 @@ export default defineConfig({
 			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
 		}),
 		...(process.env.VITEST ? [stubBunForTests()] : [])
-	],
+	] as any,
 	test: {
 		include: ['src/**/*.test.ts', 'src/**/*.svelte.test.ts'],
 		setupFiles: ['src/lib/test-utils/setup.ts'],
