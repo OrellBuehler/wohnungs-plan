@@ -2,15 +2,16 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getDB, oauthClients } from '$lib/server/db';
 import { generateClientId, generateClientSecret, hashToken, isValidRedirectUriFormat } from '$lib/server/oauth';
+import { checkRateLimit } from '$lib/server/rate-limit';
 
-/**
- * RFC 7591 — OAuth 2.0 Dynamic Client Registration
- *
- * Allows MCP clients (VS Code, Claude Desktop, etc.) to register
- * themselves and obtain client credentials before starting the OAuth flow.
- * No authentication required (pre-auth endpoint per spec).
- */
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, getClientAddress }) => {
+	const ip = request.headers.get('x-forwarded-for') || getClientAddress();
+	if (!checkRateLimit(`oauth-register:${ip}`, 10, 60 * 60 * 1000)) {
+		return json(
+			{ error: 'too_many_requests', error_description: 'Too many registration attempts. Try again later.' },
+			{ status: 429 }
+		);
+	}
 	let body: unknown;
 	try {
 		body = await request.json();
