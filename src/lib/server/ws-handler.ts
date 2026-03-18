@@ -24,7 +24,6 @@ type WSMessage =
 	| { type: 'cursor_move'; x: number; y: number }
 	| { type: 'lock_item'; itemId: string }
 	| { type: 'unlock_item' }
-	| { type: 'select_item'; itemId: string | null }
 	| { type: 'item_updated'; item: unknown; branchId?: string }
 	| { type: 'item_created'; item: unknown; branchId?: string }
 	| { type: 'item_deleted'; itemId: string; branchId?: string }
@@ -32,6 +31,48 @@ type WSMessage =
 	| { type: 'reply_created'; commentId: string; reply: unknown }
 	| { type: 'comment_resolved'; commentId: string; resolved: boolean }
 	| { type: 'comment_deleted'; commentId: string };
+
+const VALID_MESSAGE_TYPES = new Set([
+	'cursor_move',
+	'lock_item',
+	'unlock_item',
+	'item_updated',
+	'item_created',
+	'item_deleted',
+	'comment_created',
+	'reply_created',
+	'comment_resolved',
+	'comment_deleted'
+]);
+
+function isValidMessage(raw: unknown): raw is WSMessage {
+	if (typeof raw !== 'object' || raw === null) return false;
+	const msg = raw as Record<string, unknown>;
+	if (typeof msg.type !== 'string' || !VALID_MESSAGE_TYPES.has(msg.type)) return false;
+	switch (msg.type) {
+		case 'cursor_move':
+			return typeof msg.x === 'number' && typeof msg.y === 'number';
+		case 'lock_item':
+			return typeof msg.itemId === 'string';
+		case 'unlock_item':
+			return true;
+		case 'item_updated':
+		case 'item_created':
+			return typeof msg.item === 'object' && msg.item !== null && typeof (msg.item as Record<string, unknown>).id !== 'undefined';
+		case 'item_deleted':
+			return typeof msg.itemId === 'string';
+		case 'comment_created':
+			return typeof msg.comment === 'object' && msg.comment !== null;
+		case 'reply_created':
+			return typeof msg.commentId === 'string' && typeof msg.reply === 'object' && msg.reply !== null;
+		case 'comment_resolved':
+			return typeof msg.commentId === 'string' && typeof msg.resolved === 'boolean';
+		case 'comment_deleted':
+			return typeof msg.commentId === 'string';
+		default:
+			return false;
+	}
+}
 
 const projectConnections = new Map<string, Set<ServerWebSocket<WSData>>>();
 
@@ -132,7 +173,9 @@ export function handleWSMessage(ws: ServerWebSocket<WSData>, message: string): v
 	const { roomId, branchId, connectionId, user } = ws.data;
 
 	try {
-		const msg = JSON.parse(message) as WSMessage;
+		const raw: unknown = JSON.parse(message);
+		if (!isValidMessage(raw)) return;
+		const msg = raw;
 
 		switch (msg.type) {
 			case 'cursor_move':

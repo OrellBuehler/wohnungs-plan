@@ -15,6 +15,10 @@ export const GET: RequestHandler = async ({ locals, params, request, url }) => {
 		throw error(403, 'Access denied');
 	}
 
+	if (!/^[a-f0-9-]+\.(jpg|jpeg|png|webp|gif)$/i.test(params.filename)) {
+		throw error(400, 'Invalid filename');
+	}
+
 	const isThumb = url.searchParams.get('thumb') === '1';
 	const filePath = isThumb
 		? getItemImageThumbPath(params.projectId, params.itemId, params.filename)
