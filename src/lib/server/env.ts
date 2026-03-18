@@ -20,6 +20,5 @@ export const config = {
 		dir: env.UPLOAD_DIR ?? './uploads',
 		maxImageSize: Number.parseInt(env.MAX_IMAGE_SIZE_BYTES ?? '5242880', 10)
 	},
-	publicUrl: env.PUBLIC_URL ?? '',
-	anthropicApiKey: env.ANTHROPIC_API_KEY ?? ''
+	publicUrl: env.PUBLIC_URL ?? ''
 };
