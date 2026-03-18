@@ -1,6 +1,6 @@
 import { randomBytes, createHash } from 'crypto';
 import { compareSync, hashSync } from 'bcrypt';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and, gt, isNull } from 'drizzle-orm';
 import {
 	getDB,
 	oauthClients,
@@ -417,47 +417,35 @@ export async function consumeAuthorizationCode(
 	// Hash the code to look up in database (codes are stored as hashes)
 	const codeHash = hashAuthorizationCode(code);
 
-	// Find the code by its hash
-	const authCode = await db.query.oauthAuthorizationCodes.findFirst({
-		where: eq(oauthAuthorizationCodes.code, codeHash)
-	});
+	const [authCode] = await db
+		.update(oauthAuthorizationCodes)
+		.set({ usedAt: new Date() })
+		.where(
+			and(
+				eq(oauthAuthorizationCodes.code, codeHash),
+				isNull(oauthAuthorizationCodes.usedAt),
+				gt(oauthAuthorizationCodes.expiresAt, new Date())
+			)
+		)
+		.returning();
 
 	if (!authCode) {
 		return undefined;
 	}
 
-	// Verify code hasn't been used
-	if (authCode.usedAt) {
-		return undefined;
-	}
-
-	// Verify code hasn't expired
-	if (authCode.expiresAt < new Date()) {
-		return undefined;
-	}
-
-	// Verify client ID matches
 	if (authCode.clientId !== clientId) {
 		return undefined;
 	}
 
-	// Verify redirect URI matches
 	if (authCode.redirectUri !== redirectUri) {
 		return undefined;
 	}
 
-	// Verify PKCE code challenge (S256 only)
 	const pkceValid = verifyPKCE(codeVerifier, authCode.codeChallenge);
 
 	if (!pkceValid) {
 		return undefined;
 	}
-
-	// Mark code as used (use hash for lookup)
-	await db
-		.update(oauthAuthorizationCodes)
-		.set({ usedAt: new Date() })
-		.where(eq(oauthAuthorizationCodes.code, codeHash));
 
 	return authCode.userId;
 }
