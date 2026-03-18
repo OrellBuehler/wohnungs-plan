@@ -19,18 +19,17 @@ function isCrossOriginEndpoint(pathname: string): boolean {
 	);
 }
 
-const FORM_CONTENT_TYPES = [
-	'application/x-www-form-urlencoded',
-	'multipart/form-data',
-	'text/plain'
-];
+function isCsrfCheckableContentType(contentType: string): boolean {
+	return (
+		contentType === 'application/x-www-form-urlencoded' ||
+		contentType === 'multipart/form-data' ||
+		contentType === 'text/plain' ||
+		contentType === 'application/json' ||
+		contentType === 'text/json' ||
+		contentType.startsWith('application/') && contentType.endsWith('+json')
+	);
+}
 
-/**
- * Manual CSRF origin check for non-exempt routes.
- * SvelteKit's built-in CSRF is disabled (trustedOrigins: ['*']) to allow
- * cross-origin OAuth token exchange. This re-applies origin checking for
- * cookie-authenticated form submissions (e.g. /settings/mcp, /oauth/consent).
- */
 function isOriginMismatch(request: Request, url: URL): boolean {
 	const method = request.method;
 	if (method !== 'POST' && method !== 'PUT' && method !== 'PATCH' && method !== 'DELETE') {
@@ -38,7 +37,7 @@ function isOriginMismatch(request: Request, url: URL): boolean {
 	}
 
 	const contentType = request.headers.get('content-type')?.split(';')[0]?.trim() ?? '';
-	if (!FORM_CONTENT_TYPES.includes(contentType)) {
+	if (!isCsrfCheckableContentType(contentType)) {
 		return false;
 	}
 
