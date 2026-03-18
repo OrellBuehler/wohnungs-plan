@@ -1,4 +1,4 @@
-import { isAuthenticated } from './auth.svelte';
+import { isAuthenticated, authFetch } from './auth.svelte';
 import { parseDataUrl } from '$lib/utils/data';
 
 interface SyncState {
@@ -87,52 +87,55 @@ export async function processPendingChanges(): Promise<void> {
 async function processChange(change: PendingChange): Promise<void> {
 	const baseUrl = `/api/projects/${change.projectId}`;
 
+	async function doFetch(input: string, init?: RequestInit): Promise<void> {
+		const res = await authFetch(input, init);
+		if (res.status === 401) throw new Error('Unauthorized');
+	}
+
 	switch (change.entity) {
-		case 'item':
+		case 'item': {
 			const itemBaseUrl = change.branchId
 				? `${baseUrl}/branches/${change.branchId}/items`
 				: `${baseUrl}/items`;
 
 			if (change.type === 'create') {
-				await fetch(itemBaseUrl, {
+				await doFetch(itemBaseUrl, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(change.data)
 				});
 			} else if (change.type === 'update' && change.entityId) {
-				await fetch(`${itemBaseUrl}/${change.entityId}`, {
+				await doFetch(`${itemBaseUrl}/${change.entityId}`, {
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(change.data)
 				});
 			} else if (change.type === 'delete' && change.entityId) {
-				await fetch(`${itemBaseUrl}/${change.entityId}`, {
-					method: 'DELETE'
-				});
+				await doFetch(`${itemBaseUrl}/${change.entityId}`, { method: 'DELETE' });
 			}
 			break;
+		}
 
-		case 'project':
+		case 'project': {
 			if (change.type === 'create') {
-				await fetch('/api/projects', {
+				await doFetch('/api/projects', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ id: change.projectId, ...(change.data ?? {}) })
 				});
 			} else if (change.type === 'update') {
-				await fetch(baseUrl, {
+				await doFetch(baseUrl, {
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(change.data)
 				});
 			} else if (change.type === 'delete') {
-				await fetch(baseUrl, {
-					method: 'DELETE'
-				});
+				await doFetch(baseUrl, { method: 'DELETE' });
 			}
 			break;
+		}
 
-		case 'floorplan':
+		case 'floorplan': {
 			if (change.type === 'create' && change.data) {
 				const payload = change.data as {
 					imageData: string;
@@ -145,16 +148,12 @@ async function processChange(change: PendingChange): Promise<void> {
 				});
 				const formData = new FormData();
 				formData.set('file', file);
-				await fetch(`${baseUrl}/floorplan`, {
-					method: 'POST',
-					body: formData
-				});
+				await doFetch(`${baseUrl}/floorplan`, { method: 'POST', body: formData });
 			} else if (change.type === 'delete') {
-				await fetch(`${baseUrl}/floorplan`, {
-					method: 'DELETE'
-				});
+				await doFetch(`${baseUrl}/floorplan`, { method: 'DELETE' });
 			}
 			break;
+		}
 	}
 }
 
