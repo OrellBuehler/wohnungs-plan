@@ -26,7 +26,7 @@ function isCsrfCheckableContentType(contentType: string): boolean {
 		contentType === 'text/plain' ||
 		contentType === 'application/json' ||
 		contentType === 'text/json' ||
-		contentType.startsWith('application/') && contentType.endsWith('+json')
+		(contentType.startsWith('application/') && contentType.endsWith('+json'))
 	);
 }
 

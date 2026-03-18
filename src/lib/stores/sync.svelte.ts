@@ -90,6 +90,7 @@ async function processChange(change: PendingChange): Promise<void> {
 	async function doFetch(input: string, init?: RequestInit): Promise<void> {
 		const res = await authFetch(input, init);
 		if (res.status === 401) throw new Error('Unauthorized');
+		if (!res.ok) throw new Error(`Sync failed: ${res.status}`);
 	}
 
 	switch (change.entity) {

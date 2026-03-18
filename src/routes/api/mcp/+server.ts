@@ -73,7 +73,7 @@ setInterval(() => {
 			}
 		}
 	}
-}, 5 * 60 * 1000);
+}, 5 * 60 * 1000).unref();
 
 function getBaseUrl(url: URL): string {
 	const base = config.publicUrl || url.origin;
