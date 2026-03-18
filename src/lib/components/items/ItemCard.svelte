@@ -5,7 +5,12 @@
   import { Button } from '$lib/components/ui/button';
   import * as Card from '$lib/components/ui/card';
   import { Separator } from '$lib/components/ui/separator';
-  import { Pencil, MapPin, MapPinOff, Copy, Trash2, ExternalLink } from 'lucide-svelte';
+  import Pencil from '@lucide/svelte/icons/pencil';
+  import MapPin from '@lucide/svelte/icons/map-pin';
+  import MapPinOff from '@lucide/svelte/icons/map-pin-off';
+  import Copy from '@lucide/svelte/icons/copy';
+  import Trash2 from '@lucide/svelte/icons/trash-2';
+  import ExternalLink from '@lucide/svelte/icons/external-link';
   import * as m from '$lib/paraglide/messages';
   import { formatDimension } from '$lib/utils/format';
   import ImageViewer from './ImageViewer.svelte';

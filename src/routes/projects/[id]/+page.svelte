@@ -7,7 +7,17 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Share2, RefreshCw, GitBranchPlus, Pencil, Trash2, Grid3x3, Magnet, Image, Crosshair, MessageSquare, Settings2 } from 'lucide-svelte';
+	import Share2 from '@lucide/svelte/icons/share-2';
+	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+	import GitBranchPlus from '@lucide/svelte/icons/git-branch-plus';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Grid3x3 from '@lucide/svelte/icons/grid-3x3';
+	import Magnet from '@lucide/svelte/icons/magnet';
+	import Image from '@lucide/svelte/icons/image';
+	import Crosshair from '@lucide/svelte/icons/crosshair';
+	import MessageSquare from '@lucide/svelte/icons/message-square';
+	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import * as m from '$lib/paraglide/messages';
 	import { toast } from 'svelte-sonner';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';

@@ -9,7 +9,9 @@
   import * as Dialog from '$lib/components/ui/dialog';
   import * as Select from '$lib/components/ui/select';
   import * as AlertDialog from '$lib/components/ui/alert-dialog';
-  import { ImagePlus, X, Loader2 } from 'lucide-svelte';
+  import ImagePlus from '@lucide/svelte/icons/image-plus';
+  import X from '@lucide/svelte/icons/x';
+  import Loader2 from '@lucide/svelte/icons/loader-2';
   import * as m from '$lib/paraglide/messages';
 
   interface Props {

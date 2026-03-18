@@ -13,7 +13,9 @@
 		toggleCommentsVisibility,
 		type ClientComment
 	} from '$lib/stores/comments.svelte';
-	import { Eye, EyeOff, X } from 'lucide-svelte';
+	import Eye from '@lucide/svelte/icons/eye';
+	import EyeOff from '@lucide/svelte/icons/eye-off';
+	import X from '@lucide/svelte/icons/x';
 
 	interface Props {
 		projectId: string;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { LogIn } from 'lucide-svelte';
+	import LogIn from '@lucide/svelte/icons/log-in';
 	import { getUser, isAuthenticated, isLoading, login } from '$lib/stores/auth.svelte';
 	import { setSidebarOpen } from '$lib/stores/sidebar.svelte';
 	import { getInitials } from '$lib/utils/format';

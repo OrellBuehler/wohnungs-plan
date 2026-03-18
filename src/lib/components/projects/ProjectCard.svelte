@@ -4,13 +4,21 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import { Cloud, HardDrive, Users, MoreVertical, Trash2, Share2, Upload, Download, Copy } from 'lucide-svelte';
+	import Cloud from '@lucide/svelte/icons/cloud';
+	import HardDrive from '@lucide/svelte/icons/hard-drive';
+	import Users from '@lucide/svelte/icons/users';
+	import MoreVertical from '@lucide/svelte/icons/more-vertical';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Share2 from '@lucide/svelte/icons/share-2';
+	import Upload from '@lucide/svelte/icons/upload';
+	import Download from '@lucide/svelte/icons/download';
+	import Copy from '@lucide/svelte/icons/copy';
+	import House from '@lucide/svelte/icons/house';
 	import { isAuthenticated } from '$lib/stores/auth.svelte';
 	import { getLocalFloorplanUrl } from '$lib/stores/project.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { getThumbnail as getLocalThumbnail } from '$lib/db';
 	import { onMount } from 'svelte';
-	import House from 'lucide-svelte/icons/house';
 
 	interface Props {
 		project: ProjectMeta;

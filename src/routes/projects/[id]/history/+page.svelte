@@ -21,7 +21,8 @@
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { ArrowLeft, RotateCcw } from 'lucide-svelte';
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import HistoryActionBadge from '$lib/components/projects/HistoryActionBadge.svelte';
 	import {
 		getProject,

@@ -2,7 +2,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Button } from '$lib/components/ui/button';
 	import * as Select from '$lib/components/ui/select';
-	import { UserMinus } from 'lucide-svelte';
+	import UserMinus from '@lucide/svelte/icons/user-minus';
 	import { getInitials } from '$lib/utils/format';
 
 	export type ProjectRole = 'owner' | 'editor' | 'viewer';

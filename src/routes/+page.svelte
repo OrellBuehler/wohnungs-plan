@@ -5,8 +5,9 @@
 	import type { ProjectMeta } from '$lib/types';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Plus, Upload } from 'lucide-svelte';
-	import House from 'lucide-svelte/icons/house';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Upload from '@lucide/svelte/icons/upload';
+	import House from '@lucide/svelte/icons/house';
 	import ProjectCard from '$lib/components/projects/ProjectCard.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';

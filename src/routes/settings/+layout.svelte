@@ -3,8 +3,8 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
 	import { cn } from '$lib/utils';
-	import Settings from 'lucide-svelte/icons/settings';
-	import Plug from 'lucide-svelte/icons/plug';
+	import Settings from '@lucide/svelte/icons/settings';
+	import Plug from '@lucide/svelte/icons/plug';
 	import type { Snippet } from 'svelte';
 	import * as m from '$lib/paraglide/messages';
 

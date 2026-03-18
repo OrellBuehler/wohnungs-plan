@@ -6,7 +6,10 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
-	import { Copy, Check, Lock, Trash2 } from 'lucide-svelte';
+	import Copy from '@lucide/svelte/icons/copy';
+	import Check from '@lucide/svelte/icons/check';
+	import Lock from '@lucide/svelte/icons/lock';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 
 	interface Props {
 		projectId: string;

@@ -3,7 +3,9 @@
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
-  import { Plus, Minus, RefreshCw } from 'lucide-svelte';
+  import Plus from '@lucide/svelte/icons/plus';
+  import Minus from '@lucide/svelte/icons/minus';
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw';
   import * as m from '$lib/paraglide/messages';
   import type Konva from 'konva';
 

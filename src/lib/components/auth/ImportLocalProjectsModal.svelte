@@ -4,7 +4,8 @@
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { getAllProjects, getProject } from '$lib/db';
 	import type { Project, ProjectMeta } from '$lib/types';
-	import { Upload, FolderOpen } from 'lucide-svelte';
+	import Upload from '@lucide/svelte/icons/upload';
+	import FolderOpen from '@lucide/svelte/icons/folder-open';
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Select from '$lib/components/ui/select';
 	import { getLocale, setLocale, locales, type Locale } from '$lib/paraglide/runtime';
-	import { Languages } from 'lucide-svelte';
+	import Languages from '@lucide/svelte/icons/languages';
 
 	const locale = $derived(getLocale());
 

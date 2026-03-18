@@ -3,7 +3,12 @@
 	import { formatPrice } from '$lib/utils/currency';
 	import { Button } from '$lib/components/ui/button';
 	import * as Sheet from '$lib/components/ui/sheet';
-	import { RotateCcw, RotateCw, MapPin, MapPinOff, Copy, Trash2 } from 'lucide-svelte';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import RotateCw from '@lucide/svelte/icons/rotate-cw';
+	import MapPin from '@lucide/svelte/icons/map-pin';
+	import MapPinOff from '@lucide/svelte/icons/map-pin-off';
+	import Copy from '@lucide/svelte/icons/copy';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import * as m from '$lib/paraglide/messages';
 	import { formatDimension } from '$lib/utils/format';
 	import ImageViewer from './ImageViewer.svelte';

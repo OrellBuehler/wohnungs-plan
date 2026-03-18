@@ -3,7 +3,8 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
-	import { Copy, Send } from 'lucide-svelte';
+	import Copy from '@lucide/svelte/icons/copy';
+	import Send from '@lucide/svelte/icons/send';
 
 	export type ProjectRole = 'editor' | 'viewer';
 

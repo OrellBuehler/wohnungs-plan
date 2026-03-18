@@ -2,7 +2,11 @@
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
-	import { LogOut, LogIn, Home, Settings, ChevronRight } from 'lucide-svelte';
+	import LogOut from '@lucide/svelte/icons/log-out';
+	import LogIn from '@lucide/svelte/icons/log-in';
+	import Home from '@lucide/svelte/icons/home';
+	import Settings from '@lucide/svelte/icons/settings';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { page } from '$app/stores';
 	import { getUser, isAuthenticated, isLoading, login, logout } from '$lib/stores/auth.svelte';
 	import {

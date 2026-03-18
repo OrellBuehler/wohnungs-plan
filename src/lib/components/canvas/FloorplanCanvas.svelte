@@ -37,7 +37,14 @@
     zoomTowardPoint
   } from '$lib/utils/canvas-math';
   import { Button } from '$lib/components/ui/button';
-  import { Plus, Minus, RotateCcw, RotateCw, Lock, Unlock, RefreshCw, MapPinOff } from 'lucide-svelte';
+  import Plus from '@lucide/svelte/icons/plus';
+  import Minus from '@lucide/svelte/icons/minus';
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+  import RotateCw from '@lucide/svelte/icons/rotate-cw';
+  import Lock from '@lucide/svelte/icons/lock';
+  import Unlock from '@lucide/svelte/icons/unlock';
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+  import MapPinOff from '@lucide/svelte/icons/map-pin-off';
   import * as m from '$lib/paraglide/messages';
   import { formatDimension, formatDecimal } from '$lib/utils/format';
 
