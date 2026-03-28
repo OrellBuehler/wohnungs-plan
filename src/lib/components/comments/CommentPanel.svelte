@@ -274,7 +274,7 @@
 										>
 									{/if}
 									{#if comment.resolved}
-										<span class="text-[10px] px-1 py-0.5 rounded bg-green-50 text-green-600"
+										<span class="text-[10px] px-1 py-0.5 rounded bg-secondary-fixed text-secondary"
 											>resolved</span
 										>
 									{/if}

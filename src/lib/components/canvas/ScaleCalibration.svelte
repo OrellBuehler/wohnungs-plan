@@ -348,9 +348,9 @@
 </script>
 
 <div class="flex flex-col h-full">
-	<div class="p-4 bg-secondary text-white">
+	<div class="p-4 bg-secondary text-primary-foreground">
 		<h2 class="font-semibold mb-1">{m.canvas_calibrate_title()}</h2>
-		<p class="text-sm text-blue-100">
+		<p class="text-sm text-secondary-foreground/70">
 			{m.canvas_calibrate_description()}
 			<span class="hidden md:inline"><strong>{m.canvas_calibrate_desktop_hint()}</strong></span>
 			<span class="md:hidden"><strong>{m.canvas_calibrate_mobile_hint()}</strong></span>
@@ -359,7 +359,7 @@
 
 	<div
 		bind:this={containerEl}
-		class="flex-1 bg-slate-900 relative cursor-crosshair"
+		class="flex-1 bg-primary-container relative cursor-crosshair"
 		onwheel={handleWheel}
 		oncontextmenu={handleContextMenu}
 		onpointerdown={handlePointerDown}
@@ -473,7 +473,7 @@
 		<div class="flex flex-col md:flex-row md:items-end gap-3 md:gap-4">
 			<div class="flex-1">
 				<Label for="length">{m.canvas_calibrate_length_label()}</Label>
-				<Input id="length" type="number" bind:value={referenceLength} min={1} class="font-mono" />
+				<Input id="length" type="number" bind:value={referenceLength} min={1} class="font-technical" />
 			</div>
 			<div class="text-sm text-on-surface-variant pb-2">
 				{#if scale > 0}

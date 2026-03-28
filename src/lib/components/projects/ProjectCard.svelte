@@ -78,7 +78,7 @@
 	<!-- Thumbnail area -->
 	<div
 		class="aspect-video bg-surface-container-low rounded-t-lg overflow-hidden relative"
-		style="background-image: radial-gradient(circle, #e0e3e5 1px, transparent 1px); background-size: 24px 24px;"
+		style="background-image: radial-gradient(circle, var(--color-surface-container-highest) 1px, transparent 1px); background-size: 24px 24px;"
 	>
 		{#if thumbnailUrl}
 			<img src={thumbnailUrl} alt="{project.name} preview" class="w-full h-full object-cover" />
@@ -191,7 +191,7 @@
 			{:else}
 				<Tooltip.Root>
 					<Tooltip.Trigger>
-						<Cloud class="size-4 text-blue-500 flex-shrink-0" />
+						<Cloud class="size-4 text-secondary flex-shrink-0" />
 					</Tooltip.Trigger>
 					<Tooltip.Content>
 						<p>{m.project_card_cloud()}</p>

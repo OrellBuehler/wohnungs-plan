@@ -291,7 +291,7 @@
 
 {#if isInvalid}
 	<div class="flex-1 flex items-center justify-center p-6">
-		<div class="max-w-md w-full rounded-xl border bg-surface-container-lowest p-6 text-center space-y-4">
+		<div class="max-w-md w-full rounded-xl bg-surface-container-lowest p-6 text-center space-y-4">
 			<h1 class="text-xl font-semibold text-on-surface">{m.share_error_invalid_title()}</h1>
 			<p class="text-sm text-on-surface-variant">{m.share_error_invalid_message()}</p>
 			<a href="/">
@@ -302,7 +302,7 @@
 {:else if requiresPassword}
 	<div class="flex-1 flex items-center justify-center p-6">
 		<form
-			class="max-w-md w-full rounded-xl border bg-surface-container-lowest p-6 space-y-4"
+			class="max-w-md w-full rounded-xl bg-surface-container-lowest p-6 space-y-4"
 			onsubmit={handlePasswordSubmit}
 		>
 			<h1 class="text-xl font-semibold text-on-surface">{projectName || m.share_default_title()}</h1>
@@ -430,7 +430,7 @@
 					class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center"
 				>
 					<div
-						class="rounded-md border bg-surface-container-lowest px-3 py-2 text-sm text-on-surface"
+						class="rounded-md bg-surface-container-lowest px-3 py-2 text-sm text-on-surface"
 					>
 						{m.branch_switching()}
 					</div>

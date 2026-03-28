@@ -104,7 +104,7 @@
 				<Button
 					variant="ghost"
 					size="sm"
-					class="h-6 text-xs text-red-500 hover:text-red-700"
+					class="h-6 text-xs text-destructive hover:text-destructive/80"
 					onclick={() => removeComment(projectId, comment.id)}
 				>
 					{m.common_delete()}

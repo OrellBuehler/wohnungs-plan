@@ -117,7 +117,7 @@
 								class="w-5 h-5 rounded"
 								style="background-color: {item.color}"
 							></div>
-							<span class="text-xs font-mono">{item.color}</span>
+							<span class="text-xs font-technical">{item.color}</span>
 						</div>
 					</div>
 					{#if item.productUrl}

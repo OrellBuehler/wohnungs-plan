@@ -47,7 +47,7 @@
 
 <div class="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
 	<div>
-		<h1 class="text-3xl font-bold text-on-surface">{m.settings_mcp_title()}</h1>
+		<h1 class="text-3xl font-bold font-display text-on-surface">{m.settings_mcp_title()}</h1>
 		<p class="text-on-surface-variant mt-1">
 			{m.settings_mcp_description()}
 		</p>
@@ -72,7 +72,7 @@
 						type="text"
 						readonly
 						value={data.serverUrl}
-						class="font-mono text-sm flex-1"
+						class="font-technical text-sm flex-1"
 					/>
 					<Button
 						variant="outline"
@@ -93,7 +93,7 @@
 						type="text"
 						readonly
 						value={data.clientId}
-						class="font-mono text-sm flex-1"
+						class="font-technical text-sm flex-1"
 					/>
 					<Button
 						variant="outline"
@@ -115,7 +115,7 @@
 							type="text"
 							readonly
 							value={activeClientSecret}
-							class="font-mono text-sm flex-1"
+							class="font-technical text-sm flex-1"
 						/>
 						<Button
 							variant="outline"
@@ -202,7 +202,7 @@
 					<ul class="space-y-2">
 						{#each data.allowedRedirectUris as uri}
 							<li class="flex items-center justify-between rounded-md bg-surface px-3 py-2">
-								<code class="text-sm font-mono truncate flex-1">{uri}</code>
+								<code class="text-sm font-technical truncate flex-1">{uri}</code>
 								<form method="POST" action="?/removeRedirectUri" use:enhance class="ml-2">
 									<input type="hidden" name="redirectUri" value={uri} />
 									<Button

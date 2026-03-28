@@ -135,7 +135,7 @@
 					</div>
 				{:else if errorTitle}
 					<div class="space-y-3">
-						<p class="text-sm font-medium text-red-700">{errorTitle}</p>
+						<p class="text-sm font-medium text-destructive">{errorTitle}</p>
 						<p class="text-sm text-on-surface-variant">{errorMessage}</p>
 					</div>
 				{:else if invite}

@@ -40,7 +40,7 @@
 
 <div
 	class="flex flex-col items-center justify-center h-full p-8 text-center transition-colors
-         {isDragging ? 'bg-blue-500/20' : 'bg-canvas-bg'}"
+         {isDragging ? 'bg-secondary/20' : 'bg-canvas-bg'}"
 	ondragover={(e) => {
 		e.preventDefault();
 		isDragging = true;
@@ -51,7 +51,7 @@
 	tabindex="0"
 	onkeydown={(e) => e.key === 'Enter' && fileInput.click()}
 >
-	<div class="bg-slate-800 rounded-lg p-8 max-w-md">
+	<div class="bg-primary-container rounded-lg p-8 max-w-md">
 		<svg
 			class="w-16 h-16 mx-auto mb-4 text-outline"
 			fill="none"
@@ -65,7 +65,7 @@
 				d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
 			/>
 		</svg>
-		<h2 class="text-xl font-semibold text-white mb-2">{m.canvas_upload_title()}</h2>
+		<h2 class="text-xl font-semibold text-primary-foreground mb-2">{m.canvas_upload_title()}</h2>
 		<p class="text-outline mb-6">
 			{m.canvas_upload_description()}
 		</p>
