@@ -105,7 +105,20 @@ describe('importProjectFromJSON', () => {
 		const data = {
 			id: 'p1',
 			name: 'Test',
-			items: [{ id: 'i1', name: 'Chair', width: 50, height: 50, color: '#000', price: null, priceCurrency: 'EUR', productUrl: null, position: null, rotation: 0 }]
+			items: [
+				{
+					id: 'i1',
+					name: 'Chair',
+					width: 50,
+					height: 50,
+					color: '#000',
+					price: null,
+					priceCurrency: 'EUR',
+					productUrl: null,
+					position: null,
+					rotation: 0
+				}
+			]
 		};
 		const json = JSON.stringify(data);
 		const { project } = importProjectFromJSON(json);
@@ -117,7 +130,19 @@ describe('importProjectFromJSON', () => {
 			id: 'p1',
 			name: 'Test',
 			currency: 'USD',
-			items: [{ id: 'i1', name: 'Chair', width: 50, height: 50, color: '#000', price: null, productUrl: null, position: null, rotation: 0 }]
+			items: [
+				{
+					id: 'i1',
+					name: 'Chair',
+					width: 50,
+					height: 50,
+					color: '#000',
+					price: null,
+					productUrl: null,
+					position: null,
+					rotation: 0
+				}
+			]
 		};
 		const json = JSON.stringify(data);
 		const { project } = importProjectFromJSON(json);

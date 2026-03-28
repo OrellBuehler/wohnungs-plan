@@ -13,21 +13,24 @@ export const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 export const MAX_SESSIONS_PER_USER = 5;
 
 // Periodically evict sessions that have been idle longer than SESSION_TIMEOUT_MS.
-setInterval(() => {
-	const now = Date.now();
-	for (const [sessionId, state] of sessionTransports) {
-		if (now - state.lastAccess > SESSION_TIMEOUT_MS) {
-			sessionTransports.delete(sessionId);
-			if (typeof state.transport.close === 'function') {
-				try {
-					state.transport.close();
-				} catch {
-					// ignore close errors so remaining sessions are still cleaned up
+setInterval(
+	() => {
+		const now = Date.now();
+		for (const [sessionId, state] of sessionTransports) {
+			if (now - state.lastAccess > SESSION_TIMEOUT_MS) {
+				sessionTransports.delete(sessionId);
+				if (typeof state.transport.close === 'function') {
+					try {
+						state.transport.close();
+					} catch {
+						// ignore close errors so remaining sessions are still cleaned up
+					}
 				}
 			}
 		}
-	}
-}, 5 * 60 * 1000).unref();
+	},
+	5 * 60 * 1000
+).unref();
 
 export async function createSessionTransport(
 	userId: string,

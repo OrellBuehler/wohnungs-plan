@@ -31,7 +31,8 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		return json({
 			exists: false,
 			data: null,
-			message: 'No floorplan analysis available. Use the MCP save_floorplan_analysis tool to create one.'
+			message:
+				'No floorplan analysis available. Use the MCP save_floorplan_analysis tool to create one.'
 		});
 	}
 

@@ -74,9 +74,7 @@ export function getComments(): ClientComment[] {
 }
 
 export function getCanvasComments(): ClientComment[] {
-	return state.comments.filter(
-		(c) => c.type === 'canvas' && (state.showResolved || !c.resolved)
-	);
+	return state.comments.filter((c) => c.type === 'canvas' && (state.showResolved || !c.resolved));
 }
 
 export function getItemComments(itemId: string): ClientComment[] {
@@ -86,9 +84,8 @@ export function getItemComments(itemId: string): ClientComment[] {
 }
 
 export function getItemCommentCount(itemId: string): number {
-	return state.comments.filter(
-		(c) => c.type === 'item' && c.itemId === itemId && !c.resolved
-	).length;
+	return state.comments.filter((c) => c.type === 'item' && c.itemId === itemId && !c.resolved)
+		.length;
 }
 
 export function getActiveComment(): ClientComment | null {
@@ -114,9 +111,7 @@ export function isCommentsLoading(): boolean {
 
 export function getUnreadCount(): number {
 	if (!state.lastSeenAt) return state.comments.length;
-	return state.comments.filter(
-		(c) => c.updatedAt && c.updatedAt > state.lastSeenAt!
-	).length;
+	return state.comments.filter((c) => c.updatedAt && c.updatedAt > state.lastSeenAt!).length;
 }
 
 // --- Setters ---
@@ -289,9 +284,7 @@ export async function updateCommentPosition(
 ): Promise<boolean> {
 	// Optimistic update
 	const previous = state.comments;
-	state.comments = state.comments.map((c) =>
-		c.id === commentId ? { ...c, x, y } : c
-	);
+	state.comments = state.comments.map((c) => (c.id === commentId ? { ...c, x, y } : c));
 
 	try {
 		const res = await authFetch(`/api/projects/${projectId}/comments/${commentId}`, {
@@ -350,9 +343,7 @@ export function handleRemoteReplyCreated(commentId: string, reply: ClientReply):
 }
 
 export function handleRemoteCommentResolved(commentId: string, resolved: boolean): void {
-	state.comments = state.comments.map((c) =>
-		c.id === commentId ? { ...c, resolved } : c
-	);
+	state.comments = state.comments.map((c) => (c.id === commentId ? { ...c, resolved } : c));
 }
 
 export function handleRemoteCommentDeleted(commentId: string): void {

@@ -55,7 +55,10 @@ export const projects = pgTable(
 		name: text('name').notNull(),
 		currency: text('currency').notNull().default('EUR'),
 		gridSize: integer('grid_size').notNull().default(20),
-		disabledMcpTools: text('disabled_mcp_tools').array().notNull().default(sql`ARRAY[]::text[]`),
+		disabledMcpTools: text('disabled_mcp_tools')
+			.array()
+			.notNull()
+			.default(sql`ARRAY[]::text[]`),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
 	},
@@ -289,8 +292,13 @@ export const oauthClients = pgTable(
 		clientId: text('client_id').unique().notNull(),
 		clientSecretHash: text('client_secret_hash'),
 		clientName: text('client_name'),
-		allowedRedirectUris: text('allowed_redirect_uris').array().notNull().default(sql`ARRAY[]::text[]`),
-		tokenEndpointAuthMethod: text('token_endpoint_auth_method').notNull().default('client_secret_post'),
+		allowedRedirectUris: text('allowed_redirect_uris')
+			.array()
+			.notNull()
+			.default(sql`ARRAY[]::text[]`),
+		tokenEndpointAuthMethod: text('token_endpoint_auth_method')
+			.notNull()
+			.default('client_secret_post'),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 	},
 	(table) => [
@@ -334,7 +342,10 @@ export const oauthTokens = pgTable(
 		refreshTokenHash: text('refresh_token_hash'),
 		expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 		refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
-		scopes: text('scopes').array().notNull().default(sql`ARRAY['mcp:access']::text[]`),
+		scopes: text('scopes')
+			.array()
+			.notNull()
+			.default(sql`ARRAY['mcp:access']::text[]`),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 	},
 	(table) => [
@@ -413,9 +424,7 @@ export const commentReplies = pgTable(
 		body: text('body').notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 	},
-	(table) => [
-		index('idx_comment_replies_comment_id').on(table.commentId)
-	]
+	(table) => [index('idx_comment_replies_comment_id').on(table.commentId)]
 );
 
 // Type exports for use in application code

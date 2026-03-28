@@ -86,6 +86,7 @@ Paraglide is a **build-time compiler**: it reads `messages/*.json`, generates ty
 #### Mobile UX
 
 The mobile boundary already exists: `isMobile` boolean in `projects/[id]/+page.svelte`, propagated downward as `readonly` and `hidePositionFields` props. The pattern is established and complete for the core editor. Remaining gaps:
+
 - History page (`projects/[id]/history/+page.svelte`) has no mobile detection
 - Settings pages (`settings/general`, `settings/mcp`) have no mobile-specific layout
 - Share page (`share/[token]`) uses matchMedia but may have layout issues
@@ -93,6 +94,7 @@ The mobile boundary already exists: `isMobile` boolean in `projects/[id]/+page.s
 #### Error Handling
 
 Currently errors are handled ad-hoc per component:
+
 - Home page: `error = $state<string | null>(null)`, shown as red text with a Retry button
 - Stores: `console.error()` and return `null`/`false` on failure
 - API routes: `throw error(status, message)` (SvelteKit), try/catch per handler
@@ -198,6 +200,7 @@ To add a toast system, a `<Toaster />` component needs to mount once in `src/rou
 ### Visual Design Data Flow
 
 Design changes are entirely local to components — no data flows involved. Changes affect:
+
 - Tailwind class strings in `.svelte` templates
 - CSS variables in `src/app.css` (affects all components globally)
 - shadcn-svelte component overrides in `src/lib/components/ui/`
@@ -209,35 +212,38 @@ Design changes are entirely local to components — no data flows involved. Chan
 ### i18n Integration Points
 
 **1. `vite.config.ts`** — Add `paraglideVitePlugin()` before or after `sveltekit()`:
+
 ```typescript
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 plugins: [
-  tailwindcss(),
-  sveltekit(),
-  paraglideVitePlugin({
-    project: './project.inlang',
-    outdir: './src/lib/paraglide',
-    strategy: ['cookie', 'preferredLanguage', 'baseLocale']
-  }),
-]
+	tailwindcss(),
+	sveltekit(),
+	paraglideVitePlugin({
+		project: './project.inlang',
+		outdir: './src/lib/paraglide',
+		strategy: ['cookie', 'preferredLanguage', 'baseLocale']
+	})
+];
 ```
 
 **2. `src/hooks.server.ts`** — Wrap existing `handle` with `sequence()`:
+
 ```typescript
 import { sequence } from '@sveltejs/kit/hooks';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 
 const paraglideHandle: Handle = ({ event, resolve }) =>
-  paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
-    event.request = localizedRequest;
-    return resolve(event, {
-      transformPageChunk: ({ html }) => html.replace('%lang%', locale)
-    });
-  });
+	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
+		event.request = localizedRequest;
+		return resolve(event, {
+			transformPageChunk: ({ html }) => html.replace('%lang%', locale)
+		});
+	});
 
 // Rename existing export to appHandle:
 export const handle = sequence(paraglideHandle, appHandle);
 ```
+
 The existing CSRF, CORS, and session logic in `appHandle` is untouched. Paraglide runs before it, which is correct — locale detection has no security implications and can run before session parsing.
 
 **3. `src/app.html`** — Change `lang="en"` to `lang="%lang%"` so the middleware can inject the correct locale.
@@ -267,10 +273,12 @@ The foundation is already built (`isMobile`, `readonly` props, `ItemBottomSheet`
 ### Error Handling Integration Points
 
 **1. `src/routes/+layout.svelte`** — Add `<Toaster />` once at the root. This is the only component mounting point needed:
+
 ```svelte
 <script>
-  import { Toaster } from '$lib/components/ui/sonner';
+	import { Toaster } from '$lib/components/ui/sonner';
 </script>
+
 <!-- Inside the root div: -->
 <Toaster />
 ```
@@ -300,6 +308,7 @@ No new components or files needed for design polish — it's a template-editing 
 Dependencies between dimensions determine sequencing:
 
 ### Phase 1: i18n Infrastructure (prerequisite for string extraction)
+
 **Why first:** Every other component touched for mobile/design/error polish will also need strings replaced. Doing infrastructure setup first means the string extraction can happen as part of the same component edits.
 
 1. Install `@inlang/paraglide-js` with bun
@@ -315,6 +324,7 @@ Dependencies between dimensions determine sequencing:
 **Dependency:** All subsequent phases can run in parallel after Phase 1 is complete, since they each operate on different component files.
 
 ### Phase 2A: Error Handling Foundation (independent of i18n completion)
+
 **Why early:** Toast system is used by other components. Setting it up first means all subsequent component touches can include toast calls.
 
 1. `bunx shadcn-svelte@latest add sonner`
@@ -324,7 +334,9 @@ Dependencies between dimensions determine sequencing:
 5. Standardize empty-state pattern in home page and item list
 
 ### Phase 2B: String Extraction (bulk work, can parallelize with 2A)
+
 **Recommended order within extraction:**
+
 1. Layout + Navigation first (AppSidebar, MobileNav) — high visibility, shared by all pages
 2. Home page — simple page, good smoke test
 3. items/ components — ItemForm, ItemList, ItemCard, ItemBottomSheet
@@ -334,7 +346,9 @@ Dependencies between dimensions determine sequencing:
 7. Complete German translations in `messages/de.json`
 
 ### Phase 2C: Mobile UX Improvements (independent of i18n)
+
 **Verify and fix:**
+
 1. History page mobile layout
 2. Settings page responsiveness
 3. Safe-area inset audit (new toasts, any new bottom elements)
@@ -342,6 +356,7 @@ Dependencies between dimensions determine sequencing:
 5. Any missing mobile states (loading spinners on mobile interactions)
 
 ### Phase 3: Visual Design Polish (last — touches same files as above)
+
 **Why last:** Design polish edits the same component templates being touched in phases 2A-2C. Doing it last avoids merge conflicts and means the final component state gets the design pass.
 
 1. Establish/verify CSS token conventions in `app.css`
@@ -384,17 +399,17 @@ Dependencies between dimensions determine sequencing:
 
 ## Where New Code Lives
 
-| Concern | Location |
-|---|---|
-| Paraglide config | `project.inlang/settings.json` |
-| Message files | `messages/en.json`, `messages/de.json` |
-| Generated paraglide | `src/lib/paraglide/` (gitignored) |
-| Language switcher component | `src/lib/components/layout/LanguageSwitcher.svelte` |
-| Toast (Sonner) component | `src/lib/components/ui/sonner.svelte` (added by shadcn) |
-| Route error boundary | `src/routes/+error.svelte` |
-| CSS token additions | `src/app.css` |
-| Middleware changes | `src/hooks.server.ts` |
-| Build config changes | `vite.config.ts` |
+| Concern                     | Location                                                |
+| --------------------------- | ------------------------------------------------------- |
+| Paraglide config            | `project.inlang/settings.json`                          |
+| Message files               | `messages/en.json`, `messages/de.json`                  |
+| Generated paraglide         | `src/lib/paraglide/` (gitignored)                       |
+| Language switcher component | `src/lib/components/layout/LanguageSwitcher.svelte`     |
+| Toast (Sonner) component    | `src/lib/components/ui/sonner.svelte` (added by shadcn) |
+| Route error boundary        | `src/routes/+error.svelte`                              |
+| CSS token additions         | `src/app.css`                                           |
+| Middleware changes          | `src/hooks.server.ts`                                   |
+| Build config changes        | `vite.config.ts`                                        |
 
 No new stores, no new API routes, no database schema changes are needed for this milestone.
 
@@ -455,4 +470,4 @@ src/lib/stores/
 
 ---
 
-*Research: 2026-02-17*
+_Research: 2026-02-17_

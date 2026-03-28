@@ -71,10 +71,14 @@
 	});
 
 	const filterItemLabel = $derived(
-		filterItem ? (itemOptions.find((o) => o.value === filterItem)?.label ?? m.history_filter_items_all()) : m.history_filter_items_all()
+		filterItem
+			? (itemOptions.find((o) => o.value === filterItem)?.label ?? m.history_filter_items_all())
+			: m.history_filter_items_all()
 	);
 	const filterUserLabel = $derived(
-		filterUser ? (userOptions.find((o) => o.value === filterUser)?.label ?? m.history_filter_users_all()) : m.history_filter_users_all()
+		filterUser
+			? (userOptions.find((o) => o.value === filterUser)?.label ?? m.history_filter_users_all())
+			: m.history_filter_users_all()
 	);
 
 	// Grouping: changes within 2s by same user on same item
@@ -168,8 +172,7 @@
 				const isStart = groupStarts.has(row.original.id);
 				return renderSnippet(
 					createRawSnippet(() => ({
-						render: () =>
-							`<span class="${isStart ? '' : 'text-muted-foreground'}">${value}</span>`
+						render: () => `<span class="${isStart ? '' : 'text-muted-foreground'}">${value}</span>`
 					})),
 					undefined as never
 				);
@@ -183,8 +186,7 @@
 				const isStart = groupStarts.has(row.original.id);
 				return renderSnippet(
 					createRawSnippet(() => ({
-						render: () =>
-							`<span class="${isStart ? '' : 'text-muted-foreground'}">${name}</span>`
+						render: () => `<span class="${isStart ? '' : 'text-muted-foreground'}">${name}</span>`
 					})),
 					undefined as never
 				);
@@ -316,12 +318,7 @@
 					{/if}
 				</div>
 			</div>
-			<Button
-				variant="outline"
-				size="sm"
-				disabled={selectedCount === 0}
-				onclick={handleRevert}
-			>
+			<Button variant="outline" size="sm" disabled={selectedCount === 0} onclick={handleRevert}>
 				<RotateCcw size={14} class="mr-1" />
 				{m.history_revert_button({ count: selectedCount })}
 			</Button>
@@ -377,7 +374,11 @@
 			}}
 		>
 			<Select.Trigger class="w-[140px]">
-				{filterSource === 'mcp' ? m.history_filter_source_mcp() : filterSource === 'user' ? m.history_filter_source_user() : m.history_filter_sources_all()}
+				{filterSource === 'mcp'
+					? m.history_filter_source_mcp()
+					: filterSource === 'user'
+						? m.history_filter_source_user()
+						: m.history_filter_sources_all()}
 			</Select.Trigger>
 			<Select.Content>
 				<Select.Item value="">{m.history_filter_sources_all()}</Select.Item>
@@ -409,7 +410,9 @@
 							<Table.Cell><div class="h-4 w-20 rounded bg-muted animate-pulse"></div></Table.Cell>
 							<Table.Cell><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Cell>
 							<Table.Cell><div class="h-4 w-24 rounded bg-muted animate-pulse"></div></Table.Cell>
-							<Table.Cell><div class="h-5 w-14 rounded-full bg-muted animate-pulse"></div></Table.Cell>
+							<Table.Cell
+								><div class="h-5 w-14 rounded-full bg-muted animate-pulse"></div></Table.Cell
+							>
 							<Table.Cell><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Cell>
 							<Table.Cell><div class="h-4 w-28 rounded bg-muted animate-pulse"></div></Table.Cell>
 						</Table.Row>
@@ -447,10 +450,7 @@
 						<Table.Row class={isStart ? '' : 'border-t-0'}>
 							{#each row.getVisibleCells() as cell (cell.id)}
 								<Table.Cell>
-									<FlexRender
-										content={cell.column.columnDef.cell}
-										context={cell.getContext()}
-									/>
+									<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 								</Table.Cell>
 							{/each}
 						</Table.Row>
@@ -463,7 +463,10 @@
 	<!-- Pagination -->
 	<div class="flex-shrink-0 border-t px-4 py-3 flex items-center justify-between">
 		<p class="text-sm text-muted-foreground">
-			{m.history_selection_count({ selected: selectedCount, total: table.getFilteredRowModel().rows.length })}
+			{m.history_selection_count({
+				selected: selectedCount,
+				total: table.getFilteredRowModel().rows.length
+			})}
 		</p>
 		<div class="flex gap-2">
 			<Button

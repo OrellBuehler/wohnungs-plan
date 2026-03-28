@@ -14,7 +14,13 @@ export const config = {
 		url: env.DATABASE_URL ?? ''
 	},
 	session: {
-		secret: env.SESSION_SECRET || (dev ? 'dev-secret-do-not-use-in-production' : (() => { throw new Error('SESSION_SECRET environment variable is required in production'); })())
+		secret:
+			env.SESSION_SECRET ||
+			(dev
+				? 'dev-secret-do-not-use-in-production'
+				: (() => {
+						throw new Error('SESSION_SECRET environment variable is required in production');
+					})())
 	},
 	uploads: {
 		dir: env.UPLOAD_DIR ?? './uploads',

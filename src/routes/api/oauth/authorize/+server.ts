@@ -113,12 +113,7 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 	}
 
 	// User has already authorized - create authorization code and redirect
-	const code = await createAuthorizationCode(
-		userId,
-		clientId,
-		redirectUri,
-		codeChallenge
-	);
+	const code = await createAuthorizationCode(userId, clientId, redirectUri, codeChallenge);
 
 	// Build redirect URL with authorization code
 	const callbackUrl = new URL(redirectUri);

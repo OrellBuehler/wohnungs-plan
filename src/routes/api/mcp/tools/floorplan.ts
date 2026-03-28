@@ -29,9 +29,16 @@ export function registerFloorplanTools(server: McpServer, helpers: ToolHelpers):
 							z.object({
 								id: z.string(),
 								type: z.string(),
-								polygon: z.array(z.tuple([z.number().min(-10000).max(100000), z.number().min(-10000).max(100000)])),
+								polygon: z.array(
+									z.tuple([z.number().min(-10000).max(100000), z.number().min(-10000).max(100000)])
+								),
 								area_sqm: z.number().min(0).max(10000).optional(),
-								dimensions: z.object({ width: z.number().min(0).max(100000), height: z.number().min(0).max(100000) }).optional(),
+								dimensions: z
+									.object({
+										width: z.number().min(0).max(100000),
+										height: z.number().min(0).max(100000)
+									})
+									.optional(),
 								label: z.string().optional()
 							})
 						)
@@ -40,8 +47,14 @@ export function registerFloorplanTools(server: McpServer, helpers: ToolHelpers):
 						.array(
 							z.object({
 								id: z.string(),
-								start: z.tuple([z.number().min(-10000).max(100000), z.number().min(-10000).max(100000)]),
-								end: z.tuple([z.number().min(-10000).max(100000), z.number().min(-10000).max(100000)]),
+								start: z.tuple([
+									z.number().min(-10000).max(100000),
+									z.number().min(-10000).max(100000)
+								]),
+								end: z.tuple([
+									z.number().min(-10000).max(100000),
+									z.number().min(-10000).max(100000)
+								]),
 								thickness: z.number().min(0).max(1000).optional()
 							})
 						)
@@ -51,7 +64,10 @@ export function registerFloorplanTools(server: McpServer, helpers: ToolHelpers):
 							z.object({
 								id: z.string(),
 								type: z.enum(['door', 'window']),
-								position: z.tuple([z.number().min(-10000).max(100000), z.number().min(-10000).max(100000)]),
+								position: z.tuple([
+									z.number().min(-10000).max(100000),
+									z.number().min(-10000).max(100000)
+								]),
 								width: z.number().min(0).max(10000).optional(),
 								wall_id: z.string().optional()
 							})
@@ -93,7 +109,8 @@ export function registerFloorplanTools(server: McpServer, helpers: ToolHelpers):
 				rooms_saved: analysis.rooms.length,
 				walls_saved: analysis.walls.length,
 				openings_saved: analysis.openings.length,
-				message: 'Floorplan analysis saved successfully. Future furniture placement can use this spatial data.'
+				message:
+					'Floorplan analysis saved successfully. Future furniture placement can use this spatial data.'
 			});
 		}
 	);

@@ -33,9 +33,10 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 
 	const body = await request.json();
 
-	const branchId = (body.branchId && typeof body.branchId === 'string')
-		? body.branchId
-		: (await resolveDefaultBranch(params.id)).id;
+	const branchId =
+		body.branchId && typeof body.branchId === 'string'
+			? body.branchId
+			: (await resolveDefaultBranch(params.id)).id;
 
 	if (body.type !== 'canvas' && body.type !== 'item') {
 		throw error(400, 'Invalid comment type. Must be "canvas" or "item"');

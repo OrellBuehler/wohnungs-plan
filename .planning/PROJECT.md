@@ -72,11 +72,12 @@ Users can visually plan and iterate on their apartment/house layout with accurat
 
 <!-- Decisions that constrain future work. Add throughout project lifecycle. -->
 
-| Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| Paraglide.js for i18n | Compiled approach, tree-shakable, type-safe message functions | — Pending |
-| Cookie-based locale (no URL prefix) | Simpler routing, no breaking changes to existing URLs | — Pending |
-| Flat snake_case message keys with area prefix | Consistent, easy to search, avoids nested JSON complexity | — Pending |
+| Decision                                      | Rationale                                                     | Outcome   |
+| --------------------------------------------- | ------------------------------------------------------------- | --------- |
+| Paraglide.js for i18n                         | Compiled approach, tree-shakable, type-safe message functions | — Pending |
+| Cookie-based locale (no URL prefix)           | Simpler routing, no breaking changes to existing URLs         | — Pending |
+| Flat snake_case message keys with area prefix | Consistent, easy to search, avoids nested JSON complexity     | — Pending |
 
 ---
-*Last updated: 2026-02-17 after initialization*
+
+_Last updated: 2026-02-17 after initialization_

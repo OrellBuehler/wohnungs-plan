@@ -9,11 +9,13 @@ vi.mock('$lib/server/projects', () => ({
 
 import { getUserProjectsWithDetails, createProject } from '$lib/server/projects';
 
-function createEvent(options: {
-	method?: string;
-	user?: { id: string } | null;
-	body?: unknown;
-} = {}) {
+function createEvent(
+	options: {
+		method?: string;
+		user?: { id: string } | null;
+		body?: unknown;
+	} = {}
+) {
 	const { method = 'GET', user = null, body } = options;
 	const headers = new Headers();
 	if (body) headers.set('content-type', 'application/json');
@@ -27,7 +29,13 @@ function createEvent(options: {
 		locals: { user },
 		params: {},
 		url: new URL('http://localhost:5173/api/projects'),
-		cookies: { get: () => undefined, getAll: () => [], set: () => {}, delete: () => {}, serialize: () => '' },
+		cookies: {
+			get: () => undefined,
+			getAll: () => [],
+			set: () => {},
+			delete: () => {},
+			serialize: () => ''
+		},
 		fetch: globalThis.fetch,
 		getClientAddress: () => '127.0.0.1',
 		platform: {},

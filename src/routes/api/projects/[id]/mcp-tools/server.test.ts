@@ -13,12 +13,14 @@ import {
 	updateProjectDisabledTools
 } from '$lib/server/projects';
 
-function createEvent(options: {
-	method?: string;
-	user?: { id: string } | null;
-	body?: unknown;
-	projectId?: string;
-} = {}) {
+function createEvent(
+	options: {
+		method?: string;
+		user?: { id: string } | null;
+		body?: unknown;
+		projectId?: string;
+	} = {}
+) {
 	const { method = 'GET', user = null, body, projectId = 'proj-1' } = options;
 	const headers = new Headers();
 	if (body) headers.set('content-type', 'application/json');
@@ -32,7 +34,13 @@ function createEvent(options: {
 		locals: { user },
 		params: { id: projectId },
 		url: new URL(`http://localhost:5173/api/projects/${projectId}/mcp-tools`),
-		cookies: { get: () => undefined, getAll: () => [], set: () => {}, delete: () => {}, serialize: () => '' },
+		cookies: {
+			get: () => undefined,
+			getAll: () => [],
+			set: () => {},
+			delete: () => {},
+			serialize: () => ''
+		},
 		fetch: globalThis.fetch,
 		getClientAddress: () => '127.0.0.1',
 		platform: {},
@@ -58,7 +66,10 @@ describe('GET /api/projects/[id]/mcp-tools', () => {
 
 	it('returns disabled tools for viewer', async () => {
 		vi.mocked(getProjectRole).mockResolvedValue('viewer');
-		vi.mocked(getProjectDisabledTools).mockResolvedValue(['delete_furniture_item', 'create_branch']);
+		vi.mocked(getProjectDisabledTools).mockResolvedValue([
+			'delete_furniture_item',
+			'create_branch'
+		]);
 
 		const response = await GET(createEvent({ user: { id: 'user-1' } }));
 		const data = await response.json();
@@ -120,14 +131,26 @@ describe('PATCH /api/projects/[id]/mcp-tools', () => {
 	it('returns 400 for non-array disabledTools', async () => {
 		vi.mocked(getProjectRole).mockResolvedValue('owner');
 		await expect(
-			PATCH(createEvent({ method: 'PATCH', user: { id: 'user-1' }, body: { disabledTools: 'not-array' } }))
+			PATCH(
+				createEvent({
+					method: 'PATCH',
+					user: { id: 'user-1' },
+					body: { disabledTools: 'not-array' }
+				})
+			)
 		).rejects.toThrow();
 	});
 
 	it('returns 400 for array with non-string elements', async () => {
 		vi.mocked(getProjectRole).mockResolvedValue('owner');
 		await expect(
-			PATCH(createEvent({ method: 'PATCH', user: { id: 'user-1' }, body: { disabledTools: [123, true] } }))
+			PATCH(
+				createEvent({
+					method: 'PATCH',
+					user: { id: 'user-1' },
+					body: { disabledTools: [123, true] }
+				})
+			)
 		).rejects.toThrow();
 	});
 

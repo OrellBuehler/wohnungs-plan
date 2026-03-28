@@ -64,7 +64,8 @@
 			},
 			unregistered_redirect_uri: {
 				title: 'Unregistered Redirect URI',
-				description: 'The provided redirect URI is not in the list of allowed URIs for this client.',
+				description:
+					'The provided redirect URI is not in the list of allowed URIs for this client.',
 				suggestions: [
 					'Go to Settings > MCP Integration and add the redirect URI to your allowed list',
 					'Make sure the URI matches exactly, including the port number and trailing slash',
@@ -123,7 +124,9 @@
 					{/if}
 
 					<div>
-						<p class="text-sm font-medium text-slate-700 mb-2">{m.oauth_error_suggestions_title()}</p>
+						<p class="text-sm font-medium text-slate-700 mb-2">
+							{m.oauth_error_suggestions_title()}
+						</p>
 						<ul class="space-y-2">
 							{#each error.suggestions as suggestion}
 								<li class="flex items-start gap-2 text-sm">

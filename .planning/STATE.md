@@ -19,23 +19,25 @@ Progress: [█████████░] 90%
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 9
 - Average duration: 4.9 min
 - Total execution time: 0.79 hours
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-i18n-infrastructure | 2 | 5 min | 2.5 min |
-| 02-string-extraction | 4 | 21 min | 5.3 min |
-| 03-error-handling-loading-states | 3 | 20 min | 6.7 min |
+| Phase                            | Plans | Total  | Avg/Plan |
+| -------------------------------- | ----- | ------ | -------- |
+| 01-i18n-infrastructure           | 2     | 5 min  | 2.5 min  |
+| 02-string-extraction             | 4     | 21 min | 5.3 min  |
+| 03-error-handling-loading-states | 3     | 20 min | 6.7 min  |
 
 **Recent Trend:**
+
 - Last 5 plans: 02-03 (9 min), 02-04 (2 min), 03-01 (4 min), 03-02 (6 min), 03-03 (10 min)
 - Trend: Steady
 
-*Updated after each plan completion*
+_Updated after each plan completion_
 | Phase 02-string-extraction P01 | 3 min | 2 tasks | 4 files |
 | Phase 02-string-extraction P02 | 7 min | 2 tasks | 3 files |
 | Phase 02-string-extraction P03 | 9 min | 2 tasks | 11 files |

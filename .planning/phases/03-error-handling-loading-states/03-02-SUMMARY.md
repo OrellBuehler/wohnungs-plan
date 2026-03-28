@@ -26,12 +26,12 @@ key-files:
     - messages/de.json
 
 key-decisions:
-  - "History page skeleton uses Table.Root/Row/Cell for consistent styling with data table"
-  - "OfflineBadge placed in project detail header only (home page has no sync context)"
+  - 'History page skeleton uses Table.Root/Row/Cell for consistent styling with data table'
+  - 'OfflineBadge placed in project detail header only (home page has no sync context)'
 
 patterns-established:
-  - "Skeleton loading: use animate-pulse with bg-muted rounded-md inside Table/Card containers"
-  - "Shared components: src/lib/components/shared/ for cross-page reusable UI"
+  - 'Skeleton loading: use animate-pulse with bg-muted rounded-md inside Table/Card containers'
+  - 'Shared components: src/lib/components/shared/ for cross-page reusable UI'
 
 requirements-completed: [VISD-03, ERRH-07]
 
@@ -52,6 +52,7 @@ completed: 2026-02-21
 - **Files modified:** 5
 
 ## Accomplishments
+
 - History page now shows 6 skeleton table rows matching column layout while loading (previously just text)
 - Created OfflineBadge component that shows pending change count when user is offline
 - Added i18n keys for offline status in both English and German
@@ -65,6 +66,7 @@ Each task was committed atomically:
 2. **Task 2: Add offline sync queue badge to header** - `ed0882a` (feat)
 
 ## Files Created/Modified
+
 - `src/lib/components/shared/OfflineBadge.svelte` - Badge showing pending changes count when offline
 - `src/routes/projects/[id]/history/+page.svelte` - Skeleton table rows replacing text loading indicator
 - `src/routes/projects/[id]/+page.svelte` - OfflineBadge wired into project header
@@ -72,6 +74,7 @@ Each task was committed atomically:
 - `messages/de.json` - Added German translations for offline keys
 
 ## Decisions Made
+
 - History page skeleton uses actual Table components (Table.Root, Table.Row, Table.Cell) to match the data table structure
 - OfflineBadge uses Badge variant="outline" for subtle appearance that disappears when online
 - Placed OfflineBadge in project detail header only since the home page has no sync/offline context
@@ -82,6 +85,7 @@ Each task was committed atomically:
 None - plan executed exactly as written. The plan noted that project detail and home page skeletons might already exist, and they did.
 
 ## Issues Encountered
+
 - Paraglide compilation needed manual regeneration with correct outdir (`./src/lib/paraglide`) for new i18n keys to be recognized by type checker
 
 ## User Setup Required
@@ -89,10 +93,12 @@ None - plan executed exactly as written. The plan noted that project detail and 
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - All skeleton loading states in place across views
 - Offline badge ready for user testing
 - Plan 03-03 can proceed independently
 
 ---
-*Phase: 03-error-handling-loading-states*
-*Completed: 2026-02-21*
+
+_Phase: 03-error-handling-loading-states_
+_Completed: 2026-02-21_

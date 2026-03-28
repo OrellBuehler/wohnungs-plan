@@ -56,7 +56,9 @@
 	<!-- Body -->
 	<div class="flex flex-1 overflow-hidden min-h-0">
 		<!-- Desktop sidebar -->
-		<aside class="hidden md:flex w-60 flex-col border-r border-slate-200 bg-white p-4 flex-shrink-0">
+		<aside
+			class="hidden md:flex w-60 flex-col border-r border-slate-200 bg-white p-4 flex-shrink-0"
+		>
 			<nav class="flex flex-col gap-1">
 				{#each navItems as item}
 					<a

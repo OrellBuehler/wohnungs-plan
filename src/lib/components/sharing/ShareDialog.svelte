@@ -120,7 +120,9 @@
 </script>
 
 <Dialog.Root bind:open onOpenChange={(o) => !o && handleClose()}>
-	<Dialog.Content class="max-h-[100dvh] h-full w-full max-w-none rounded-none sm:h-auto sm:max-h-[85vh] sm:max-w-xl sm:rounded-lg flex flex-col">
+	<Dialog.Content
+		class="max-h-[100dvh] h-full w-full max-w-none rounded-none sm:h-auto sm:max-h-[85vh] sm:max-w-xl sm:rounded-lg flex flex-col"
+	>
 		<Dialog.Header class="flex-shrink-0">
 			<Dialog.Title>{m.sharing_dialog_title()}</Dialog.Title>
 			<Dialog.Description>
@@ -139,9 +141,9 @@
 				<p class="text-sm text-red-600">{errorMessage}</p>
 			{:else}
 				<MemberList
-					members={members}
-					currentUserId={currentUserId}
-					canManage={canManage}
+					{members}
+					{currentUserId}
+					{canManage}
 					onRoleChange={handleRoleChange}
 					onRemove={handleRemove}
 				/>
@@ -164,11 +166,15 @@
 		<Dialog.Header>
 			<Dialog.Title>{m.sharing_remove_title()}</Dialog.Title>
 			<Dialog.Description class="break-words">
-				{m.sharing_remove_description({ name: memberToRemove?.name ?? memberToRemove?.email ?? '' })}
+				{m.sharing_remove_description({
+					name: memberToRemove?.name ?? memberToRemove?.email ?? ''
+				})}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={closeRemoveConfirm}>{m.common_cancel()}</Button>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={closeRemoveConfirm}
+				>{m.common_cancel()}</Button
+			>
 			<Button
 				variant="destructive"
 				class="w-full sm:w-auto"

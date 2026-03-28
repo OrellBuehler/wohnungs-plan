@@ -86,8 +86,7 @@ export function registerResources(server: McpServer, helpers: ToolHelpers): void
 			list: undefined
 		}),
 		{
-			description:
-				'Complete furniture inventory for a branch, including positions and dimensions.',
+			description: 'Complete furniture inventory for a branch, including positions and dimensions.',
 			mimeType: 'application/json'
 		},
 		async (uri, vars) => {

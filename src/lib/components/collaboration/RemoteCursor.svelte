@@ -43,21 +43,8 @@
 			class="transition-opacity duration-300"
 			style:opacity={labelVisible ? 1 : 0}
 		>
-			<rect
-				x="-2"
-				y="-10"
-				width={name.length * 7 + 8}
-				height="14"
-				rx="3"
-				fill={color}
-			/>
-			<text
-				x="2"
-				y="0"
-				fill="white"
-				font-size="10"
-				font-family="system-ui, sans-serif"
-			>
+			<rect x="-2" y="-10" width={name.length * 7 + 8} height="14" rx="3" fill={color} />
+			<text x="2" y="0" fill="white" font-size="10" font-family="system-ui, sans-serif">
 				{name}
 			</text>
 		</g>

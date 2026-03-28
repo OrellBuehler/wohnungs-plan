@@ -80,9 +80,15 @@ describe('comments store', () => {
 			// Seed comments via remote handler to avoid fetch
 			handleRemoteCommentCreated(makeComment({ id: 'c1', type: 'canvas', resolved: false }));
 			handleRemoteCommentCreated(makeComment({ id: 'c2', type: 'canvas', resolved: true }));
-			handleRemoteCommentCreated(makeComment({ id: 'c3', type: 'item', itemId: 'item-1', resolved: false }));
-			handleRemoteCommentCreated(makeComment({ id: 'c4', type: 'item', itemId: 'item-1', resolved: true }));
-			handleRemoteCommentCreated(makeComment({ id: 'c5', type: 'item', itemId: 'item-2', resolved: false }));
+			handleRemoteCommentCreated(
+				makeComment({ id: 'c3', type: 'item', itemId: 'item-1', resolved: false })
+			);
+			handleRemoteCommentCreated(
+				makeComment({ id: 'c4', type: 'item', itemId: 'item-1', resolved: true })
+			);
+			handleRemoteCommentCreated(
+				makeComment({ id: 'c5', type: 'item', itemId: 'item-2', resolved: false })
+			);
 		});
 
 		it('getCanvasComments filters to unresolved canvas comments by default', () => {
@@ -177,12 +183,8 @@ describe('comments store', () => {
 		});
 
 		it('counts comments updated after lastSeenAt', () => {
-			handleRemoteCommentCreated(
-				makeComment({ id: 'c1', updatedAt: '2024-01-01T00:00:00Z' })
-			);
-			handleRemoteCommentCreated(
-				makeComment({ id: 'c2', updatedAt: '2024-06-01T00:00:00Z' })
-			);
+			handleRemoteCommentCreated(makeComment({ id: 'c1', updatedAt: '2024-01-01T00:00:00Z' }));
+			handleRemoteCommentCreated(makeComment({ id: 'c2', updatedAt: '2024-06-01T00:00:00Z' }));
 			// Manually seed lastSeenAt by loading comments with localStorage mock
 			// Instead, we check unread = all since lastSeenAt is null
 			expect(getUnreadCount()).toBe(2);

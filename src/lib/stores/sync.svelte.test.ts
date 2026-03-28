@@ -1,11 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-	isOnline,
-	setOnline,
-	queueChange,
-	getPendingChanges,
-	getSyncState
-} from './sync.svelte';
+import { isOnline, setOnline, queueChange, getPendingChanges, getSyncState } from './sync.svelte';
 
 // Mock auth store
 vi.mock('./auth.svelte', () => ({

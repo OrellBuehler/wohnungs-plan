@@ -11,5 +11,5 @@ export const logger = {
 	debug: (...args: unknown[]) => shouldLog('debug') && console.debug('[debug]', ...args),
 	info: (...args: unknown[]) => shouldLog('info') && console.info('[info]', ...args),
 	warn: (...args: unknown[]) => shouldLog('warn') && console.warn('[warn]', ...args),
-	error: (...args: unknown[]) => shouldLog('error') && console.error('[error]', ...args),
+	error: (...args: unknown[]) => shouldLog('error') && console.error('[error]', ...args)
 };

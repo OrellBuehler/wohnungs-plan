@@ -8,7 +8,12 @@ import {
 	updateProject,
 	deleteProject
 } from '$lib/server/projects';
-import { ensureMainBranch, getBranchById, getDefaultBranch, listProjectBranches } from '$lib/server/branches';
+import {
+	ensureMainBranch,
+	getBranchById,
+	getDefaultBranch,
+	listProjectBranches
+} from '$lib/server/branches';
 import { getImagesByItems } from '$lib/server/item-images';
 
 export const GET: RequestHandler = async ({ locals, params, url }) => {

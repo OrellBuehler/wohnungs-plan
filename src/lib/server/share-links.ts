@@ -82,12 +82,21 @@ export async function getProjectShareLinks(projectId: string): Promise<ShareLink
 		.orderBy(desc(shareLinks.createdAt));
 }
 
-export async function revokeShareLink(linkId: string, projectId: string): Promise<ShareLink | null> {
+export async function revokeShareLink(
+	linkId: string,
+	projectId: string
+): Promise<ShareLink | null> {
 	const db = getDB();
 	const [link] = await db
 		.update(shareLinks)
 		.set({ revokedAt: new Date() })
-		.where(and(eq(shareLinks.id, linkId), eq(shareLinks.projectId, projectId), isNull(shareLinks.revokedAt)))
+		.where(
+			and(
+				eq(shareLinks.id, linkId),
+				eq(shareLinks.projectId, projectId),
+				isNull(shareLinks.revokedAt)
+			)
+		)
 		.returning();
 	return link ?? null;
 }
@@ -109,7 +118,9 @@ export function getShareAuthCookieName(token: string): string {
 }
 
 function createShareAuthSignature(linkId: string, token: string): string {
-	return createHmac('sha256', config.session.secret).update(`${linkId}:${token}`).digest('base64url');
+	return createHmac('sha256', config.session.secret)
+		.update(`${linkId}:${token}`)
+		.digest('base64url');
 }
 
 export function createShareAuthCookie(linkId: string, token: string): string {

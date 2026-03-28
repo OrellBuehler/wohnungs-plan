@@ -1,14 +1,16 @@
 /**
  * Factory for creating mock SvelteKit RequestEvent objects for API route tests.
  */
-export function createMockRequestEvent(options: {
-	method?: string;
-	headers?: Record<string, string>;
-	body?: unknown;
-	locals?: Record<string, unknown>;
-	params?: Record<string, string>;
-	url?: string;
-} = {}) {
+export function createMockRequestEvent(
+	options: {
+		method?: string;
+		headers?: Record<string, string>;
+		body?: unknown;
+		locals?: Record<string, unknown>;
+		params?: Record<string, string>;
+		url?: string;
+	} = {}
+) {
 	const {
 		method = 'GET',
 		headers = {},

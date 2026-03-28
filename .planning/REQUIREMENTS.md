@@ -78,59 +78,61 @@ Deferred to future release. Tracked but not in current roadmap.
 
 Explicitly excluded. Documented to prevent scope creep.
 
-| Feature | Reason |
-|---------|--------|
-| URL-based locale routing (`/de/...`) | Cookie strategy chosen; would require route refactor |
-| RTL layout support | Not needed for EN/DE |
-| More than 2 languages | Infrastructure supports it; add in future milestone |
-| Dark mode | Major audit; separate milestone |
-| Undo/redo system | Major architectural change; separate feature |
-| Conflict resolution UI | Requires real-time lock protocol changes |
-| Custom illustration/icon set | Lucide is consistent; replacement is branding decision |
-| Crash reporting (Sentry) | Infrastructure decision, not UI polish |
-| Native app features | PWA is the target |
+| Feature                              | Reason                                                 |
+| ------------------------------------ | ------------------------------------------------------ |
+| URL-based locale routing (`/de/...`) | Cookie strategy chosen; would require route refactor   |
+| RTL layout support                   | Not needed for EN/DE                                   |
+| More than 2 languages                | Infrastructure supports it; add in future milestone    |
+| Dark mode                            | Major audit; separate milestone                        |
+| Undo/redo system                     | Major architectural change; separate feature           |
+| Conflict resolution UI               | Requires real-time lock protocol changes               |
+| Custom illustration/icon set         | Lucide is consistent; replacement is branding decision |
+| Crash reporting (Sentry)             | Infrastructure decision, not UI polish                 |
+| Native app features                  | PWA is the target                                      |
 
 ## Traceability
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| I18N-01 | Phase 1 | Complete |
-| I18N-03 | Phase 1 | Complete |
-| I18N-07 | Phase 1 | Complete |
-| I18N-08 | Phase 1 | Complete |
-| I18N-09 | Phase 1 | Complete |
-| I18N-02 | Phase 2 | Complete |
-| I18N-04 | Phase 2 | Complete |
-| I18N-05 | Phase 2 | Complete |
-| I18N-06 | Phase 2 | Complete |
-| I18N-10 | Phase 2 | Complete |
-| ERRH-01 | Phase 3 | Complete |
-| ERRH-02 | Phase 3 | Complete |
-| ERRH-03 | Phase 3 | Complete |
-| ERRH-04 | Phase 3 | Complete |
-| ERRH-05 | Phase 3 | Complete |
-| ERRH-06 | Phase 3 | Complete |
-| ERRH-07 | Phase 3 | Complete |
-| VISD-03 | Phase 3 | Complete |
-| MOBI-01 | Phase 4 | Pending |
-| MOBI-02 | Phase 4 | Pending |
-| MOBI-03 | Phase 4 | Pending |
-| MOBI-04 | Phase 4 | Pending |
-| MOBI-05 | Phase 4 | Pending |
-| MOBI-06 | Phase 4 | Pending |
-| VISD-01 | Phase 5 | Pending |
-| VISD-02 | Phase 5 | Pending |
-| VISD-04 | Phase 5 | Pending |
-| VISD-05 | Phase 5 | Pending |
-| VISD-06 | Phase 5 | Pending |
+| Requirement | Phase   | Status   |
+| ----------- | ------- | -------- |
+| I18N-01     | Phase 1 | Complete |
+| I18N-03     | Phase 1 | Complete |
+| I18N-07     | Phase 1 | Complete |
+| I18N-08     | Phase 1 | Complete |
+| I18N-09     | Phase 1 | Complete |
+| I18N-02     | Phase 2 | Complete |
+| I18N-04     | Phase 2 | Complete |
+| I18N-05     | Phase 2 | Complete |
+| I18N-06     | Phase 2 | Complete |
+| I18N-10     | Phase 2 | Complete |
+| ERRH-01     | Phase 3 | Complete |
+| ERRH-02     | Phase 3 | Complete |
+| ERRH-03     | Phase 3 | Complete |
+| ERRH-04     | Phase 3 | Complete |
+| ERRH-05     | Phase 3 | Complete |
+| ERRH-06     | Phase 3 | Complete |
+| ERRH-07     | Phase 3 | Complete |
+| VISD-03     | Phase 3 | Complete |
+| MOBI-01     | Phase 4 | Pending  |
+| MOBI-02     | Phase 4 | Pending  |
+| MOBI-03     | Phase 4 | Pending  |
+| MOBI-04     | Phase 4 | Pending  |
+| MOBI-05     | Phase 4 | Pending  |
+| MOBI-06     | Phase 4 | Pending  |
+| VISD-01     | Phase 5 | Pending  |
+| VISD-02     | Phase 5 | Pending  |
+| VISD-04     | Phase 5 | Pending  |
+| VISD-05     | Phase 5 | Pending  |
+| VISD-06     | Phase 5 | Pending  |
 
 **Coverage:**
+
 - v1 requirements: 29 total
 - Mapped to phases: 29
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-02-17*
-*Last updated: 2026-02-17 after roadmap creation*
+
+_Requirements defined: 2026-02-17_
+_Last updated: 2026-02-17 after roadmap creation_

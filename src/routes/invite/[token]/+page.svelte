@@ -153,7 +153,9 @@
 							</div>
 							<div class="flex justify-between gap-4">
 								<span class="text-slate-500">{m.invite_details_email()}</span>
-								<span class="text-slate-800 font-medium text-right">{invite.email ?? m.invite_details_any_account()}</span>
+								<span class="text-slate-800 font-medium text-right"
+									>{invite.email ?? m.invite_details_any_account()}</span
+								>
 							</div>
 						</div>
 

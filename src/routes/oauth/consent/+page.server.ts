@@ -51,12 +51,18 @@ export const load: PageServerLoad = async ({ url, request }) => {
 
 	// Validate redirect URI is registered for this client
 	if (!validateRedirectUri(client, redirectUri)) {
-		throw redirect(302, `/oauth/error?code=unregistered_redirect_uri&detail=${encodeURIComponent(redirectUri)}`);
+		throw redirect(
+			302,
+			`/oauth/error?code=unregistered_redirect_uri&detail=${encodeURIComponent(redirectUri)}`
+		);
 	}
 
 	// Validate PKCE parameters
 	if (codeChallengeMethod !== 'S256') {
-		throw redirect(302, `/oauth/error?code=invalid_code_challenge_method&detail=${encodeURIComponent(codeChallengeMethod)}`);
+		throw redirect(
+			302,
+			`/oauth/error?code=invalid_code_challenge_method&detail=${encodeURIComponent(codeChallengeMethod)}`
+		);
 	}
 
 	if (!isValidCodeChallengeS256(codeChallenge)) {
@@ -134,12 +140,7 @@ export const actions = {
 			await createAuthorization(userId, clientId);
 
 			// Create authorization code
-			const code = await createAuthorizationCode(
-				userId,
-				clientId,
-				redirectUri,
-				codeChallenge
-			);
+			const code = await createAuthorizationCode(userId, clientId, redirectUri, codeChallenge);
 
 			// Build redirect URL with authorization code
 			const callbackUrl = new URL(redirectUri);

@@ -78,11 +78,7 @@
 	<!-- Thumbnail area -->
 	<div class="aspect-video bg-slate-100 rounded-t-lg overflow-hidden relative">
 		{#if thumbnailUrl}
-			<img
-				src={thumbnailUrl}
-				alt="{project.name} preview"
-				class="w-full h-full object-cover"
-			/>
+			<img src={thumbnailUrl} alt="{project.name} preview" class="w-full h-full object-cover" />
 		{:else}
 			<div class="w-full h-full flex items-center justify-center">
 				<House class="size-12 text-slate-300" />
@@ -91,7 +87,9 @@
 
 		<!-- Member count badge -->
 		{#if showMemberBadge}
-			<div class="absolute top-2 left-2 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium text-slate-700">
+			<div
+				class="absolute top-2 left-2 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium text-slate-700"
+			>
 				<Users class="size-3" />
 				<span>{project.memberCount}</span>
 			</div>
@@ -99,11 +97,20 @@
 
 		<!-- Overflow menu -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="absolute top-2 right-2 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity" onclick={stopPropagation} onkeydown={stopPropagation}>
+		<div
+			class="absolute top-2 right-2 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity"
+			onclick={stopPropagation}
+			onkeydown={stopPropagation}
+		>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
-						<Button {...props} variant="secondary" size="icon" class="bg-white/90 backdrop-blur-sm hover:bg-white">
+						<Button
+							{...props}
+							variant="secondary"
+							size="icon"
+							class="bg-white/90 backdrop-blur-sm hover:bg-white"
+						>
 							<MoreVertical class="size-4" />
 							<span class="sr-only">{m.project_card_actions()}</span>
 						</Button>

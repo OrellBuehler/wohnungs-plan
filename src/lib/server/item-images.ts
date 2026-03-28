@@ -87,7 +87,11 @@ export async function createItemImage(
 	return image;
 }
 
-export async function deleteItemImage(projectId: string, itemId: string, imageId: string): Promise<boolean> {
+export async function deleteItemImage(
+	projectId: string,
+	itemId: string,
+	imageId: string
+): Promise<boolean> {
 	const db = getDB();
 
 	const [image] = await db
@@ -115,7 +119,9 @@ export async function deleteItemImage(projectId: string, itemId: string, imageId
 
 export async function deleteAllItemImages(projectId: string, itemId: string): Promise<void> {
 	const db = getDB();
-	await db.delete(itemImages).where(and(eq(itemImages.itemId, itemId), eq(itemImages.projectId, projectId)));
+	await db
+		.delete(itemImages)
+		.where(and(eq(itemImages.itemId, itemId), eq(itemImages.projectId, projectId)));
 
 	// Remove directory
 	try {
@@ -140,7 +146,7 @@ export async function reorderItemImages(itemId: string, imageIds: string[]): Pro
 export async function getImagesByItems(
 	projectId: string,
 	itemIds: string[]
-): Promise<Map<string, typeof itemImages.$inferSelect[]>> {
+): Promise<Map<string, (typeof itemImages.$inferSelect)[]>> {
 	if (itemIds.length === 0) return new Map();
 
 	const db = getDB();
@@ -150,7 +156,7 @@ export async function getImagesByItems(
 		.where(and(eq(itemImages.projectId, projectId), inArray(itemImages.itemId, itemIds)))
 		.orderBy(asc(itemImages.sortOrder), asc(itemImages.createdAt));
 
-	const map = new Map<string, typeof itemImages.$inferSelect[]>();
+	const map = new Map<string, (typeof itemImages.$inferSelect)[]>();
 	for (const image of images) {
 		const existing = map.get(image.itemId) ?? [];
 		existing.push(image);

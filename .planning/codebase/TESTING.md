@@ -5,13 +5,16 @@
 ## Test Framework
 
 **Runner:**
+
 - Vitest 4.0.18
 - Config: `vite.config.ts` (vitest section)
 
 **Assertion Library:**
+
 - Vitest built-in expect() - native assertions
 
 **Run Commands:**
+
 ```bash
 bun test              # Run all tests once
 bun test:watch       # Watch mode for development
@@ -19,6 +22,7 @@ bun run test:watch   # Alternative (via package.json scripts)
 ```
 
 **Coverage:**
+
 ```bash
 # Coverage is configured but command not in package.json
 # Coverage provider: v8
@@ -29,15 +33,18 @@ bun run test:watch   # Alternative (via package.json scripts)
 ## Test File Organization
 
 **Location:**
+
 - Co-located with source files in same directory
 - Pattern: `module.ts` → `module.test.ts`
 - Examples: `src/lib/server/session.test.ts`, `src/lib/server/http.test.ts`, `src/lib/server/oauth.test.ts`
 
 **Naming:**
+
 - `.test.ts` suffix for unit tests
 - `.svelte.test.ts` suffix for Svelte component tests (pattern established, not yet used)
 
 **Structure:**
+
 ```
 src/lib/server/
 ├── session.ts
@@ -51,6 +58,7 @@ src/lib/server/
 ## Test Structure
 
 **Suite Organization:**
+
 ```typescript
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
@@ -73,6 +81,7 @@ describe('functionName', () => {
 ```
 
 **Patterns:**
+
 - `describe()` per function/module
 - `it()` per behavior or edge case
 - Arrange-Act-Assert structure (implicit in test code)
@@ -80,6 +89,7 @@ describe('functionName', () => {
 - One assertion focus per test, though multiple assertions allowed
 
 **Setup/Teardown:**
+
 ```typescript
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -92,6 +102,7 @@ afterEach(() => {
 ```
 
 Examples from codebase:
+
 - `src/lib/server/session.test.ts` - Cookie parsing and generation
 - `src/lib/server/http.test.ts` - HTTP protocol detection
 - `src/lib/server/oauth.test.ts` - Token generation and PKCE validation
@@ -102,6 +113,7 @@ Examples from codebase:
 **Framework:** Vitest `vi` module (already imported)
 
 **Patterns:**
+
 ```typescript
 // Module mocking
 vi.mock('./env', () => ({
@@ -113,37 +125,41 @@ vi.mock('./env', () => ({
 }));
 
 // Function mocking
-vi.fn()
-vi.spyOn()
-vi.clearAllMocks() // Reset between tests
+vi.fn();
+vi.spyOn();
+vi.clearAllMocks(); // Reset between tests
 
 // Timer mocking for time-dependent code
-vi.useFakeTimers()
-vi.advanceTimersByTime(milliseconds)
-vi.useRealTimers()
+vi.useFakeTimers();
+vi.advanceTimersByTime(milliseconds);
+vi.useRealTimers();
 ```
 
 **What to Mock:**
+
 - External module dependencies: `./env` configs, OAuth providers
 - Time-dependent functions: rate limiting windows, session expiration
 - System APIs when needed: fetch can be stubbed globally
 
 **What NOT to Mock:**
+
 - Database queries (test against real schema if needed, or use factories)
 - Utility functions (toJsonValue, fromJsonValue should run real)
 - Core logic you're testing (unmock the function under test)
 
 **Global Mocks (src/lib/test-utils/setup.ts):**
+
 ```typescript
 // Pre-configured mocks applied to all tests
-globalThis.fetch = vi.fn() // Available in tests
-globalThis.crypto.randomUUID() // Polyfilled
-navigator.onLine // Mockable property
+globalThis.fetch = vi.fn(); // Available in tests
+globalThis.crypto.randomUUID(); // Polyfilled
+navigator.onLine; // Mockable property
 ```
 
 ## Fixtures and Factories
 
 **Test Data:**
+
 ```typescript
 // From src/lib/test-utils/factories.ts
 
@@ -183,12 +199,14 @@ export function createTestBranch(overrides?: Partial<ProjectBranch>): ProjectBra
 ```
 
 **Location:**
+
 - `src/lib/test-utils/factories.ts` - Factory functions for test data
 - `src/lib/test-utils/setup.ts` - Global setup and mocks
 - `src/lib/test-utils/mocks/` - Subdirectory for mock implementations
 - `src/lib/test-utils/request-event.ts` - SvelteKit RequestEvent mocking
 
 **Usage:**
+
 ```typescript
 const project = createTestProject({ name: 'Custom Name' });
 const item = createTestItem({ width: 200 });
@@ -199,12 +217,14 @@ const item = createTestItem({ width: 200 });
 **Requirements:** Not enforced (no coverage threshold in config)
 
 **View Coverage:**
+
 ```bash
 # No specific command in package.json, but vitest config supports:
 vitest run --coverage
 ```
 
 **Coverage Configuration (vite.config.ts):**
+
 ```typescript
 coverage: {
 	provider: 'v8',
@@ -219,22 +239,26 @@ coverage: {
 ## Test Types
 
 **Unit Tests:**
+
 - Scope: Individual functions and modules
 - Approach: Direct function calls, test utility factories for data, mocked dependencies
 - Examples: `session.test.ts`, `oauth.test.ts`, `rate-limit.test.ts`
 - Typical structure: Import function, create test data with factories, call function, assert result
 
 **Integration Tests:**
+
 - Scope: Not yet present in codebase
 - Pattern to follow: Multiple modules together (e.g., items + changes tracking)
 
 **E2E Tests:**
+
 - Framework: Not used
 - Alternative: Manual testing or CI-based deployment verification
 
 ## Common Patterns
 
 **Async Testing:**
+
 ```typescript
 // Vitest automatically detects async tests
 it('creates a user', async () => {
@@ -247,6 +271,7 @@ it('creates a user', async () => {
 ```
 
 **Error Testing:**
+
 ```typescript
 it('rejects a wrong token', () => {
 	const hash = hashToken('correct-token');
@@ -261,6 +286,7 @@ it('throws on invalid input', () => {
 ```
 
 **Mocking Time (Rate Limiting Example):**
+
 ```typescript
 describe('checkRateLimit', () => {
 	beforeEach(() => {
@@ -291,6 +317,7 @@ describe('checkRateLimit', () => {
 ```
 
 **Mocking Modules:**
+
 ```typescript
 // At top of test file
 vi.mock('./env', () => ({
@@ -313,11 +340,13 @@ it('includes Secure flag when explicitly set', () => {
 **Environment:** jsdom
 
 **Features:**
+
 - DOM APIs available (document, window, etc.)
 - Service Worker simulation available
 - jsdom 28.0.0
 
 **Configuration (vite.config.ts):**
+
 ```typescript
 test: {
 	include: ['src/**/*.test.ts', 'src/**/*.svelte.test.ts'],
@@ -340,4 +369,4 @@ test: {
 
 ---
 
-*Testing analysis: 2026-02-17*
+_Testing analysis: 2026-02-17_

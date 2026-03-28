@@ -7,15 +7,17 @@
 ---
 
 <phase_requirements>
+
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|-----------------|
+| ID      | Description                                                                | Research Support                                                                                                   |
+| ------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | I18N-01 | User can switch between English and German via a visible language switcher | `setLocale('de')` from `$lib/paraglide/runtime.js`; triggers page reload by default; switcher placed in AppSidebar |
-| I18N-03 | Locale persists across sessions via cookie | Built-in `cookie` strategy in Paraglide v2; default cookie `PARAGLIDE_LOCALE`, max-age ~400 days |
-| I18N-07 | HTML lang attribute updates dynamically per locale | `%lang%` placeholder in `app.html`, replaced server-side via `transformPageChunk` in `hooks.server.ts` |
-| I18N-08 | Browser language auto-detected on first visit | `preferredLanguage` strategy reads `Accept-Language` header (server) / `navigator.languages` (client) |
-| I18N-09 | Language switcher shows native names ("Deutsch", "English") | Static map in switcher component: `{ en: 'English', de: 'Deutsch' }` |
+| I18N-03 | Locale persists across sessions via cookie                                 | Built-in `cookie` strategy in Paraglide v2; default cookie `PARAGLIDE_LOCALE`, max-age ~400 days                   |
+| I18N-07 | HTML lang attribute updates dynamically per locale                         | `%lang%` placeholder in `app.html`, replaced server-side via `transformPageChunk` in `hooks.server.ts`             |
+| I18N-08 | Browser language auto-detected on first visit                              | `preferredLanguage` strategy reads `Accept-Language` header (server) / `navigator.languages` (client)              |
+| I18N-09 | Language switcher shows native names ("Deutsch", "English")                | Static map in switcher component: `{ en: 'English', de: 'Deutsch' }`                                               |
+
 </phase_requirements>
 
 ---
@@ -36,23 +38,23 @@ Sonner toast is added via the shadcn-svelte CLI command, which adds `svelte-sonn
 
 ### Core
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| `@inlang/paraglide-js` | 2.11.0 | i18n compiler + runtime | Official recommendation; `@inlang/paraglide-sveltekit` is deprecated |
-| `svelte-sonner` | latest (via shadcn-svelte) | Toast notifications | Bundled via shadcn-svelte `add sonner`; wraps Emil Kowalski's Sonner for Svelte |
+| Library                | Version                    | Purpose                 | Why Standard                                                                    |
+| ---------------------- | -------------------------- | ----------------------- | ------------------------------------------------------------------------------- |
+| `@inlang/paraglide-js` | 2.11.0                     | i18n compiler + runtime | Official recommendation; `@inlang/paraglide-sveltekit` is deprecated            |
+| `svelte-sonner`        | latest (via shadcn-svelte) | Toast notifications     | Bundled via shadcn-svelte `add sonner`; wraps Emil Kowalski's Sonner for Svelte |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
+| Library                          | Version  | Purpose                           | When to Use                                                                      |
+| -------------------------------- | -------- | --------------------------------- | -------------------------------------------------------------------------------- |
 | `@sveltejs/kit/hooks` `sequence` | built-in | Chain multiple `handle` functions | Required when adding paraglide middleware alongside existing session/CORS handle |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| `@inlang/paraglide-js` (Vite plugin) | `@inlang/paraglide-sveltekit` | DEPRECATED — do not use |
-| `svelte-sonner` via shadcn-svelte | `@svelte-put/toast`, custom store | shadcn-svelte add gives consistent styling; no reason to hand-roll |
+| Instead of                           | Could Use                         | Tradeoff                                                           |
+| ------------------------------------ | --------------------------------- | ------------------------------------------------------------------ |
+| `@inlang/paraglide-js` (Vite plugin) | `@inlang/paraglide-sveltekit`     | DEPRECATED — do not use                                            |
+| `svelte-sonner` via shadcn-svelte    | `@svelte-put/toast`, custom store | shadcn-svelte add gives consistent styling; no reason to hand-roll |
 
 **Installation:**
 
@@ -108,18 +110,18 @@ src/
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    sveltekit(),
-    paraglideVitePlugin({
-      project: './project.inlang',
-      outdir: './src/lib/paraglide',
-      strategy: ['cookie', 'preferredLanguage', 'baseLocale']
-      // No 'url' strategy = no URL prefixes (/de/...) needed
-    }),
-    ...(process.env.VITEST ? [stubBunForTests()] : [])
-  ],
-  // ... rest of existing config
+	plugins: [
+		tailwindcss(),
+		sveltekit(),
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide',
+			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
+			// No 'url' strategy = no URL prefixes (/de/...) needed
+		}),
+		...(process.env.VITEST ? [stubBunForTests()] : [])
+	]
+	// ... rest of existing config
 });
 ```
 
@@ -136,16 +138,16 @@ import { paraglideMiddleware } from '$lib/paraglide/server';
 
 // Existing handle stays untouched
 const existingHandle: Handle = async ({ event, resolve }) => {
-  // ... session parsing, CSRF, CORS (unchanged)
+	// ... session parsing, CSRF, CORS (unchanged)
 };
 
 const paraglideHandle: Handle = ({ event, resolve }) =>
-  paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
-    event.request = localizedRequest;
-    return resolve(event, {
-      transformPageChunk: ({ html }) => html.replace('%lang%', locale)
-    });
-  });
+	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
+		event.request = localizedRequest;
+		return resolve(event, {
+			transformPageChunk: ({ html }) => html.replace('%lang%', locale)
+		});
+	});
 
 // paraglide MUST run after session so locals.user is already populated
 export const handle: Handle = sequence(existingHandle, paraglideHandle);
@@ -158,7 +160,7 @@ export const handle: Handle = sequence(existingHandle, paraglideHandle);
 
 ```html
 <!-- src/app.html -->
-<html lang="%lang%">
+<html lang="%lang%"></html>
 ```
 
 The middleware replaces `%lang%` with the detected locale string (e.g., `de`) on every SSR render.
@@ -178,29 +180,26 @@ Note: Because we use `strategy: ['cookie', 'preferredLanguage', 'baseLocale']` w
 ```svelte
 <!-- src/lib/components/LanguageSwitcher.svelte -->
 <script lang="ts">
-  // Source: https://inlang.com/m/gerre34r/library-inlang-paraglideJs/runtime
-  import { getLocale, setLocale, locales } from '$lib/paraglide/runtime.js';
+	// Source: https://inlang.com/m/gerre34r/library-inlang-paraglideJs/runtime
+	import { getLocale, setLocale, locales } from '$lib/paraglide/runtime.js';
 
-  const nativeNames: Record<string, string> = {
-    en: 'English',
-    de: 'Deutsch'
-  };
+	const nativeNames: Record<string, string> = {
+		en: 'English',
+		de: 'Deutsch'
+	};
 
-  const current = $derived(getLocale());
+	const current = $derived(getLocale());
 
-  function switchLocale(locale: string) {
-    // setLocale triggers a full page reload by default (v2 deliberate design)
-    setLocale(locale as 'en' | 'de');
-  }
+	function switchLocale(locale: string) {
+		// setLocale triggers a full page reload by default (v2 deliberate design)
+		setLocale(locale as 'en' | 'de');
+	}
 </script>
 
 {#each locales as locale}
-  <button
-    onclick={() => switchLocale(locale)}
-    aria-pressed={current === locale}
-  >
-    {nativeNames[locale] ?? locale}
-  </button>
+	<button onclick={() => switchLocale(locale)} aria-pressed={current === locale}>
+		{nativeNames[locale] ?? locale}
+	</button>
 {/each}
 ```
 
@@ -212,15 +211,15 @@ Note: Because we use `strategy: ['cookie', 'preferredLanguage', 'baseLocale']` w
 ```svelte
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-  import { Toaster } from '$lib/components/ui/sonner/index.js';
-  // ... existing imports
+	import { Toaster } from '$lib/components/ui/sonner/index.js';
+	// ... existing imports
 </script>
 
 <Tooltip.Provider>
-  <div class="h-screen bg-slate-100 flex flex-col overflow-hidden" style="height: 100dvh;">
-    {@render children()}
-  </div>
-  <AppSidebar />
+	<div class="h-screen bg-slate-100 flex flex-col overflow-hidden" style="height: 100dvh;">
+		{@render children()}
+	</div>
+	<AppSidebar />
 </Tooltip.Provider>
 
 <Toaster />
@@ -230,7 +229,7 @@ Triggering a toast from any component:
 
 ```svelte
 <script lang="ts">
-  import { toast } from 'svelte-sonner';
+	import { toast } from 'svelte-sonner';
 </script>
 
 <button onclick={() => toast.success('Saved!')}>Save</button>
@@ -249,13 +248,13 @@ Triggering a toast from any component:
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Cookie read/write for locale | Custom `document.cookie` manipulation | `cookie` strategy in Paraglide plugin | Paraglide handles `Set-Cookie` in SSR response headers, SameSite, domain scope, and max-age |
-| Accept-Language parsing | Custom header parsing in `hooks.server.ts` | `preferredLanguage` strategy | Handles BCP-47 tags, quality values, fallback matching, and `navigator.languages` on client |
-| Toast portal / z-index stacking | Custom overlay component | `svelte-sonner` via shadcn-svelte | Handles viewport stacking, keyboard dismiss, queue management, animation, and accessibility |
-| HTML lang attribute injection | `svelte:head` with a reactive variable | `%lang%` + `transformPageChunk` in middleware | Runs server-side before HTML is sent; `svelte:head` can't update `<html>` attributes |
-| Type-safe translation keys | TypeScript interface for message keys | Generated `m.*` functions from Paraglide compiler | Compiler produces fully typed message functions; adding new keys updates types automatically |
+| Problem                         | Don't Build                                | Use Instead                                       | Why                                                                                          |
+| ------------------------------- | ------------------------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Cookie read/write for locale    | Custom `document.cookie` manipulation      | `cookie` strategy in Paraglide plugin             | Paraglide handles `Set-Cookie` in SSR response headers, SameSite, domain scope, and max-age  |
+| Accept-Language parsing         | Custom header parsing in `hooks.server.ts` | `preferredLanguage` strategy                      | Handles BCP-47 tags, quality values, fallback matching, and `navigator.languages` on client  |
+| Toast portal / z-index stacking | Custom overlay component                   | `svelte-sonner` via shadcn-svelte                 | Handles viewport stacking, keyboard dismiss, queue management, animation, and accessibility  |
+| HTML lang attribute injection   | `svelte:head` with a reactive variable     | `%lang%` + `transformPageChunk` in middleware     | Runs server-side before HTML is sent; `svelte:head` can't update `<html>` attributes         |
+| Type-safe translation keys      | TypeScript interface for message keys      | Generated `m.*` functions from Paraglide compiler | Compiler produces fully typed message functions; adding new keys updates types automatically |
 
 **Key insight:** The Paraglide v2 compiler runs at build/dev time and generates all runtime code. The "hard" i18n problems (SSR locale propagation, hydration, bundle splitting per locale) are solved by the compiler and middleware pattern — not by runtime state management.
 
@@ -317,8 +316,8 @@ Verified patterns from official sources:
 // project.inlang/settings.json
 // Source: https://inlang.com/m/gerre34r/library-inlang-paraglideJs/basics
 {
-  "baseLocale": "en",
-  "locales": ["en", "de"]
+	"baseLocale": "en",
+	"locales": ["en", "de"]
 }
 ```
 
@@ -327,28 +326,28 @@ Verified patterns from official sources:
 ```json
 // messages/en.json  — flat snake_case keys with area prefix
 {
-  "nav_home": "Home",
-  "nav_settings": "Settings",
-  "sidebar_sign_in": "Sign in",
-  "sidebar_sign_out": "Sign out",
-  "sidebar_branch_label": "Branch",
-  "sidebar_branch_new": "New",
-  "sidebar_branch_rename": "Rename",
-  "sidebar_branch_delete": "Delete"
+	"nav_home": "Home",
+	"nav_settings": "Settings",
+	"sidebar_sign_in": "Sign in",
+	"sidebar_sign_out": "Sign out",
+	"sidebar_branch_label": "Branch",
+	"sidebar_branch_new": "New",
+	"sidebar_branch_rename": "Rename",
+	"sidebar_branch_delete": "Delete"
 }
 ```
 
 ```json
 // messages/de.json
 {
-  "nav_home": "Startseite",
-  "nav_settings": "Einstellungen",
-  "sidebar_sign_in": "Anmelden",
-  "sidebar_sign_out": "Abmelden",
-  "sidebar_branch_label": "Zweig",
-  "sidebar_branch_new": "Neu",
-  "sidebar_branch_rename": "Umbenennen",
-  "sidebar_branch_delete": "Löschen"
+	"nav_home": "Startseite",
+	"nav_settings": "Einstellungen",
+	"sidebar_sign_in": "Anmelden",
+	"sidebar_sign_out": "Abmelden",
+	"sidebar_branch_label": "Zweig",
+	"sidebar_branch_new": "Neu",
+	"sidebar_branch_rename": "Umbenennen",
+	"sidebar_branch_delete": "Löschen"
 }
 ```
 
@@ -356,8 +355,8 @@ Verified patterns from official sources:
 
 ```svelte
 <script lang="ts">
-  // Source: https://inlang.com/m/gerre34r/library-inlang-paraglideJs/basics
-  import * as m from '$lib/paraglide/messages.js';
+	// Source: https://inlang.com/m/gerre34r/library-inlang-paraglideJs/basics
+	import * as m from '$lib/paraglide/messages.js';
 </script>
 
 <a href="/">{m.nav_home()}</a>
@@ -368,8 +367,8 @@ Verified patterns from official sources:
 
 ```svelte
 <script lang="ts">
-  // Source: https://www.shadcn-svelte.com/docs/components/sonner
-  import { toast } from 'svelte-sonner';
+	// Source: https://www.shadcn-svelte.com/docs/components/sonner
+	import { toast } from 'svelte-sonner';
 </script>
 
 <button onclick={() => toast.success('Project saved')}>Save</button>
@@ -380,15 +379,16 @@ Verified patterns from official sources:
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| `@inlang/paraglide-sveltekit` | `@inlang/paraglide-js` Vite plugin | Paraglide v2 (2024) | No more SvelteKit-specific adapter; one package for all frameworks |
-| `<ParaglideJS>` wrapper component | Vite plugin + middleware pattern | Paraglide v2 (2024) | No Svelte component needed for i18n wiring |
-| `languageTag()` function | `getLocale()` function | Paraglide v2 (2024) | API renamed; `languageTag` is gone |
-| `languageTags` constant | `locales` constant | Paraglide v2 (2024) | API renamed |
-| `i18n.ts` file | Removed — logic in middleware | Paraglide v2 (2024) | Simpler setup |
+| Old Approach                      | Current Approach                   | When Changed        | Impact                                                             |
+| --------------------------------- | ---------------------------------- | ------------------- | ------------------------------------------------------------------ |
+| `@inlang/paraglide-sveltekit`     | `@inlang/paraglide-js` Vite plugin | Paraglide v2 (2024) | No more SvelteKit-specific adapter; one package for all frameworks |
+| `<ParaglideJS>` wrapper component | Vite plugin + middleware pattern   | Paraglide v2 (2024) | No Svelte component needed for i18n wiring                         |
+| `languageTag()` function          | `getLocale()` function             | Paraglide v2 (2024) | API renamed; `languageTag` is gone                                 |
+| `languageTags` constant           | `locales` constant                 | Paraglide v2 (2024) | API renamed                                                        |
+| `i18n.ts` file                    | Removed — logic in middleware      | Paraglide v2 (2024) | Simpler setup                                                      |
 
 **Deprecated/outdated:**
+
 - `@inlang/paraglide-sveltekit`: Replaced by `@inlang/paraglide-js` Vite plugin. Do not install.
 - `languageTag()`: Use `getLocale()` from `$lib/paraglide/runtime.js`.
 - `languageTags`: Use `locales` array from `$lib/paraglide/runtime.js`.
@@ -412,6 +412,7 @@ Verified patterns from official sources:
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - [Paraglide JS SvelteKit Official Docs](https://inlang.com/m/gerre34r/library-inlang-paraglideJs/sveltekit) — setup flow, middleware pattern, `%lang%` placeholder
 - [Paraglide JS Runtime Docs](https://inlang.com/m/gerre34r/library-inlang-paraglideJs/runtime) — `getLocale`, `setLocale`, `locales`, reload behavior
 - [Paraglide JS Compiler Options](https://inlang.com/m/gerre34r/library-inlang-paraglideJs/compiler-options) — `cookieName` (`PARAGLIDE_LOCALE`), `cookieMaxAge` (400 days), `cookieDomain`
@@ -422,11 +423,13 @@ Verified patterns from official sources:
 - [shadcn-svelte Sonner docs](https://www.shadcn-svelte.com/docs/components/sonner) — Toaster placement, toast API
 
 ### Secondary (MEDIUM confidence)
+
 - [dropanote.de: Paraglide 2.0 Migration Guide](https://dropanote.de/en/blog/20250506-paraglide-migration-2-0-sveltekit/) — verified against official docs; confirms API rename, sequence usage
 - [dropanote.de: Paraglide JS Setup Guide 2025](https://dropanote.de/en/blog/20250625-paraglide-js-setup-guide/) — confirms `header` strategy name and setup file structure
 - [SvelteKit hooks `sequence` docs](https://svelte.dev/docs/kit/@sveltejs-kit-hooks) — confirmed `sequence` is the correct helper for chaining handlers
 
 ### Tertiary (LOW confidence)
+
 - WebSearch result: Default cookie name `PARAGLIDE_LOCALE` — cross-confirmed with Compiler Options docs (HIGH)
 - WebSearch result: `@inlang/paraglide-js` version 2.11.0 is latest — likely accurate but npm registry not directly fetched
 
@@ -435,6 +438,7 @@ Verified patterns from official sources:
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH — official docs and official GitHub example confirm package names, versions, and imports
 - Architecture: HIGH — all patterns sourced from official SvelteKit example and inlang docs
 - Pitfalls: MEDIUM — pitfalls 1-3 and 5 are directly derived from official docs; pitfalls 4 and 6 are inferred from the app's existing PWA/SSR setup

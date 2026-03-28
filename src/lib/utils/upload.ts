@@ -3,7 +3,13 @@ export function uploadWithProgress(
 	formData: FormData,
 	onProgress: (percent: number) => void,
 	headers?: Record<string, string>
-): Promise<{ ok: boolean; status: number; statusText: string; text: () => Promise<string>; json: () => Promise<unknown> }> {
+): Promise<{
+	ok: boolean;
+	status: number;
+	statusText: string;
+	text: () => Promise<string>;
+	json: () => Promise<unknown>;
+}> {
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest();
 

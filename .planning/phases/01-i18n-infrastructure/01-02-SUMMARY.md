@@ -7,10 +7,10 @@ tags: [paraglide-js, i18n, verification, language-switcher, locale-persistence]
 # Dependency graph
 requires:
   - phase: 01-i18n-infrastructure
-    provides: "Paraglide i18n infrastructure with cookie-based locale strategy"
+    provides: 'Paraglide i18n infrastructure with cookie-based locale strategy'
 provides:
-  - "Human-verified end-to-end i18n infrastructure"
-  - "Confirmed language switching, locale persistence, HTML lang, browser detection, toast system"
+  - 'Human-verified end-to-end i18n infrastructure'
+  - 'Confirmed language switching, locale persistence, HTML lang, browser detection, toast system'
 affects: [02-i18n-message-extraction]
 
 # Tech tracking
@@ -23,7 +23,7 @@ key-files:
   modified: []
 
 key-decisions:
-  - "Phase 1 infrastructure verified: all five success criteria observable in running app"
+  - 'Phase 1 infrastructure verified: all five success criteria observable in running app'
 
 patterns-established: []
 
@@ -47,6 +47,7 @@ completed: 2026-02-17
 - **Files modified:** 0 (verification only)
 
 ## Accomplishments
+
 - Confirmed language switcher visible in sidebar with "English" and "Deutsch" options
 - Confirmed switching locale reloads page and UI changes to selected language
 - Confirmed HTML lang attribute matches active locale in DevTools
@@ -61,21 +62,27 @@ This plan was a verification-only checkpoint with no code changes.
 1. **Task 1: Verify Phase 1 i18n infrastructure end-to-end** - human-approved checkpoint (no commit)
 
 ## Files Created/Modified
+
 None - verification-only plan.
 
 ## Decisions Made
+
 - Phase 1 infrastructure confirmed complete: all five ROADMAP success criteria are observable in the running app, clearing the way for Phase 2 message extraction.
 
 ## Deviations from Plan
+
 None - plan executed exactly as written.
 
 ## Issues Encountered
+
 None.
 
 ## User Setup Required
+
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - All Phase 1 i18n infrastructure requirements verified end-to-end
 - Ready for Phase 2: i18n message extraction
 - No blockers or concerns for next phase
@@ -87,5 +94,6 @@ None - no external service configuration required.
 - No task commits expected (verification-only plan)
 
 ---
-*Phase: 01-i18n-infrastructure*
-*Completed: 2026-02-17*
+
+_Phase: 01-i18n-infrastructure_
+_Completed: 2026-02-17_

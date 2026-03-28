@@ -85,7 +85,11 @@ export function getFloorplanPath(projectId: string, filename: string): string {
 	return join(getFloorplanDir(projectId), filename);
 }
 
-export async function saveFloorplanFile(projectId: string, filename: string, data: Buffer): Promise<void> {
+export async function saveFloorplanFile(
+	projectId: string,
+	filename: string,
+	data: Buffer
+): Promise<void> {
 	const dir = getFloorplanDir(projectId);
 	await mkdir(dir, { recursive: true });
 	await writeFile(getFloorplanPath(projectId, filename), data);
@@ -99,7 +103,10 @@ async function deleteFloorplanFile(projectId: string, filename: string): Promise
 	}
 }
 
-export async function copyFloorplan(sourceProjectId: string, targetProjectId: string): Promise<Floorplan | null> {
+export async function copyFloorplan(
+	sourceProjectId: string,
+	targetProjectId: string
+): Promise<Floorplan | null> {
 	const db = getDB();
 	const [source] = await db
 		.select()

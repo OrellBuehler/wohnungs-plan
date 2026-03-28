@@ -58,7 +58,22 @@
 	import { saveThumbnail } from '$lib/db';
 	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
 	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
-	import { loadComments, resetComments, enterPlacementMode, createComment, updateCommentPosition, exitPlacementMode, isPlacementMode, getUnreadCount, markAllRead, setPendingComment, getPendingComment, getPinningCommentId, setActiveComment, getActiveComment } from '$lib/stores/comments.svelte';
+	import {
+		loadComments,
+		resetComments,
+		enterPlacementMode,
+		createComment,
+		updateCommentPosition,
+		exitPlacementMode,
+		isPlacementMode,
+		getUnreadCount,
+		markAllRead,
+		setPendingComment,
+		getPendingComment,
+		getPinningCommentId,
+		setActiveComment,
+		getActiveComment
+	} from '$lib/stores/comments.svelte';
 	import CommentPanel from '$lib/components/comments/CommentPanel.svelte';
 	import PlacementOverlay from '$lib/components/comments/PlacementOverlay.svelte';
 
@@ -424,7 +439,9 @@
 		// Mobile detection via matchMedia (fires only on breakpoint crossing)
 		const mql = window.matchMedia('(max-width: 767px)');
 		isMobile = mql.matches;
-		const handleChange = (e: MediaQueryListEvent) => { isMobile = e.matches; };
+		const handleChange = (e: MediaQueryListEvent) => {
+			isMobile = e.matches;
+		};
 		mql.addEventListener('change', handleChange);
 		return () => mql.removeEventListener('change', handleChange);
 	});
@@ -489,16 +506,16 @@
 								label: snapToGrid ? m.project_disable_snap() : m.project_enable_snap(),
 								icon: Magnet,
 								onclick: () => (snapToGrid = !snapToGrid),
-								indicator: snapToGrid ? m.project_sidebar_toggle_on() : m.project_sidebar_toggle_off()
+								indicator: snapToGrid
+									? m.project_sidebar_toggle_on()
+									: m.project_sidebar_toggle_off()
 							}
 						]
 					: [])
 			]
 		};
 
-		const actionGroups = [collaborationActions, canvasActions].filter(
-			(g) => g.actions.length > 0
-		);
+		const actionGroups = [collaborationActions, canvasActions].filter((g) => g.actions.length > 0);
 
 		const branch: BranchContext | undefined =
 			branches.length > 0
@@ -709,7 +726,7 @@
 	}
 
 	function handleItemBottomSheetRotate(id: string, direction: 'cw' | 'ccw') {
-		const item = items.find(i => i.id === id);
+		const item = items.find((i) => i.id === id);
 		if (item) {
 			const delta = direction === 'cw' ? 90 : -90;
 			handleItemRotate(id, (item.rotation + delta + 360) % 360);
@@ -812,7 +829,9 @@
 	const unreadCount = $derived(getUnreadCount());
 
 	// Derive whether comment panel should be open on desktop
-	const commentsPanelOpen = $derived(showCommentsPanel || getPendingComment() !== null || getActiveComment() !== null);
+	const commentsPanelOpen = $derived(
+		showCommentsPanel || getPendingComment() !== null || getActiveComment() !== null
+	);
 
 	// Canvas actions
 	function handleItemSelect(id: string | null) {
@@ -867,7 +886,10 @@
 {/if}
 
 {#if project}
-	<header class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0 gap-2" style="padding-top: max(0.75rem, env(safe-area-inset-top));">
+	<header
+		class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0 gap-2"
+		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
+	>
 		<div class="flex items-center gap-2 min-w-0 flex-1">
 			<a href="/" class="flex items-center flex-shrink-0">
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
@@ -885,7 +907,9 @@
 				<button
 					type="button"
 					onclick={isMobile ? undefined : startEditingName}
-					class="text-lg font-semibold text-slate-800 min-w-0 truncate {isMobile ? '' : 'hover:text-slate-600 cursor-pointer'}"
+					class="text-lg font-semibold text-slate-800 min-w-0 truncate {isMobile
+						? ''
+						: 'hover:text-slate-600 cursor-pointer'}"
 				>
 					{project.name}
 				</button>
@@ -936,14 +960,30 @@
 
 		<div class="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
 			{#if !isLocalProject}
-				<Button variant="outline" size="sm" class="hidden md:inline-flex" onclick={() => (showShareDialog = true)}>
+				<Button
+					variant="outline"
+					size="sm"
+					class="hidden md:inline-flex"
+					onclick={() => (showShareDialog = true)}
+				>
 					<Share2 size={16} class="mr-1" />
 					{m.project_share()}
 				</Button>
-				<Button variant="outline" size="sm" class="hidden md:inline-flex" onclick={handleOpenHistory}>
+				<Button
+					variant="outline"
+					size="sm"
+					class="hidden md:inline-flex"
+					onclick={handleOpenHistory}
+				>
 					{m.project_history()}
 				</Button>
-				<Button variant="outline" size="icon-sm" class="hidden md:inline-flex" onclick={refreshProject} disabled={isRefreshing}>
+				<Button
+					variant="outline"
+					size="icon-sm"
+					class="hidden md:inline-flex"
+					onclick={refreshProject}
+					disabled={isRefreshing}
+				>
 					<RefreshCw size={16} class={isRefreshing ? 'animate-spin' : ''} />
 					<span class="sr-only">{m.project_refresh()}</span>
 				</Button>
@@ -952,12 +992,17 @@
 				variant="outline"
 				size="sm"
 				class="hidden md:inline-flex relative"
-				onclick={() => { showCommentsPanel = !showCommentsPanel; markAllRead(); }}
+				onclick={() => {
+					showCommentsPanel = !showCommentsPanel;
+					markAllRead();
+				}}
 			>
 				<MessageSquare size={16} class="mr-1" />
 				Comments
 				{#if unreadCount > 0}
-					<span class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1">
+					<span
+						class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1"
+					>
 						{unreadCount}
 					</span>
 				{/if}
@@ -968,8 +1013,16 @@
 	</header>
 
 	<main class="relative flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
-		<div class="flex-1 min-w-0 min-h-0 {activeTab === 'plan' || activeTab === 'comments' ? 'flex' : 'hidden'} md:flex flex-col">
-			<div class="{activeTab === 'comments' && isMobile ? 'h-[40vh] flex-shrink-0' : 'flex-1'} min-h-0 m-2 md:m-4 rounded-lg overflow-hidden">
+		<div
+			class="flex-1 min-w-0 min-h-0 {activeTab === 'plan' || activeTab === 'comments'
+				? 'flex'
+				: 'hidden'} md:flex flex-col"
+		>
+			<div
+				class="{activeTab === 'comments' && isMobile
+					? 'h-[40vh] flex-shrink-0'
+					: 'flex-1'} min-h-0 m-2 md:m-4 rounded-lg overflow-hidden"
+			>
 				{#if pendingImageData}
 					<ScaleCalibration
 						imageData={pendingImageData}
@@ -985,19 +1038,19 @@
 					/>
 				{:else if !project.floorplan}
 					<FloorplanUpload onUpload={handleFloorplanUpload} />
-					{:else}
-						<FloorplanCanvas
-							bind:this={canvasRef}
-							floorplan={project.floorplan}
-							{items}
-							{selectedItemId}
-							{gridSize}
-							{showGrid}
-							{snapToGrid}
-							mobileMode={isMobile}
-							onItemSelect={isMobile ? handleItemTap : handleItemSelect}
-							onItemMove={handleItemMove}
-							onItemRotate={handleItemRotate}
+				{:else}
+					<FloorplanCanvas
+						bind:this={canvasRef}
+						floorplan={project.floorplan}
+						{items}
+						{selectedItemId}
+						{gridSize}
+						{showGrid}
+						{snapToGrid}
+						mobileMode={isMobile}
+						onItemSelect={isMobile ? handleItemTap : handleItemSelect}
+						onItemMove={handleItemMove}
+						onItemRotate={handleItemRotate}
 						onItemUnplace={handleUnplaceItem}
 						onThumbnailReady={handleThumbnailReady}
 						onCommentPlace={handleCommentPlace}
@@ -1038,15 +1091,29 @@
 		</div>
 
 		<aside
-			class="w-full md:w-80 min-h-0 {activeTab === 'items' ? 'flex' : 'hidden'} md:flex flex-col bg-white border-l border-slate-200"
+			class="w-full md:w-80 min-h-0 {activeTab === 'items'
+				? 'flex'
+				: 'hidden'} md:flex flex-col bg-white border-l border-slate-200"
 			ontouchstart={handleSwipeStart}
 			ontouchend={handleSwipeEnd}
 		>
 			{#if isRefreshing}
 				<div class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-slate-500">
 					<svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
-						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+						<circle
+							class="opacity-25"
+							cx="12"
+							cy="12"
+							r="10"
+							stroke="currentColor"
+							stroke-width="4"
+							fill="none"
+						/>
+						<path
+							class="opacity-75"
+							fill="currentColor"
+							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+						/>
 					</svg>
 					{m.project_refreshing()}
 				</div>
@@ -1087,8 +1154,12 @@
 		{/if}
 
 		{#if isBranchSwitching}
-			<div class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
-				<div class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
+			<div
+				class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center"
+			>
+				<div
+					class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm"
+				>
 					{m.branch_switching()}
 				</div>
 			</div>
@@ -1098,13 +1169,22 @@
 	<!-- Comment placement overlay -->
 	<PlacementOverlay {isMobile} onPlace={handlePlaceCommentMobile} />
 
-	<MobileNav {activeTab} onTabChange={(tab) => { activeTab = tab; if (tab === 'comments') markAllRead(); }} {unreadCount} />
+	<MobileNav
+		{activeTab}
+		onTabChange={(tab) => {
+			activeTab = tab;
+			if (tab === 'comments') markAllRead();
+		}}
+		{unreadCount}
+	/>
 
 	<ItemForm
 		bind:open={showItemForm}
 		item={editingItem}
 		defaultCurrency={displayCurrency}
-		existingImages={editingItem?.id ? (items.find((i) => i.id === editingItem?.id)?.images ?? []) : []}
+		existingImages={editingItem?.id
+			? (items.find((i) => i.id === editingItem?.id)?.images ?? [])
+			: []}
 		hidePositionFields={isMobile}
 		onSave={handleSaveItem}
 		onClose={() => (showItemForm = false)}
@@ -1136,10 +1216,17 @@
 		onUnplace={handleItemBottomSheetUnplace}
 	/>
 
-	<Dialog.Root bind:open={showBranchNameDialog} onOpenChange={(open) => !open && closeBranchNameDialog()}>
+	<Dialog.Root
+		bind:open={showBranchNameDialog}
+		onOpenChange={(open) => !open && closeBranchNameDialog()}
+	>
 		<Dialog.Content class="sm:max-w-md">
 			<Dialog.Header>
-				<Dialog.Title>{branchDialogMode === 'create' ? m.branch_create_title() : m.branch_rename_title()}</Dialog.Title>
+				<Dialog.Title
+					>{branchDialogMode === 'create'
+						? m.branch_create_title()
+						: m.branch_rename_title()}</Dialog.Title
+				>
 				<Dialog.Description>
 					{branchDialogMode === 'create'
 						? m.branch_create_description()
@@ -1153,7 +1240,12 @@
 					placeholder={m.branch_name_placeholder()}
 				/>
 				<Dialog.Footer class="gap-2">
-					<Button type="button" variant="outline" class="w-full sm:w-auto" onclick={closeBranchNameDialog}>{m.common_cancel()}</Button>
+					<Button
+						type="button"
+						variant="outline"
+						class="w-full sm:w-auto"
+						onclick={closeBranchNameDialog}>{m.common_cancel()}</Button
+					>
 					<Button
 						type="submit"
 						class="w-full sm:w-auto"
@@ -1173,7 +1265,12 @@
 				<Dialog.Description class="break-words">{confirmDialogDescription}</Dialog.Description>
 			</Dialog.Header>
 			<Dialog.Footer class="gap-2">
-				<Button type="button" variant="outline" class="w-full sm:w-auto" onclick={closeConfirmDialog}>{m.common_cancel()}</Button>
+				<Button
+					type="button"
+					variant="outline"
+					class="w-full sm:w-auto"
+					onclick={closeConfirmDialog}>{m.common_cancel()}</Button
+				>
 				<Button
 					type="button"
 					class="w-full sm:w-auto"

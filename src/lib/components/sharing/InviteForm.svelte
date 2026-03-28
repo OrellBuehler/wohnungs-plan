@@ -56,11 +56,7 @@
 			oninput={(e) => (email = (e.target as HTMLInputElement).value)}
 		/>
 
-		<Select.Root
-			type="single"
-			value={role}
-			onValueChange={(v) => (role = v as ProjectRole)}
-		>
+		<Select.Root type="single" value={role} onValueChange={(v) => (role = v as ProjectRole)}>
 			<Select.Trigger class="h-9 w-full sm:w-auto sm:min-w-[110px]">
 				{roleOptions.find((o) => o.value === role)?.label() ?? 'Role'}
 			</Select.Trigger>
@@ -78,7 +74,9 @@
 	</div>
 
 	{#if inviteLink}
-		<div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs overflow-hidden">
+		<div
+			class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs overflow-hidden"
+		>
 			<span class="truncate flex-1 min-w-0">{inviteLink}</span>
 			<Button variant="ghost" size="icon-sm" class="flex-shrink-0" onclick={copyInviteLink}>
 				<Copy class="h-4 w-4" />

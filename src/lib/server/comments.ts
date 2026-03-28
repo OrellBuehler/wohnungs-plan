@@ -222,10 +222,7 @@ export async function addReply(data: {
 		})
 		.returning();
 
-	await db
-		.update(comments)
-		.set({ updatedAt: new Date() })
-		.where(eq(comments.id, data.commentId));
+	await db.update(comments).set({ updatedAt: new Date() }).where(eq(comments.id, data.commentId));
 
 	const [author] = await db
 		.select({ name: users.name, avatarUrl: users.avatarUrl })
@@ -257,10 +254,7 @@ export async function updateCommentPosition(
 	y: number
 ): Promise<void> {
 	const db = getDB();
-	await db
-		.update(comments)
-		.set({ x, y, updatedAt: new Date() })
-		.where(eq(comments.id, commentId));
+	await db.update(comments).set({ x, y, updatedAt: new Date() }).where(eq(comments.id, commentId));
 }
 
 export async function deleteComment(commentId: string): Promise<void> {

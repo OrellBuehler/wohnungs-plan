@@ -249,23 +249,25 @@ describe('project store - critical decision logic', () => {
 			(globalThis.fetch as any).mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({
-					items: [{
-						id: item.id,
-						name: item.name,
-						width: item.width,
-						height: item.height,
-						x: 10,
-						y: 20,
-						rotation: 0,
-						color: item.color,
-						price: null,
-						priceCurrency: 'USD',
-						productUrl: null,
-						shape: 'rectangle',
-						cutoutWidth: null,
-						cutoutHeight: null,
-						cutoutCorner: null
-					}]
+					items: [
+						{
+							id: item.id,
+							name: item.name,
+							width: item.width,
+							height: item.height,
+							x: 10,
+							y: 20,
+							rotation: 0,
+							color: item.color,
+							price: null,
+							priceCurrency: 'USD',
+							productUrl: null,
+							shape: 'rectangle',
+							cutoutWidth: null,
+							cutoutHeight: null,
+							cutoutCorner: null
+						}
+					]
 				})
 			});
 

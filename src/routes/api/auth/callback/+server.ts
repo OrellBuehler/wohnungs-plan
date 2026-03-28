@@ -50,7 +50,8 @@ export const GET: RequestHandler = async ({ url, cookies, request }) => {
 		const oauthPending = cookies.get('oauth_pending');
 		if (oauthPending) {
 			cookies.delete('oauth_pending', { path: '/' });
-			const { clientId, redirectUri, state, codeChallenge, codeChallengeMethod, responseType } = JSON.parse(oauthPending);
+			const { clientId, redirectUri, state, codeChallenge, codeChallengeMethod, responseType } =
+				JSON.parse(oauthPending);
 
 			// Redirect back to OAuth authorize endpoint
 			const authorizeUrl = new URL('/api/oauth/authorize', url.origin);

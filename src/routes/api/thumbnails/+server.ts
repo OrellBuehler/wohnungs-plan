@@ -91,6 +91,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 			throw err;
 		}
 		logger.error('Failed to save thumbnail:', err);
-		throw error(500, `Failed to save thumbnail: ${err instanceof Error ? err.message : String(err)}`);
+		throw error(
+			500,
+			`Failed to save thumbnail: ${err instanceof Error ? err.message : String(err)}`
+		);
 	}
 };

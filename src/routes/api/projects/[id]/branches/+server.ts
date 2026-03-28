@@ -43,7 +43,12 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	try {
-		const branch = await createBranch(params.id, locals.user.id, name, body.forkFromBranchId ?? null);
+		const branch = await createBranch(
+			params.id,
+			locals.user.id,
+			name,
+			body.forkFromBranchId ?? null
+		);
 		return json({ branch }, { status: 201 });
 	} catch (err) {
 		if (err instanceof Error && err.message === 'Branch name is required') {

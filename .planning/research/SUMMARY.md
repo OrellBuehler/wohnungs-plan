@@ -22,6 +22,7 @@ The primary risks are not technical: they are process risks. The 127-file surfac
 The only new runtime dependency is `@inlang/paraglide-js` v2.11.0. The old SvelteKit-specific adapter (`@inlang/paraglide-sveltekit`) is deprecated at v0.16.1 and must not be used. For UI components, `shadcn-svelte skeleton` and `shadcn-svelte sonner` are added via `bunx shadcn-svelte@latest add` — these copy source into `$lib/components/ui/` and add no runtime dependencies beyond the already-installed `svelte-sonner`. All mobile gesture work uses Konva's native touch API (no new gesture library). All mobile layout work uses CSS environment variables and Web APIs (no new libraries).
 
 **Core technologies:**
+
 - `@inlang/paraglide-js` v2.11.0: compiler-based i18n — tree-shakes unused messages, type-safe keys, official SvelteKit recommendation; replaces deprecated `@inlang/paraglide-sveltekit`
 - `shadcn-svelte sonner` (wraps `svelte-sonner` v1.0.5): toast notifications — Svelte 5 rune-compatible, matches existing design system; add once to `+layout.svelte`, call `toast.*()` anywhere
 - `shadcn-svelte skeleton`: loading skeleton component — uses `animate-pulse` from already-installed `tw-animate-css`; no new dependency
@@ -30,6 +31,7 @@ The only new runtime dependency is `@inlang/paraglide-js` v2.11.0. The old Svelt
 ### Expected Features
 
 **Must have (table stakes):**
+
 - All UI strings translated with no raw English visible in the German UI — users leave immediately if language is mixed
 - Language switcher visible in sidebar and settings — needed to test translations; use native language names ("Deutsch")
 - Locale persists across sessions via cookie — cookie strategy already chosen; survives browser refresh
@@ -42,6 +44,7 @@ The only new runtime dependency is `@inlang/paraglide-js` v2.11.0. The old Svelt
 - Saving/sync indicator in header — plan already exists at `docs/plans/2026-02-02-toast-and-saving-indicator.md`
 
 **Should have (competitive):**
+
 - Automatic browser language detection via `Accept-Language` header (Paraglide `preferredLanguage` strategy)
 - Haptic feedback on canvas item tap/select (`navigator.vibrate(10)`) — low effort, high perceived quality
 - Offline indicator banner when `navigator.onLine` is false — high trust signal for PWA
@@ -52,6 +55,7 @@ The only new runtime dependency is `@inlang/paraglide-js` v2.11.0. The old Svelt
 - Empty states with icon + explanation text + CTA on all screens
 
 **Defer to later milestones:**
+
 - Dark mode — major audit of all components required; explicitly out of scope
 - RTL layout support — not needed for EN/DE
 - URL-based locale routing (`/de/...`) — would require restructuring every route; cookie strategy is sufficient
@@ -64,6 +68,7 @@ The only new runtime dependency is `@inlang/paraglide-js` v2.11.0. The old Svelt
 All four dimensions are UI-layer changes. Paraglide adds a Vite plugin (compile time), a server middleware in `hooks.server.ts` (via `sequence()`), and generated typed functions in `src/lib/paraglide/` (gitignored). Sonner adds one `<Toaster />` mount in `+layout.svelte`. Mobile UX follows the established `isMobile` → `readonly` prop pattern already in `projects/[id]/+page.svelte`. Visual polish is a Tailwind class editing pass with no new files. No new stores, no new API routes, no database schema changes are needed.
 
 **Major components modified:**
+
 1. `vite.config.ts` + `hooks.server.ts` — Paraglide plugin and middleware integration
 2. `src/routes/+layout.svelte` — `<Toaster />` mount and `LanguageSwitcher` added to `AppSidebar`
 3. `src/lib/stores/project.svelte.ts` + `auth.svelte.ts` — `toast.error()` added to all `catch` blocks
@@ -162,10 +167,12 @@ Based on combined research, the four areas have clear ordering dependencies. Inf
 ### Research Flags
 
 Needs deeper attention during implementation:
+
 - **Phase 3 (upload progress):** `fetch` has no progress API. Evaluate XHR vs. Streams API before writing the task. A spinner is an acceptable fallback if progress granularity proves too costly.
 - **Phase 4 (real-device testing):** iOS Safari `dvh` + virtual keyboard and Konva `visibilitychange` behavior require physical device verification. Block time for this; emulator results are unreliable.
 
 Standard patterns — no further research needed:
+
 - **Phase 1 (Paraglide + Sonner setup):** Official documentation is thorough and current.
 - **Phase 2 (string extraction):** Mechanical per-component work; process documented in `docs/plans/paraglide-i18n.md`.
 - **Phase 5 (visual polish):** Standard Tailwind + shadcn-svelte patterns.
@@ -174,12 +181,12 @@ Standard patterns — no further research needed:
 
 ## Confidence Assessment
 
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Stack | HIGH | All library versions verified against npm registry. Deprecated packages explicitly identified. Installation commands confirmed against official docs. |
-| Features | HIGH | Benchmarked against 5 production floorplanner and design apps. Table-stakes features have direct precedent. Anti-features are explicitly motivated. |
-| Architecture | HIGH | Based on actual codebase analysis (127 files, existing `isMobile` pattern, store structure, hooks chain). No speculative additions. |
-| Pitfalls | MEDIUM-HIGH | i18n, mobile, and error pitfalls grounded in codebase-specific evidence. Canvas pointer-cancel / iOS keyboard pitfalls grounded in platform behavior. Visual pitfalls grounded in Tailwind 4 specifics. |
+| Area         | Confidence  | Notes                                                                                                                                                                                                   |
+| ------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stack        | HIGH        | All library versions verified against npm registry. Deprecated packages explicitly identified. Installation commands confirmed against official docs.                                                   |
+| Features     | HIGH        | Benchmarked against 5 production floorplanner and design apps. Table-stakes features have direct precedent. Anti-features are explicitly motivated.                                                     |
+| Architecture | HIGH        | Based on actual codebase analysis (127 files, existing `isMobile` pattern, store structure, hooks chain). No speculative additions.                                                                     |
+| Pitfalls     | MEDIUM-HIGH | i18n, mobile, and error pitfalls grounded in codebase-specific evidence. Canvas pointer-cancel / iOS keyboard pitfalls grounded in platform behavior. Visual pitfalls grounded in Tailwind 4 specifics. |
 
 **Overall confidence:** MEDIUM-HIGH
 
@@ -218,5 +225,5 @@ Standard patterns — no further research needed:
 
 ---
 
-*Research completed: 2026-02-17*
-*Ready for roadmap: yes*
+_Research completed: 2026-02-17_
+_Ready for roadmap: yes_

@@ -1,10 +1,5 @@
 import { eq } from 'drizzle-orm';
-import {
-	getDB,
-	floorplanAnalyses,
-	type FloorplanAnalysis,
-	type NewFloorplanAnalysis
-} from './db';
+import { getDB, floorplanAnalyses, type FloorplanAnalysis, type NewFloorplanAnalysis } from './db';
 
 /**
  * Structured floorplan analysis data format

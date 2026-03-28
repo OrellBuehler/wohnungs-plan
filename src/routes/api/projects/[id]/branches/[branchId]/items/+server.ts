@@ -49,7 +49,12 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const body = await request.json();
-	const item = await createItem(params.id, params.branchId, locals.user.id, parseItemCreateBody(body));
+	const item = await createItem(
+		params.id,
+		params.branchId,
+		locals.user.id,
+		parseItemCreateBody(body)
+	);
 
 	return json({ item }, { status: 201 });
 };

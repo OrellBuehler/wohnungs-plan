@@ -29,7 +29,12 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => {
 	return { McpServer: MockMcpServer };
 });
 
-import { sessionTransports, createSessionTransport, getSessionTransport, MAX_SESSIONS_PER_USER } from './session';
+import {
+	sessionTransports,
+	createSessionTransport,
+	getSessionTransport,
+	MAX_SESSIONS_PER_USER
+} from './session';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 function makeCreateServer() {

@@ -1,12 +1,6 @@
 import { z } from 'zod';
 import { readFile, access } from 'node:fs/promises';
-import {
-	createItem,
-	deleteItem,
-	getBranchItems,
-	getItemById,
-	updateItem
-} from '$lib/server/items';
+import { createItem, deleteItem, getBranchItems, getItemById, updateItem } from '$lib/server/items';
 import { getImagesByItems } from '$lib/server/item-images';
 import { getThumbnailPath, generateAndSaveThumbnail } from '$lib/server/thumbnails';
 import { logger } from '$lib/server/logger';
@@ -26,27 +20,34 @@ export function registerFurnitureTools(server: McpServer, helpers: ToolHelpers):
 				name: z.string().min(1),
 				width: z.number().positive(),
 				height: z.number().positive(),
-				color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+				color: z
+					.string()
+					.regex(/^#[0-9a-fA-F]{6}$/)
+					.optional(),
 				price: z.number().positive().optional(),
 				priceCurrency: z.string().optional(),
 				productUrl: z.string().url().optional(),
 				shape: z.enum(['rectangle', 'l-shape']).optional(),
 				cutoutWidth: z.number().positive().optional(),
 				cutoutHeight: z.number().positive().optional(),
-				cutoutCorner: z
-					.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
-					.optional()
+				cutoutCorner: z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right']).optional()
 			}
 		},
 		async ({ project_id, branch_id, ...itemData }) => {
 			await checkToolEnabled('add_furniture_item', project_id);
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
-			const item = await createItem(project_id, branch_id, getUserId(), {
-				...itemData,
-				x: null,
-				y: null
-			}, { viaMcp: true });
+			const item = await createItem(
+				project_id,
+				branch_id,
+				getUserId(),
+				{
+					...itemData,
+					x: null,
+					y: null
+				},
+				{ viaMcp: true }
+			);
 			return asText({
 				id: item.id,
 				project_id: item.projectId,
@@ -73,7 +74,8 @@ export function registerFurnitureTools(server: McpServer, helpers: ToolHelpers):
 	server.registerTool(
 		'update_furniture_item',
 		{
-			description: 'Update an existing furniture item in a project branch. When setting position (x, y), first check get_floorplan_analysis for architectural constraints. The UI will show orange highlighting if items collide with walls/doors/windows. Avoid placing items that block doorways (respect door swing areas) or intersect walls. Position coordinates are in canvas pixels.',
+			description:
+				'Update an existing furniture item in a project branch. When setting position (x, y), first check get_floorplan_analysis for architectural constraints. The UI will show orange highlighting if items collide with walls/doors/windows. Avoid placing items that block doorways (respect door swing areas) or intersect walls. Position coordinates are in canvas pixels.',
 			inputSchema: {
 				project_id: z.string().uuid(),
 				branch_id: z.string().uuid(),
@@ -84,7 +86,10 @@ export function registerFurnitureTools(server: McpServer, helpers: ToolHelpers):
 				x: z.number().nullable().optional(),
 				y: z.number().nullable().optional(),
 				rotation: z.number().optional(),
-				color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+				color: z
+					.string()
+					.regex(/^#[0-9a-fA-F]{6}$/)
+					.optional(),
 				price: z.number().positive().nullable().optional(),
 				priceCurrency: z.string().optional(),
 				productUrl: z.string().url().nullable().optional(),
@@ -107,7 +112,9 @@ export function registerFurnitureTools(server: McpServer, helpers: ToolHelpers):
 				throw new Error('Item not found in this branch.');
 			}
 
-			const item = await updateItem(project_id, branch_id, item_id, getUserId(), updates, { viaMcp: true });
+			const item = await updateItem(project_id, branch_id, item_id, getUserId(), updates, {
+				viaMcp: true
+			});
 			if (!item) {
 				throw new Error('Item update failed.');
 			}
@@ -150,7 +157,9 @@ export function registerFurnitureTools(server: McpServer, helpers: ToolHelpers):
 			await ensureProjectRole(project_id, 'editor');
 			await ensureBranch(project_id, branch_id);
 
-			const deleted = await deleteItem(project_id, branch_id, item_id, getUserId(), { viaMcp: true });
+			const deleted = await deleteItem(project_id, branch_id, item_id, getUserId(), {
+				viaMcp: true
+			});
 			if (!deleted) {
 				throw new Error('Item not found in this branch.');
 			}
@@ -202,11 +211,17 @@ export function registerFurnitureTools(server: McpServer, helpers: ToolHelpers):
 
 			const created = [];
 			for (const itemData of itemsInput) {
-				const item = await createItem(project_id, branch_id, getUserId(), {
-					...itemData,
-					x: itemData.x ?? null,
-					y: itemData.y ?? null
-				}, { viaMcp: true });
+				const item = await createItem(
+					project_id,
+					branch_id,
+					getUserId(),
+					{
+						...itemData,
+						x: itemData.x ?? null,
+						y: itemData.y ?? null
+					},
+					{ viaMcp: true }
+				);
 				created.push({
 					id: item.id,
 					name: item.name,
@@ -262,7 +277,9 @@ export function registerFurnitureTools(server: McpServer, helpers: ToolHelpers):
 
 			const results = [];
 			for (const { item_id, ...data } of updates) {
-				const item = await updateItem(project_id, branch_id, item_id, getUserId(), data, { viaMcp: true });
+				const item = await updateItem(project_id, branch_id, item_id, getUserId(), data, {
+					viaMcp: true
+				});
 				if (!item) {
 					results.push({ item_id, success: false, error: 'Item not found' });
 				} else {
@@ -288,7 +305,8 @@ export function registerFurnitureTools(server: McpServer, helpers: ToolHelpers):
 	server.registerTool(
 		'list_furniture_items',
 		{
-			description: 'List furniture items for a specific project branch, including image data for each item.',
+			description:
+				'List furniture items for a specific project branch, including image data for each item.',
 			inputSchema: {
 				project_id: z.string().uuid(),
 				branch_id: z.string().uuid()

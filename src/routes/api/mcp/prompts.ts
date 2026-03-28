@@ -10,8 +10,7 @@ export function registerPrompts(server: McpServer, helpers: ToolHelpers): void {
 	server.registerPrompt(
 		'furnish-room',
 		{
-			description:
-				'Guided workflow to furnish a specific room with appropriate furniture items.',
+			description: 'Guided workflow to furnish a specific room with appropriate furniture items.',
 			argsSchema: {
 				project_id: z.string().uuid(),
 				branch_id: z.string().uuid(),
@@ -150,8 +149,7 @@ Steps:
 	server.registerPrompt(
 		'shopping-list',
 		{
-			description:
-				'Generate a furniture shopping list based on empty or under-furnished rooms.',
+			description: 'Generate a furniture shopping list based on empty or under-furnished rooms.',
 			argsSchema: {
 				project_id: z.string().uuid(),
 				branch_id: z.string().uuid(),

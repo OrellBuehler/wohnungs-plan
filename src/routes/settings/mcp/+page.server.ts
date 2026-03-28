@@ -2,7 +2,11 @@ import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { logger } from '$lib/server/logger';
 import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
-import { getOrCreateOAuthClient, regenerateClientSecret, addAllowedRedirectUri } from '$lib/server/oauth';
+import {
+	getOrCreateOAuthClient,
+	regenerateClientSecret,
+	addAllowedRedirectUri
+} from '$lib/server/oauth';
 import { getDB, oauthClients } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 import { config } from '$lib/server/env';
@@ -16,9 +20,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		const { client, secret } = await getOrCreateOAuthClient(userId);
 
 		// Build server URL
-		const serverUrl = config.publicUrl
-			? `${config.publicUrl}/api/mcp`
-			: `${url.origin}/api/mcp`;
+		const serverUrl = config.publicUrl ? `${config.publicUrl}/api/mcp` : `${url.origin}/api/mcp`;
 
 		return {
 			clientId: client.clientId,
@@ -58,9 +60,7 @@ export const actions = {
 			const { client, secret } = await regenerateClientSecret(userId);
 
 			// Build server URL
-			const serverUrl = config.publicUrl
-				? `${config.publicUrl}/api/mcp`
-				: `${url.origin}/api/mcp`;
+			const serverUrl = config.publicUrl ? `${config.publicUrl}/api/mcp` : `${url.origin}/api/mcp`;
 
 			// Return success with new secret
 			return {
@@ -101,7 +101,8 @@ export const actions = {
 		try {
 			const url = new URL(redirectUri);
 			const isHttps = url.protocol === 'https:';
-			const isLocalhost = url.protocol === 'http:' &&
+			const isLocalhost =
+				url.protocol === 'http:' &&
 				(url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '[::1]');
 
 			if (!isHttps && !isLocalhost) {
@@ -169,7 +170,7 @@ export const actions = {
 
 			// Remove URI from list
 			const normalizedUri = redirectUri.replace(/\/$/, '');
-			const updatedUris = client.allowedRedirectUris.filter(uri => uri !== normalizedUri);
+			const updatedUris = client.allowedRedirectUris.filter((uri) => uri !== normalizedUri);
 
 			await db
 				.update(oauthClients)

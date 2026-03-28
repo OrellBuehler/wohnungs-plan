@@ -68,9 +68,7 @@
 		isImporting = true;
 		try {
 			// Load full project data for selected projects
-			const fullProjects = await Promise.all(
-				selectedProjects.map((p) => getProject(p.id))
-			);
+			const fullProjects = await Promise.all(selectedProjects.map((p) => getProject(p.id)));
 			const validProjects = fullProjects.filter((p): p is Project => p !== null);
 			await onImport(validProjects);
 			onClose();
@@ -120,7 +118,9 @@
 						<div class="flex-1 min-w-0">
 							<p class="text-sm font-medium truncate">{project.name}</p>
 							<p class="text-xs text-muted-foreground">
-								{m.auth_import_updated({ date: new Date(project.updatedAt).toLocaleDateString(getLocale()) })}
+								{m.auth_import_updated({
+									date: new Date(project.updatedAt).toLocaleDateString(getLocale())
+								})}
 							</p>
 						</div>
 					</div>
@@ -132,11 +132,10 @@
 			<Button variant="outline" onclick={onClose}>
 				{m.auth_import_skip()}
 			</Button>
-			<Button
-				onclick={handleImport}
-				disabled={isImporting || selectedIds.size === 0}
-			>
-				{isImporting ? m.auth_import_importing() : m.auth_import_button({ count: selectedIds.size.toString() })}
+			<Button onclick={handleImport} disabled={isImporting || selectedIds.size === 0}>
+				{isImporting
+					? m.auth_import_importing()
+					: m.auth_import_button({ count: selectedIds.size.toString() })}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

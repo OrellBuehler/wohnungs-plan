@@ -7,6 +7,7 @@
 **Overall:** Full-stack SvelteKit application with dual storage (PostgreSQL + IndexedDB), real-time collaboration via WebSockets, and OAuth 2.0 with MCP (Model Context Protocol) support.
 
 **Key Characteristics:**
+
 - Progressive Web App (PWA) with offline support via IndexedDB
 - Hybrid authentication: cookie-based sessions + bearer tokens for MCP/OAuth
 - Real-time collaboration with WebSocket support
@@ -17,6 +18,7 @@
 ## Layers
 
 **Presentation (Client-side Components):**
+
 - Purpose: Render UI and handle user interactions
 - Location: `src/lib/components/`, `src/routes/`
 - Contains: Svelte components organized by feature (canvas, items, sharing, collaboration, comments)
@@ -24,6 +26,7 @@
 - Used by: Routes and page layouts
 
 **State Management (Svelte Stores):**
+
 - Purpose: Manage reactive state and sync data between client and server
 - Location: `src/lib/stores/`
 - Contains: `.svelte.ts` files using Svelte 5 runes (`$state`, `$derived`)
@@ -37,6 +40,7 @@
 - Used by: Components and routes
 
 **Local Storage (IndexedDB):**
+
 - Purpose: Cache projects and thumbnails for offline access
 - Location: `src/lib/db/index.ts`
 - Contains: Projects, thumbnails stored in IndexedDB with versioning
@@ -44,6 +48,7 @@
 - Used by: Project store for syncing local/cloud projects
 
 **Business Logic (Server):**
+
 - Purpose: Core domain logic, auth, data persistence, MCP server
 - Location: `src/lib/server/`
 - Contains: Service modules handling specific domains:
@@ -67,6 +72,7 @@
 - Used by: API routes and MCP server
 
 **API Routes:**
+
 - Purpose: HTTP endpoints for client-server communication
 - Location: `src/routes/api/` (SvelteKit `+server.ts` files)
 - Contains: RESTful endpoints:
@@ -83,6 +89,7 @@
 - Used by: Client-side code via `authFetch` (which adds auth headers and handles CORS)
 
 **Authentication & OAuth:**
+
 - Purpose: User identity and access control
 - Location: `src/lib/server/oauth.ts`, `src/lib/server/oidc.ts`, `src/lib/server/session.ts`, `src/routes/authorize/`, `src/routes/token/`
 - Contains:
@@ -95,6 +102,7 @@
 - Used by: All protected routes and MCP server
 
 **MCP Server:**
+
 - Purpose: Provide Claude/AI-powered tools for project manipulation via JSON-RPC
 - Location: `src/routes/api/mcp/+server.ts`
 - Contains: 20+ tools for reading/modifying projects, items, floorplans, suggestions via OAuth bearer tokens
@@ -102,6 +110,7 @@
 - Used by: External MCP clients (Claude Desktop, etc.)
 
 **Service Worker & Caching:**
+
 - Purpose: PWA offline support and smart caching
 - Location: `src/service-worker.ts`
 - Strategy:
@@ -166,30 +175,35 @@
 ## Key Abstractions
 
 **Project (Data Model):**
+
 - Purpose: Represents a floorplan with items, branches, metadata
 - Examples: `src/lib/types/index.ts` (Project, ProjectBranch interfaces)
 - Pattern: Synced between IndexedDB (local), PostgreSQL (cloud), and in-memory store
 - Structure: Contains floorplan (image data, scale), items array, branches, active branch id, currency, grid size
 
 **Item (Data Model):**
+
 - Purpose: Individual furniture/object in floorplan with position, dimensions, price, images
 - Examples: `src/lib/types/index.ts` (Item interface), `src/lib/server/items.ts` (DB operations)
 - Pattern: Stored per-branch, change tracking via itemChanges table
 - Structure: Id, name, dimensions (width/height), position (x/y), rotation, color, price, currency, product URL, shape (rectangle/l-shape), images gallery
 
 **Branch (Git-like Concept):**
+
 - Purpose: Allows multiple layout variants of same project (main, alternative1, etc.)
 - Examples: `src/lib/server/branches.ts`, `src/lib/stores/project.svelte.ts`
 - Pattern: Each branch can fork from another, contains its own items, change history tracked per branch
 - Structure: Id, projectId, name, forkedFromId, createdBy, createdAt
 
 **Store (Svelte Reactive State):**
+
 - Purpose: Centralized state management with derived values and async actions
 - Examples: `src/lib/stores/project.svelte.ts`, `src/lib/stores/auth.svelte.ts`
 - Pattern: Svelte 5 runes ($state, $derived), functions export getters/setters, async actions handle API calls
 - Structure: State variable + action functions that mutate state + derived values via $derived
 
 **MCP Tool:**
+
 - Purpose: Single action in MCP protocol (read/write floorplan, items, etc.)
 - Pattern: Defined as JSON-RPC method in MCP server, validated with Zod schemas
 - Security: Requires OAuth token, project access check, rate limiting
@@ -198,26 +212,31 @@
 ## Entry Points
 
 **Web Application:**
+
 - Location: `src/routes/+page.svelte` (projects list), `src/routes/projects/[id]/+page.svelte` (project editor)
 - Triggers: User navigates to `/` or `/projects/[id]`
 - Responsibilities: Render page, load project state, display canvas and UI components
 
 **API Endpoints:**
+
 - Location: `src/routes/api/` subdirectories
 - Triggers: Client-side fetch calls from stores/components
 - Responsibilities: Auth validation, business logic, database operations, response formatting
 
 **OAuth Flow:**
+
 - Location: `src/routes/authorize/+server.ts` (redirect), `/api/oauth/authorize` (OAuth server), `/api/oauth/token` (token endpoint)
 - Triggers: User clicks login
 - Responsibilities: OIDC dance with Infomaniak, session creation, redirect with session cookie
 
 **MCP Server:**
+
 - Location: `src/routes/api/mcp/+server.ts`
 - Triggers: External MCP client connects with Bearer token
 - Responsibilities: JSON-RPC message handling, tool execution, permission checks, response formatting
 
 **Hooks (Middleware):**
+
 - Location: `src/hooks.server.ts`
 - Triggers: Every server request
 - Responsibilities: Run migrations on startup, parse session cookie, attach user to event.locals, CSRF validation, CORS headers
@@ -249,35 +268,41 @@
 ## Cross-Cutting Concerns
 
 **Logging:** Console logging in development, error logs in production. Key points:
+
 - Database migration status (success/failure)
 - OAuth token validation failures (debug level)
 - MCP request/response errors
 - Sync errors in offline queue processing
 
 **Validation:** Applied at multiple layers:
+
 - Client: HTML5 form validation + custom checks
 - API: Zod schemas for request bodies
 - Server: Business logic validates item dimensions, price values, etc.
 - MCP: Detailed Zod schemas for all tool parameters
 
 **Authentication:** Multi-layered:
+
 - Session cookies for web app (httpOnly, SameSite)
 - Bearer tokens for MCP (OAuth access tokens)
 - Infomaniak OIDC for user identity
 - Rate limiting per user (not implemented yet but in rate-limit.ts)
 
 **Authorization:** Role-based (owner, editor, viewer):
+
 - Project owner: full control
 - Editor: add/edit/delete items and comments
 - Viewer: read-only
 - Checked via `getProjectRole()` in every operation
 
 **Image Processing:** Async thumbnail generation:
+
 - On item image upload: `generateThumbnail()` creates small preview
 - Cache in `/uploads/thumbnails/`
 - Served as separate URL path
 
 **Real-time Updates:** WebSocket + state sync:
+
 - User changes broadcasted to all connected clients
 - Message format: `{ type: 'item_updated', data: {...} }`
 - Store listens to messages and updates state
@@ -285,4 +310,4 @@
 
 ---
 
-*Architecture analysis: 2026-02-17*
+_Architecture analysis: 2026-02-17_

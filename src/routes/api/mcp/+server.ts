@@ -84,7 +84,9 @@ function containsInitializeRequest(body: unknown): boolean {
 	return isInitializeRequest(body);
 }
 
-async function authenticateRequest(request: Request): Promise<{ userId: string; clientId: string } | null> {
+async function authenticateRequest(
+	request: Request
+): Promise<{ userId: string; clientId: string } | null> {
 	const authHeader = request.headers.get('authorization');
 	if (!authHeader || !authHeader.startsWith('Bearer ')) {
 		return null;

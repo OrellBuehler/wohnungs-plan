@@ -90,7 +90,12 @@ export const GET: RequestHandler = async ({ params, request, locals, url }) => {
 			const token = url.searchParams.get('token');
 			if (token) {
 				const link = await getShareLinkByToken(token);
-				if (link && isShareLinkValid(link) && link.projectId === params.projectId && !link.passwordHash) {
+				if (
+					link &&
+					isShareLinkValid(link) &&
+					link.projectId === params.projectId &&
+					!link.passwordHash
+				) {
 					authorized = true;
 				}
 			}

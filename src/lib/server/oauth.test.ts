@@ -199,7 +199,12 @@ describe('createAuthorizationCode', () => {
 		const insertReturning = { values: vi.fn().mockResolvedValueOnce([]) };
 		mockDb.insert.mockReturnValue(insertReturning);
 
-		const code = await createAuthorizationCode('user-1', 'client-1', 'https://example.com/cb', 'challenge123');
+		const code = await createAuthorizationCode(
+			'user-1',
+			'client-1',
+			'https://example.com/cb',
+			'challenge123'
+		);
 
 		expect(code).toMatch(/^[A-Za-z0-9_-]+$/);
 		expect(code.length).toBeGreaterThan(0);
@@ -209,7 +214,12 @@ describe('createAuthorizationCode', () => {
 		const insertValues = vi.fn().mockResolvedValueOnce([]);
 		mockDb.insert.mockReturnValue({ values: insertValues });
 
-		const code = await createAuthorizationCode('user-1', 'client-1', 'https://example.com/cb', 'challenge123');
+		const code = await createAuthorizationCode(
+			'user-1',
+			'client-1',
+			'https://example.com/cb',
+			'challenge123'
+		);
 
 		expect(mockDb.insert).toHaveBeenCalledOnce();
 		const insertedRow = insertValues.mock.calls[0][0];
@@ -222,8 +232,18 @@ describe('createAuthorizationCode', () => {
 	it('generates unique codes on consecutive calls', async () => {
 		mockDb.insert.mockReturnValue({ values: vi.fn().mockResolvedValue([]) });
 
-		const code1 = await createAuthorizationCode('user-1', 'client-1', 'https://example.com/cb', 'challenge');
-		const code2 = await createAuthorizationCode('user-1', 'client-1', 'https://example.com/cb', 'challenge');
+		const code1 = await createAuthorizationCode(
+			'user-1',
+			'client-1',
+			'https://example.com/cb',
+			'challenge'
+		);
+		const code2 = await createAuthorizationCode(
+			'user-1',
+			'client-1',
+			'https://example.com/cb',
+			'challenge'
+		);
 
 		expect(code1).not.toBe(code2);
 	});
@@ -246,12 +266,14 @@ describe('consumeAuthorizationCode', () => {
 		const verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 		const challenge = createHash('sha256').update(verifier).digest('base64url');
 
-		makeUpdateChain([{
-			userId: 'user-1',
-			clientId: 'client-1',
-			redirectUri: 'https://example.com/cb',
-			codeChallenge: challenge
-		}]);
+		makeUpdateChain([
+			{
+				userId: 'user-1',
+				clientId: 'client-1',
+				redirectUri: 'https://example.com/cb',
+				codeChallenge: challenge
+			}
+		]);
 
 		const result = await consumeAuthorizationCode(
 			'some-code',
@@ -280,12 +302,14 @@ describe('consumeAuthorizationCode', () => {
 		const verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 		const challenge = createHash('sha256').update(verifier).digest('base64url');
 
-		makeUpdateChain([{
-			userId: 'user-1',
-			clientId: 'other-client',
-			redirectUri: 'https://example.com/cb',
-			codeChallenge: challenge
-		}]);
+		makeUpdateChain([
+			{
+				userId: 'user-1',
+				clientId: 'other-client',
+				redirectUri: 'https://example.com/cb',
+				codeChallenge: challenge
+			}
+		]);
 
 		const result = await consumeAuthorizationCode(
 			'some-code',
@@ -301,12 +325,14 @@ describe('consumeAuthorizationCode', () => {
 		const verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 		const challenge = createHash('sha256').update(verifier).digest('base64url');
 
-		makeUpdateChain([{
-			userId: 'user-1',
-			clientId: 'client-1',
-			redirectUri: 'https://other.com/cb',
-			codeChallenge: challenge
-		}]);
+		makeUpdateChain([
+			{
+				userId: 'user-1',
+				clientId: 'client-1',
+				redirectUri: 'https://other.com/cb',
+				codeChallenge: challenge
+			}
+		]);
 
 		const result = await consumeAuthorizationCode(
 			'some-code',
@@ -322,12 +348,14 @@ describe('consumeAuthorizationCode', () => {
 		const goodVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 		const challenge = createHash('sha256').update(goodVerifier).digest('base64url');
 
-		makeUpdateChain([{
-			userId: 'user-1',
-			clientId: 'client-1',
-			redirectUri: 'https://example.com/cb',
-			codeChallenge: challenge
-		}]);
+		makeUpdateChain([
+			{
+				userId: 'user-1',
+				clientId: 'client-1',
+				redirectUri: 'https://example.com/cb',
+				codeChallenge: challenge
+			}
+		]);
 
 		const result = await consumeAuthorizationCode(
 			'some-code',
@@ -343,21 +371,33 @@ describe('consumeAuthorizationCode', () => {
 		const verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 		const challenge = createHash('sha256').update(verifier).digest('base64url');
 
-		const validRecord = [{
-			userId: 'user-1',
-			clientId: 'client-1',
-			redirectUri: 'https://example.com/cb',
-			codeChallenge: challenge
-		}];
+		const validRecord = [
+			{
+				userId: 'user-1',
+				clientId: 'client-1',
+				redirectUri: 'https://example.com/cb',
+				codeChallenge: challenge
+			}
+		];
 
 		// First call succeeds (code found and marked used)
 		makeUpdateChain(validRecord);
-		const first = await consumeAuthorizationCode('some-code', 'client-1', 'https://example.com/cb', verifier);
+		const first = await consumeAuthorizationCode(
+			'some-code',
+			'client-1',
+			'https://example.com/cb',
+			verifier
+		);
 		expect(first).toBe('user-1');
 
 		// Second call: the WHERE clause filters out used codes (usedAt IS NULL) so no row returned
 		makeUpdateChain([]);
-		const second = await consumeAuthorizationCode('some-code', 'client-1', 'https://example.com/cb', verifier);
+		const second = await consumeAuthorizationCode(
+			'some-code',
+			'client-1',
+			'https://example.com/cb',
+			verifier
+		);
 		expect(second).toBeUndefined();
 	});
 });

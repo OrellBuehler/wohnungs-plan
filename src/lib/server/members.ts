@@ -1,5 +1,12 @@
 import { eq, and, asc } from 'drizzle-orm';
-import { getDB, projectMembers, projectInvites, users, type ProjectMember, type ProjectInvite } from './db';
+import {
+	getDB,
+	projectMembers,
+	projectInvites,
+	users,
+	type ProjectMember,
+	type ProjectInvite
+} from './db';
 import type { ProjectRole } from './types';
 
 export interface ProjectMemberInfo {
@@ -39,7 +46,11 @@ export async function getProjectMembers(projectId: string): Promise<ProjectMembe
 	}));
 }
 
-export async function addMember(projectId: string, userId: string, role: ProjectRole): Promise<ProjectMember> {
+export async function addMember(
+	projectId: string,
+	userId: string,
+	role: ProjectRole
+): Promise<ProjectMember> {
 	const db = getDB();
 	const [member] = await db
 		.insert(projectMembers)
@@ -56,7 +67,11 @@ export async function addMember(projectId: string, userId: string, role: Project
 	return member;
 }
 
-export async function updateMemberRole(projectId: string, userId: string, role: ProjectRole): Promise<void> {
+export async function updateMemberRole(
+	projectId: string,
+	userId: string,
+	role: ProjectRole
+): Promise<void> {
 	const db = getDB();
 	await db
 		.update(projectMembers)
@@ -71,7 +86,11 @@ export async function removeMember(projectId: string, userId: string): Promise<v
 		.where(and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, userId)));
 }
 
-export async function createInvite(projectId: string, email: string, role: ProjectRole): Promise<ProjectInvite> {
+export async function createInvite(
+	projectId: string,
+	email: string,
+	role: ProjectRole
+): Promise<ProjectInvite> {
 	const db = getDB();
 	const token = crypto.randomUUID();
 	const expiresAt = new Date(Date.now() + INVITE_EXPIRY_MS);
@@ -107,5 +126,8 @@ export async function acceptInvite(invite: ProjectInvite, userId: string): Promi
 		})
 		.onConflictDoNothing();
 
-	await db.update(projectInvites).set({ acceptedAt: new Date() }).where(eq(projectInvites.id, invite.id));
+	await db
+		.update(projectInvites)
+		.set({ acceptedAt: new Date() })
+		.where(eq(projectInvites.id, invite.id));
 }

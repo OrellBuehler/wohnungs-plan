@@ -38,8 +38,7 @@ export default defineConfig({
 		globals: true,
 		environment: 'jsdom',
 		alias: {
-			'$env/dynamic/private': new URL('./src/lib/test-utils/mocks/env.ts', import.meta.url)
-				.pathname
+			'$env/dynamic/private': new URL('./src/lib/test-utils/mocks/env.ts', import.meta.url).pathname
 		},
 		server: {
 			deps: {

@@ -16,7 +16,11 @@ affects: []
 
 tech-stack:
   added: [shadcn alert-dialog]
-  patterns: [XHR uploadWithProgress replacing fetch for file uploads, toast.custom with UploadProgress component for progress display]
+  patterns:
+    [
+      XHR uploadWithProgress replacing fetch for file uploads,
+      toast.custom with UploadProgress component for progress display
+    ]
 
 key-files:
   created:
@@ -30,13 +34,13 @@ key-files:
     - messages/de.json
 
 key-decisions:
-  - "Used XMLHttpRequest with withCredentials=true for same-origin cookie auth rather than passing explicit auth headers"
-  - "Used toast.custom with UploadProgress component for rich progress display inside Sonner toasts"
-  - "Used shadcn AlertDialog for image delete confirmation rather than inline Dialog to keep ItemForm simpler"
+  - 'Used XMLHttpRequest with withCredentials=true for same-origin cookie auth rather than passing explicit auth headers'
+  - 'Used toast.custom with UploadProgress component for rich progress display inside Sonner toasts'
+  - 'Used shadcn AlertDialog for image delete confirmation rather than inline Dialog to keep ItemForm simpler'
 
 patterns-established:
-  - "Upload progress pattern: uploadWithProgress() + toast.custom(UploadProgress) with dismiss in finally block"
-  - "Destructive action confirmation: AlertDialog with destructive variant action button"
+  - 'Upload progress pattern: uploadWithProgress() + toast.custom(UploadProgress) with dismiss in finally block'
+  - 'Destructive action confirmation: AlertDialog with destructive variant action button'
 
 requirements-completed: [ERRH-04, ERRH-05]
 
@@ -57,6 +61,7 @@ completed: 2026-02-21
 - **Files modified:** 6 (+ 12 alert-dialog component files)
 
 ## Accomplishments
+
 - Created uploadWithProgress XHR helper with progress callback and withCredentials for cookie auth
 - Created UploadProgress.svelte component showing filename and animated progress bar inside Sonner toasts
 - Wired progress tracking into both uploadFloorplan and uploadItemImage store functions
@@ -71,6 +76,7 @@ Each task was committed atomically:
 2. **Task 2: Wire upload progress into store functions and add confirmation dialogs** - `611a9c8` (feat)
 
 ## Files Created/Modified
+
 - `src/lib/utils/upload.ts` - XHR upload helper with progress callback
 - `src/lib/components/shared/UploadProgress.svelte` - Progress bar toast component
 - `src/lib/stores/project.svelte.ts` - Replaced fetch with uploadWithProgress in upload functions
@@ -80,6 +86,7 @@ Each task was committed atomically:
 - `messages/de.json` - Added matching German translations
 
 ## Decisions Made
+
 - Used XMLHttpRequest with withCredentials=true for same-origin cookie auth (no explicit headers needed)
 - Used toast.custom with UploadProgress for rich progress display (Sonner supports custom components)
 - Used shadcn AlertDialog for image delete confirmation (consistent with project's Dialog patterns)
@@ -89,6 +96,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] Added shadcn alert-dialog component**
+
 - **Found during:** Task 2 (Confirmation dialog)
 - **Issue:** alert-dialog component not yet installed in project
 - **Fix:** Ran `bunx shadcn-svelte@latest add alert-dialog`
@@ -97,6 +105,7 @@ Each task was committed atomically:
 - **Committed in:** 611a9c8 (Task 2 commit)
 
 **2. [Rule 3 - Blocking] Regenerated paraglide types after adding i18n keys**
+
 - **Found during:** Task 2 (Type check)
 - **Issue:** Paraglide types stale after adding new message keys, needed vite build to trigger plugin
 - **Fix:** Ran `vite build --mode development` to trigger paraglideVitePlugin compilation
@@ -109,6 +118,7 @@ Each task was committed atomically:
 **Impact on plan:** Both auto-fixes necessary for completing the tasks. No scope creep.
 
 ## Issues Encountered
+
 - Paraglide CLI compile does not generate output to the same directory as the Vite plugin; had to use `vite build` to trigger proper regeneration
 - 1Password SSH signing intermittently failed during git commit (transient, resolved on retry)
 - 4 pre-existing type errors (plural form types in ImportLocalProjectsModal, CanvasControls, CommentPanel) unrelated to this plan
@@ -118,9 +128,11 @@ Each task was committed atomically:
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - Phase 3 complete: all error handling, loading states, and upload progress implemented
 - Ready for Phase 4 (mobile/PWA optimizations)
 
 ---
-*Phase: 03-error-handling-loading-states*
-*Completed: 2026-02-21*
+
+_Phase: 03-error-handling-loading-states_
+_Completed: 2026-02-21_

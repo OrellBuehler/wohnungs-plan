@@ -7,11 +7,7 @@ import {
 	sanitizeItemsForShare,
 	verifyShareAuthCookie
 } from '$lib/server/share-links';
-import {
-	getProjectById,
-	getProjectFloorplan,
-	getProjectItems
-} from '$lib/server/projects';
+import { getProjectById, getProjectFloorplan, getProjectItems } from '$lib/server/projects';
 import {
 	ensureMainBranch,
 	getBranchById,

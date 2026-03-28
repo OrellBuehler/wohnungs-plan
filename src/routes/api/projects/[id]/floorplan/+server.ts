@@ -1,7 +1,12 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getProjectRole, getProjectFloorplan } from '$lib/server/projects';
-import { createFloorplan, saveFloorplanFile, deleteFloorplan, updateFloorplanScale } from '$lib/server/floorplans';
+import {
+	createFloorplan,
+	saveFloorplanFile,
+	deleteFloorplan,
+	updateFloorplanScale
+} from '$lib/server/floorplans';
 import { config } from '$lib/server/env';
 import { detectImageMime, EXT_BY_MIME } from '$lib/server/image-utils';
 
@@ -23,7 +28,10 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	if (file.size > config.uploads.maxImageSize) {
-		throw error(413, `File too large. Maximum size: ${config.uploads.maxImageSize / 1024 / 1024}MB`);
+		throw error(
+			413,
+			`File too large. Maximum size: ${config.uploads.maxImageSize / 1024 / 1024}MB`
+		);
 	}
 
 	const buffer = Buffer.from(await file.arrayBuffer());

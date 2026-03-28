@@ -6,12 +6,12 @@ tags: [verification, i18n, german, locale, manual-testing]
 
 requires:
   - phase: 02-02
-    provides: "Project detail and history pages wired to paraglide messages"
+    provides: 'Project detail and history pages wired to paraglide messages'
   - phase: 02-03
-    provides: "All canvas, item, and shared components wired to paraglide messages"
+    provides: 'All canvas, item, and shared components wired to paraglide messages'
 provides:
-  - "Human-verified confirmation that all Phase 2 success criteria are met"
-  - "Complete German translation verified across all routes and components"
+  - 'Human-verified confirmation that all Phase 2 success criteria are met'
+  - 'Complete German translation verified across all routes and components'
 affects: [03-error-handling]
 
 tech-stack:
@@ -23,7 +23,7 @@ key-files:
   modified: []
 
 key-decisions:
-  - "All 8 verification test scenarios passed on first attempt -- no gap closure needed"
+  - 'All 8 verification test scenarios passed on first attempt -- no gap closure needed'
 
 patterns-established: []
 
@@ -96,5 +96,6 @@ None - no external service configuration required.
 - No code commits expected (verification-only plan)
 
 ---
-*Phase: 02-string-extraction*
-*Completed: 2026-02-18*
+
+_Phase: 02-string-extraction_
+_Completed: 2026-02-18_

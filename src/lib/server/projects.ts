@@ -1,5 +1,14 @@
 import { eq, desc, asc, and, or, sql, inArray } from 'drizzle-orm';
-import { getDB, projects, projectMembers, items, floorplans, type Project, type Item, type Floorplan } from './db';
+import {
+	getDB,
+	projects,
+	projectMembers,
+	items,
+	floorplans,
+	type Project,
+	type Item,
+	type Floorplan
+} from './db';
 import type { ProjectWithRole, ProjectRole } from './types';
 import type { ProjectMeta } from '$lib/types';
 import { copyFloorplan } from './floorplans';
@@ -105,7 +114,10 @@ export async function getProjectDisabledTools(projectId: string): Promise<string
 	return row?.disabledMcpTools ?? [];
 }
 
-export async function updateProjectDisabledTools(projectId: string, tools: string[]): Promise<void> {
+export async function updateProjectDisabledTools(
+	projectId: string,
+	tools: string[]
+): Promise<void> {
 	const db = getDB();
 	await db
 		.update(projects)
@@ -124,7 +136,10 @@ export async function getProjectById(projectId: string): Promise<Project | null>
 	return project ?? null;
 }
 
-export async function getProjectRole(projectId: string, userId: string): Promise<ProjectRole | null> {
+export async function getProjectRole(
+	projectId: string,
+	userId: string
+): Promise<ProjectRole | null> {
 	const db = getDB();
 	const [member] = await db
 		.select({ role: projectMembers.role })
@@ -224,7 +239,10 @@ export async function getProjectFloorplan(projectId: string): Promise<Floorplan 
 	return floorplan ?? null;
 }
 
-export async function duplicateProject(sourceProjectId: string, newOwnerId: string): Promise<Project> {
+export async function duplicateProject(
+	sourceProjectId: string,
+	newOwnerId: string
+): Promise<Project> {
 	const db = getDB();
 
 	const source = await getProjectById(sourceProjectId);

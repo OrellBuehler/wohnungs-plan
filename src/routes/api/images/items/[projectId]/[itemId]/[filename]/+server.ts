@@ -36,7 +36,9 @@ export const GET: RequestHandler = async ({ locals, params, request, url }) => {
 			webp: 'image/webp',
 			gif: 'image/gif'
 		};
-		const contentType = isThumb ? 'image/jpeg' : (mimeTypes[ext ?? ''] ?? 'application/octet-stream');
+		const contentType = isThumb
+			? 'image/jpeg'
+			: (mimeTypes[ext ?? ''] ?? 'application/octet-stream');
 
 		return serveFileWithEtag(fileBuffer, request, {
 			'Content-Type': contentType,

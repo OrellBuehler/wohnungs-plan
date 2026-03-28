@@ -1,4 +1,13 @@
-import type { Project, Item, ItemImage, Floorplan, Position, ProjectMeta, ProjectBranch, ItemChange } from '$lib/types';
+import type {
+	Project,
+	Item,
+	ItemImage,
+	Floorplan,
+	Position,
+	ProjectMeta,
+	ProjectBranch,
+	ItemChange
+} from '$lib/types';
 import type { CurrencyCode } from '$lib/utils/currency';
 import { parseDataUrl } from '$lib/utils/data';
 import { DEFAULT_CURRENCY } from '$lib/utils/currency';
@@ -206,10 +215,10 @@ function mapApiProject(
 		updatedAt: project.updatedAt ? toIsoString(project.updatedAt) : new Date().toISOString(),
 		floorplan: floorplan
 			? {
-				imageData: `/api/images/floorplans/${project.id}/${floorplan.filename}`,
-				scale: floorplan.scale ?? 0,
-				referenceLength: floorplan.referenceLength ?? 0
-			}
+					imageData: `/api/images/floorplans/${project.id}/${floorplan.filename}`,
+					scale: floorplan.scale ?? 0,
+					referenceLength: floorplan.referenceLength ?? 0
+				}
 			: null,
 		items: items.map(mapApiItem),
 		branches: branches.map(mapApiBranch),
@@ -395,9 +404,9 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 			const itemRes = await authFetch(
 				`/api/projects/${project.id}/branches/${defaultBranchId}/items`,
 				{
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(buildItemPayload(item))
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(buildItemPayload(item))
 				}
 			);
 			if (!itemRes.ok) {
@@ -581,7 +590,9 @@ export async function deleteProjectBranch(branchId: string): Promise<boolean> {
 	if (!currentProject) return false;
 	const projectRef = currentProject;
 	const previousActiveBranchId = getActiveBranchId(currentProject);
-	const remainingBranches = (currentProject.branches ?? []).filter((branch) => branch.id !== branchId);
+	const remainingBranches = (currentProject.branches ?? []).filter(
+		(branch) => branch.id !== branchId
+	);
 	if (remainingBranches.length === 0) return false;
 
 	if (currentProject.isLocal || !shouldSyncProject()) {
@@ -664,11 +675,14 @@ export async function revertHistoryChanges(changeIds: string[]): Promise<boolean
 	if (!branchId) return false;
 
 	try {
-		const response = await authFetch(`/api/projects/${currentProject.id}/branches/${branchId}/revert`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ changeIds })
-		});
+		const response = await authFetch(
+			`/api/projects/${currentProject.id}/branches/${branchId}/revert`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ changeIds })
+			}
+		);
 		if (!response.ok) throw new Error('Failed to revert changes');
 
 		await setActiveBranch(branchId);
@@ -818,7 +832,9 @@ export function setFloorplan(floorplan: Floorplan) {
 		debounceAutoSave();
 
 		if (shouldSyncProject()) {
-			void uploadFloorplan(currentProject.id, floorplan).catch(() => toast.error(m.error_upload_floorplan()));
+			void uploadFloorplan(currentProject.id, floorplan).catch(() =>
+				toast.error(m.error_upload_floorplan())
+			);
 		} else if (shouldQueueProject()) {
 			queueChange({
 				type: 'create',
@@ -992,9 +1008,7 @@ export function duplicateItem(id: string) {
 			const newItem: Item = {
 				...item,
 				id: crypto.randomUUID(),
-				position: item.position
-					? { x: item.position.x + 20, y: item.position.y + 20 }
-					: null
+				position: item.position ? { x: item.position.x + 20, y: item.position.y + 20 } : null
 			};
 			currentProject.items = [...currentProject.items, newItem];
 			debounceAutoSave();
@@ -1089,7 +1103,7 @@ export async function uploadItemImage(itemId: string, file: File): Promise<ItemI
 		toast.dismiss(toastId);
 		toast.success(m.upload_success());
 
-		const data = await response.json() as { image: ApiItemImage };
+		const data = (await response.json()) as { image: ApiItemImage };
 		const apiImage: ApiItemImage = {
 			...data.image,
 			projectId: currentProject.id,
@@ -1115,9 +1129,7 @@ export async function deleteItemImage(itemId: string, imageId: string): Promise<
 
 	if (currentProject.isLocal || !shouldSyncProject()) {
 		currentProject.items = currentProject.items.map((i) =>
-			i.id === itemId
-				? { ...i, images: (i.images ?? []).filter((img) => img.id !== imageId) }
-				: i
+			i.id === itemId ? { ...i, images: (i.images ?? []).filter((img) => img.id !== imageId) } : i
 		);
 		debounceAutoSave();
 		return true;
@@ -1131,9 +1143,7 @@ export async function deleteItemImage(itemId: string, imageId: string): Promise<
 		if (!response.ok) throw new Error('Failed to delete image');
 
 		currentProject.items = currentProject.items.map((i) =>
-			i.id === itemId
-				? { ...i, images: (i.images ?? []).filter((img) => img.id !== imageId) }
-				: i
+			i.id === itemId ? { ...i, images: (i.images ?? []).filter((img) => img.id !== imageId) } : i
 		);
 		return true;
 	} catch (err) {
@@ -1196,10 +1206,7 @@ export function getUnplacedItems() {
 }
 
 export function getTotalCost() {
-	return (currentProject?.items ?? []).reduce(
-		(sum, item) => sum + (item.price ?? 0),
-		0
-	);
+	return (currentProject?.items ?? []).reduce((sum, item) => sum + (item.price ?? 0), 0);
 }
 
 export function getCurrency(): CurrencyCode {

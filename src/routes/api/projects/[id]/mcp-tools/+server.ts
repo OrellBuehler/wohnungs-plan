@@ -28,7 +28,10 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const body = await request.json();
-	if (!Array.isArray(body.disabledTools) || !body.disabledTools.every((t: unknown) => typeof t === 'string')) {
+	if (
+		!Array.isArray(body.disabledTools) ||
+		!body.disabledTools.every((t: unknown) => typeof t === 'string')
+	) {
 		throw error(400, 'disabledTools must be an array of strings');
 	}
 

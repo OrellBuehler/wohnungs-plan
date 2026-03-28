@@ -29,7 +29,13 @@ function createRequestEvent(cookieHeader?: string) {
 		locals: {},
 		params: {},
 		url: new URL('http://localhost:5173/api/auth/me'),
-		cookies: { get: () => undefined, getAll: () => [], set: () => {}, delete: () => {}, serialize: () => '' },
+		cookies: {
+			get: () => undefined,
+			getAll: () => [],
+			set: () => {},
+			delete: () => {},
+			serialize: () => ''
+		},
 		fetch: globalThis.fetch,
 		getClientAddress: () => '127.0.0.1',
 		platform: {},

@@ -26,8 +26,14 @@ interface ProjectRoom {
 }
 
 const COLORS = [
-	'#ef4444', '#f97316', '#eab308', '#22c55e',
-	'#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899'
+	'#ef4444',
+	'#f97316',
+	'#eab308',
+	'#22c55e',
+	'#14b8a6',
+	'#3b82f6',
+	'#8b5cf6',
+	'#ec4899'
 ];
 
 const rooms = new Map<string, ProjectRoom>();
@@ -53,10 +59,9 @@ export function addCollaborator(
 	const room = getOrCreateRoom(projectId);
 
 	// Assign color (use one not in use, or cycle)
-	const usedColors = new Set(
-		Array.from(room.collaborators.values()).map((c) => c.color)
-	);
-	const color = COLORS.find((c) => !usedColors.has(c)) ?? COLORS[room.collaborators.size % COLORS.length];
+	const usedColors = new Set(Array.from(room.collaborators.values()).map((c) => c.color));
+	const color =
+		COLORS.find((c) => !usedColors.has(c)) ?? COLORS[room.collaborators.size % COLORS.length];
 
 	const state: CollaboratorState = {
 		user: {
@@ -92,12 +97,7 @@ export function removeCollaborator(projectId: string, connectionId: string): voi
 	}
 }
 
-export function updateCursor(
-	projectId: string,
-	connectionId: string,
-	x: number,
-	y: number
-): void {
+export function updateCursor(projectId: string, connectionId: string, x: number, y: number): void {
 	const room = rooms.get(projectId);
 	const collaborator = room?.collaborators.get(connectionId);
 	if (collaborator) {
@@ -106,11 +106,7 @@ export function updateCursor(
 	}
 }
 
-export function lockItem(
-	projectId: string,
-	connectionId: string,
-	itemId: string
-): boolean {
+export function lockItem(projectId: string, connectionId: string, itemId: string): boolean {
 	const room = rooms.get(projectId);
 	if (!room) return false;
 

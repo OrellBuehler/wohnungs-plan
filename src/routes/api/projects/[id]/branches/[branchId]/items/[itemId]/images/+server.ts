@@ -85,7 +85,11 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		await generateThumbnail(params.id, params.itemId, filename);
 	} catch (e) {
 		// Clean up saved file on thumbnail failure
-		try { await unlink(getItemImagePath(params.id, params.itemId, filename)); } catch { /* ignore */ }
+		try {
+			await unlink(getItemImagePath(params.id, params.itemId, filename));
+		} catch {
+			/* ignore */
+		}
 		throw e;
 	}
 
@@ -113,8 +117,16 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		return json({ image }, { status: 201 });
 	} catch (e) {
 		// Clean up files on DB insert failure
-		try { await unlink(getItemImagePath(params.id, params.itemId, filename)); } catch { /* ignore */ }
-		try { await unlink(getItemImageThumbPath(params.id, params.itemId, filename)); } catch { /* ignore */ }
+		try {
+			await unlink(getItemImagePath(params.id, params.itemId, filename));
+		} catch {
+			/* ignore */
+		}
+		try {
+			await unlink(getItemImageThumbPath(params.id, params.itemId, filename));
+		} catch {
+			/* ignore */
+		}
 		throw e;
 	}
 };

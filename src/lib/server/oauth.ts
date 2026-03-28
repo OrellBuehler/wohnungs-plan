@@ -25,9 +25,7 @@ export function isValidRedirectUriFormat(uri: string): boolean {
 		if (url.protocol === 'https:') return true;
 		if (url.protocol === 'http:') {
 			return (
-				url.hostname === 'localhost' ||
-				url.hostname === '127.0.0.1' ||
-				url.hostname === '[::1]'
+				url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '[::1]'
 			);
 		}
 		return false;
@@ -306,10 +304,7 @@ export function validateRedirectUri(client: OAuthClient, redirectUri: string): b
 export async function hasAuthorization(userId: string, clientId: string): Promise<boolean> {
 	const db = getDB();
 	const authorization = await db.query.oauthAuthorizations.findFirst({
-		where: and(
-			eq(oauthAuthorizations.userId, userId),
-			eq(oauthAuthorizations.clientId, clientId)
-		)
+		where: and(eq(oauthAuthorizations.userId, userId), eq(oauthAuthorizations.clientId, clientId))
 	});
 	return !!authorization;
 }
@@ -328,10 +323,7 @@ export async function createAuthorization(
 
 	// Check if authorization already exists
 	const existing = await db.query.oauthAuthorizations.findFirst({
-		where: and(
-			eq(oauthAuthorizations.userId, userId),
-			eq(oauthAuthorizations.clientId, clientId)
-		)
+		where: and(eq(oauthAuthorizations.userId, userId), eq(oauthAuthorizations.clientId, clientId))
 	});
 
 	if (existing) {
@@ -539,10 +531,7 @@ export async function validateAccessToken(
 
 	// Direct O(1) lookup by hash using indexed column
 	const tokenRecord = await db.query.oauthTokens.findFirst({
-		where: and(
-			eq(oauthTokens.accessTokenHash, tokenHash),
-			gt(oauthTokens.expiresAt, now)
-		)
+		where: and(eq(oauthTokens.accessTokenHash, tokenHash), gt(oauthTokens.expiresAt, now))
 	});
 
 	if (!tokenRecord) {
@@ -554,4 +543,3 @@ export async function validateAccessToken(
 		clientId: tokenRecord.clientId
 	};
 }
-

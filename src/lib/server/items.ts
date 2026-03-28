@@ -27,13 +27,17 @@ const ITEM_UPDATE_FIELDS = [
 	'cutoutCorner'
 ] as const;
 
-export type ItemCreateInput = Partial<Omit<Item, 'projectId' | 'branchId' | 'createdAt' | 'updatedAt'>> & {
+export type ItemCreateInput = Partial<
+	Omit<Item, 'projectId' | 'branchId' | 'createdAt' | 'updatedAt'>
+> & {
 	name: string;
 	width: number;
 	height: number;
 };
 
-export type ItemUpdateInput = Partial<Omit<Item, 'id' | 'projectId' | 'branchId' | 'createdAt' | 'updatedAt'>>;
+export type ItemUpdateInput = Partial<
+	Omit<Item, 'id' | 'projectId' | 'branchId' | 'createdAt' | 'updatedAt'>
+>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseItemCreateBody(body: Record<string, any>): ItemCreateInput {
@@ -123,7 +127,11 @@ function itemUpdateDataFromInput(data: ItemUpdateInput): Partial<NewItem> {
 	return updateData;
 }
 
-function itemCreateDataFromInput(projectId: string, branchId: string, data: ItemCreateInput): NewItem {
+function itemCreateDataFromInput(
+	projectId: string,
+	branchId: string,
+	data: ItemCreateInput
+): NewItem {
 	return {
 		...(data.id ? { id: data.id } : {}),
 		projectId,
@@ -145,9 +153,16 @@ function itemCreateDataFromInput(projectId: string, branchId: string, data: Item
 	};
 }
 
-async function createItemDirect(projectId: string, branchId: string, data: ItemCreateInput): Promise<Item> {
+async function createItemDirect(
+	projectId: string,
+	branchId: string,
+	data: ItemCreateInput
+): Promise<Item> {
 	const db = getDB();
-	const [item] = await db.insert(items).values(itemCreateDataFromInput(projectId, branchId, data)).returning();
+	const [item] = await db
+		.insert(items)
+		.values(itemCreateDataFromInput(projectId, branchId, data))
+		.returning();
 	return item;
 }
 
@@ -187,7 +202,11 @@ export async function getBranchItems(projectId: string, branchId: string): Promi
 		.orderBy(asc(items.createdAt));
 }
 
-export async function getItemById(projectId: string, branchId: string, itemId: string): Promise<Item | null> {
+export async function getItemById(
+	projectId: string,
+	branchId: string,
+	itemId: string
+): Promise<Item | null> {
 	const db = getDB();
 	const [item] = await db
 		.select()
@@ -280,7 +299,10 @@ export async function deleteItem(
 	return item;
 }
 
-function toRestoredItemData(snapshot: Record<string, unknown>, fallbackItemId: string): ItemCreateInput {
+function toRestoredItemData(
+	snapshot: Record<string, unknown>,
+	fallbackItemId: string
+): ItemCreateInput {
 	return {
 		id: typeof snapshot.id === 'string' ? snapshot.id : fallbackItemId,
 		name: typeof snapshot.name === 'string' ? snapshot.name : 'Restored Item',

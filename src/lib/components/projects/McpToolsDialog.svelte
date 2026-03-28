@@ -17,54 +17,132 @@
 		{
 			title: () => m.project_mcp_category_project(),
 			tools: [
-				{ name: 'list_branches', label: 'List Branches', description: 'View all branches in the project' },
-				{ name: 'create_branch', label: 'Create Branch', description: 'Create new branches to explore alternative layouts' }
+				{
+					name: 'list_branches',
+					label: 'List Branches',
+					description: 'View all branches in the project'
+				},
+				{
+					name: 'create_branch',
+					label: 'Create Branch',
+					description: 'Create new branches to explore alternative layouts'
+				}
 			]
 		},
 		{
 			title: () => m.project_mcp_category_items(),
 			tools: [
-				{ name: 'add_furniture_item', label: 'Add Item', description: 'Add new furniture to the inventory' },
-				{ name: 'update_furniture_item', label: 'Update Item', description: 'Change item properties or position' },
-				{ name: 'delete_furniture_item', label: 'Delete Item', description: 'Permanently remove an item' },
-				{ name: 'batch_add_items', label: 'Batch Add Items', description: 'Add multiple items at once' },
-				{ name: 'batch_update_items', label: 'Batch Update Items', description: 'Reposition or update multiple items at once' },
-				{ name: 'list_furniture_items', label: 'List Items', description: 'View all items in a branch' }
+				{
+					name: 'add_furniture_item',
+					label: 'Add Item',
+					description: 'Add new furniture to the inventory'
+				},
+				{
+					name: 'update_furniture_item',
+					label: 'Update Item',
+					description: 'Change item properties or position'
+				},
+				{
+					name: 'delete_furniture_item',
+					label: 'Delete Item',
+					description: 'Permanently remove an item'
+				},
+				{
+					name: 'batch_add_items',
+					label: 'Batch Add Items',
+					description: 'Add multiple items at once'
+				},
+				{
+					name: 'batch_update_items',
+					label: 'Batch Update Items',
+					description: 'Reposition or update multiple items at once'
+				},
+				{
+					name: 'list_furniture_items',
+					label: 'List Items',
+					description: 'View all items in a branch'
+				}
 			]
 		},
 		{
 			title: () => m.project_mcp_category_images(),
 			tools: [
-				{ name: 'add_item_image_from_url', label: 'Add Image from URL', description: 'Download and attach a product photo' },
-				{ name: 'list_item_images', label: 'List Images', description: 'View images attached to an item' },
-				{ name: 'delete_item_image', label: 'Delete Image', description: 'Remove an image from an item' }
+				{
+					name: 'add_item_image_from_url',
+					label: 'Add Image from URL',
+					description: 'Download and attach a product photo'
+				},
+				{
+					name: 'list_item_images',
+					label: 'List Images',
+					description: 'View images attached to an item'
+				},
+				{
+					name: 'delete_item_image',
+					label: 'Delete Image',
+					description: 'Remove an image from an item'
+				}
 			]
 		},
 		{
 			title: () => m.project_mcp_category_preview(),
-			tools: [{ name: 'get_project_preview', label: 'Get Preview', description: 'View a visual snapshot of the layout' }]
+			tools: [
+				{
+					name: 'get_project_preview',
+					label: 'Get Preview',
+					description: 'View a visual snapshot of the layout'
+				}
+			]
 		},
 		{
 			title: () => m.project_mcp_category_floorplan(),
 			tools: [
-				{ name: 'save_floorplan_analysis', label: 'Save Analysis', description: 'Save detected rooms, walls, and doors' },
-				{ name: 'get_floorplan_analysis', label: 'Get Analysis', description: 'Read the saved floorplan structure' }
+				{
+					name: 'save_floorplan_analysis',
+					label: 'Save Analysis',
+					description: 'Save detected rooms, walls, and doors'
+				},
+				{
+					name: 'get_floorplan_analysis',
+					label: 'Get Analysis',
+					description: 'Read the saved floorplan structure'
+				}
 			]
 		},
 		{
 			title: () => m.project_mcp_category_spatial(),
 			tools: [
-				{ name: 'get_room_contents', label: 'Room Contents', description: 'List items placed in a specific room' },
-				{ name: 'get_available_space', label: 'Available Space', description: 'Calculate remaining floor space in a room' },
-				{ name: 'check_placement', label: 'Check Placement', description: 'Validate a position before placing an item' },
-				{ name: 'suggest_placement', label: 'Suggest Placement', description: 'Find a valid position for an item in a room' }
+				{
+					name: 'get_room_contents',
+					label: 'Room Contents',
+					description: 'List items placed in a specific room'
+				},
+				{
+					name: 'get_available_space',
+					label: 'Available Space',
+					description: 'Calculate remaining floor space in a room'
+				},
+				{
+					name: 'check_placement',
+					label: 'Check Placement',
+					description: 'Validate a position before placing an item'
+				},
+				{
+					name: 'suggest_placement',
+					label: 'Suggest Placement',
+					description: 'Find a valid position for an item in a room'
+				}
 			]
 		},
 		{
 			title: () => m.project_mcp_category_comments(),
 			tools: [
 				{ name: 'list_comments', label: 'List Comments', description: 'View all comment threads' },
-				{ name: 'add_comment_reply', label: 'Add Reply', description: 'Reply to an existing comment thread' }
+				{
+					name: 'add_comment_reply',
+					label: 'Add Reply',
+					description: 'Reply to an existing comment thread'
+				}
 			]
 		}
 	] as const;
@@ -185,7 +263,9 @@
 		{/if}
 
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={handleCancel}>{m.common_cancel()}</Button>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={handleCancel}
+				>{m.common_cancel()}</Button
+			>
 			<Button
 				class="w-full sm:w-auto"
 				onclick={handleSave}

@@ -12,8 +12,7 @@ function pointInPolygon(point: Point, polygon: Point[]): boolean {
 		const xj = polygon[j][0],
 			yj = polygon[j][1];
 		const intersect =
-			yi > point[1] !== yj > point[1] &&
-			point[0] < ((xj - xi) * (point[1] - yi)) / (yj - yi) + xi;
+			yi > point[1] !== yj > point[1] && point[0] < ((xj - xi) * (point[1] - yi)) / (yj - yi) + xi;
 		if (intersect) inside = !inside;
 	}
 	return inside;
@@ -229,10 +228,7 @@ export function checkPlacement(
 			if (opening.type !== 'door') continue;
 			const doorRadius = (opening.width ?? 80) + DOOR_SWING_MARGIN;
 			for (const corner of corners) {
-				const dist = Math.hypot(
-					corner[0] - opening.position[0],
-					corner[1] - opening.position[1]
-				);
+				const dist = Math.hypot(corner[0] - opening.position[0], corner[1] - opening.position[1]);
 				if (dist < doorRadius) {
 					doorCollisions.push(opening.id);
 					break;

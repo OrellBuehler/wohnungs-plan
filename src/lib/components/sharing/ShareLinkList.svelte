@@ -169,12 +169,21 @@
 	<form class="space-y-3 rounded-lg border border-slate-200 p-3" onsubmit={handleSubmit}>
 		<div class="space-y-1.5">
 			<Label for="share-link-label">{m.sharing_link_label_label()}</Label>
-			<Input id="share-link-label" bind:value={label} placeholder={m.sharing_link_label_placeholder()} />
+			<Input
+				id="share-link-label"
+				bind:value={label}
+				placeholder={m.sharing_link_label_placeholder()}
+			/>
 		</div>
 
 		<div class="space-y-1.5">
 			<Label for="share-link-password">{m.sharing_link_password_label()}</Label>
-			<Input id="share-link-password" type="password" bind:value={password} placeholder={m.sharing_link_password_placeholder()} />
+			<Input
+				id="share-link-password"
+				type="password"
+				bind:value={password}
+				placeholder={m.sharing_link_password_placeholder()}
+			/>
 		</div>
 
 		<div class="space-y-1.5">
@@ -183,10 +192,17 @@
 		</div>
 
 		{#if showNoPasswordWarning}
-			<div class="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
+			<div
+				class="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2"
+			>
 				<p class="font-medium">{m.sharing_link_no_password_warning()}</p>
 				<div class="flex gap-2">
-					<Button type="button" size="sm" variant="outline" onclick={() => (showNoPasswordWarning = false)}>
+					<Button
+						type="button"
+						size="sm"
+						variant="outline"
+						onclick={() => (showNoPasswordWarning = false)}
+					>
 						{m.common_cancel()}
 					</Button>
 					<Button type="button" size="sm" onclick={() => createLink(true)}>
@@ -206,7 +222,9 @@
 	</form>
 
 	{#if createdShareUrl}
-		<div class="rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs flex items-center gap-2 overflow-hidden">
+		<div
+			class="rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs flex items-center gap-2 overflow-hidden"
+		>
 			<span class="truncate flex-1 min-w-0">{createdShareUrl}</span>
 			<Button type="button" variant="ghost" size="icon-sm" onclick={copyCreatedLink}>
 				{#if copiedId === 'created'}
@@ -236,11 +254,19 @@
 							<p class="text-sm font-medium text-slate-900 truncate">
 								{link.label || m.sharing_link_untitled()}
 							</p>
-							<p class="text-xs text-slate-500">{m.sharing_link_created()} {formatDate(link.createdAt)}</p>
-							<p class="text-xs text-slate-500">{m.sharing_link_expires()} {formatDate(link.expiresAt)}</p>
+							<p class="text-xs text-slate-500">
+								{m.sharing_link_created()}
+								{formatDate(link.createdAt)}
+							</p>
+							<p class="text-xs text-slate-500">
+								{m.sharing_link_expires()}
+								{formatDate(link.expiresAt)}
+							</p>
 						</div>
 						{#if link.hasPassword}
-							<span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+							<span
+								class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700"
+							>
 								<Lock class="h-3 w-3" />
 								{m.sharing_link_password_indicator()}
 							</span>
@@ -248,7 +274,12 @@
 					</div>
 
 					<div class="flex items-center gap-2">
-						<Button type="button" variant="outline" size="sm" onclick={() => copyLink(link.token, link.id)}>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onclick={() => copyLink(link.token, link.id)}
+						>
 							{#if copiedId === link.id}
 								<Check class="mr-1.5 h-4 w-4" />
 								{m.sharing_link_copied()}

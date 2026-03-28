@@ -52,7 +52,11 @@ export const POST: RequestHandler = async ({ locals, params }) => {
 		throw error(410, 'Invite expired');
 	}
 
-	if (invite.email && locals.user.email && invite.email.toLowerCase() !== locals.user.email.toLowerCase()) {
+	if (
+		invite.email &&
+		locals.user.email &&
+		invite.email.toLowerCase() !== locals.user.email.toLowerCase()
+	) {
 		throw error(403, 'Invite email does not match your account');
 	}
 

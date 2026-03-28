@@ -17,12 +17,12 @@ These are not in scope. Only new additions for this milestone are documented bel
 
 ## Recommended Stack (What to Add)
 
-| Library | Version | Install Command | Purpose |
-|---------|---------|-----------------|---------|
-| `@inlang/paraglide-js` | `^2.11.0` | `bun add @inlang/paraglide-js` | Compiler-based i18n, type-safe messages |
-| `svelte-sonner` (via shadcn-svelte) | `^1.0.5` | `bunx shadcn-svelte@latest add sonner` | Toast notifications (wraps svelte-sonner) |
-| shadcn-svelte `skeleton` | latest | `bunx shadcn-svelte@latest add skeleton` | Loading skeleton component |
-| No new gesture library | — | — | Konva handles touch natively; see Mobile section |
+| Library                             | Version   | Install Command                          | Purpose                                          |
+| ----------------------------------- | --------- | ---------------------------------------- | ------------------------------------------------ |
+| `@inlang/paraglide-js`              | `^2.11.0` | `bun add @inlang/paraglide-js`           | Compiler-based i18n, type-safe messages          |
+| `svelte-sonner` (via shadcn-svelte) | `^1.0.5`  | `bunx shadcn-svelte@latest add sonner`   | Toast notifications (wraps svelte-sonner)        |
+| shadcn-svelte `skeleton`            | latest    | `bunx shadcn-svelte@latest add skeleton` | Loading skeleton component                       |
+| No new gesture library              | —         | —                                        | Konva handles touch natively; see Mobile section |
 
 Total new runtime dependencies: **1** (`@inlang/paraglide-js`).
 shadcn-svelte components copy source into `$lib/components/ui/` — no new runtime dependency.
@@ -54,33 +54,33 @@ did, and more. Do not install both.
 
 ```typescript
 // vite.config.ts
-import { paraglideVitePlugin } from '@inlang/paraglide-js'
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
 export default defineConfig({
-  plugins: [
-    paraglideVitePlugin({
-      project: './project.inlang',
-      outdir: './src/lib/paraglide',
-      strategy: ['cookie', 'preferredLanguage', 'baseLocale'],
-    }),
-    sveltekit(),
-  ]
-})
+	plugins: [
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide',
+			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
+		}),
+		sveltekit()
+	]
+});
 ```
 
 ```typescript
 // hooks.server.ts  — add to existing handle chain
-import { paraglideMiddleware } from '$lib/paraglide/server'
+import { paraglideMiddleware } from '$lib/paraglide/server';
 
 const paraglideHandle: Handle = ({ event, resolve }) =>
-  paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
-    event.request = localizedRequest
-    return resolve(event, {
-      transformPageChunk: ({ html }) => html.replace('%lang%', locale)
-    })
-  })
+	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
+		event.request = localizedRequest;
+		return resolve(event, {
+			transformPageChunk: ({ html }) => html.replace('%lang%', locale)
+		});
+	});
 
-export const handle: Handle = sequence(existingHandle, paraglideHandle)
+export const handle: Handle = sequence(existingHandle, paraglideHandle);
 ```
 
 ### Message format
@@ -89,15 +89,16 @@ Messages live in `messages/{locale}.json` (ICU-compatible format):
 
 ```json
 {
-  "$schema": "https://inlang.com/schema/inlang-message-format",
-  "add_item": "Add Item",
-  "items_count": "{count, plural, one {# item} other {# items}}"
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"add_item": "Add Item",
+	"items_count": "{count, plural, one {# item} other {# items}}"
 }
 ```
 
 ### Strategy for this project
 
 Use `['cookie', 'preferredLanguage', 'baseLocale']` — matches FEATURES.md decision:
+
 - Cookie persists explicit user choice across sessions
 - `preferredLanguage` falls back to browser `Accept-Language` for first visit
 - `baseLocale` (`en`) is the final fallback
@@ -106,15 +107,17 @@ Use `['cookie', 'preferredLanguage', 'baseLocale']` — matches FEATURES.md deci
 ### Routing and language switching
 
 Language switching is done via `setLocale()` from `$lib/paraglide/runtime`:
+
 ```typescript
-import { setLocale } from '$lib/paraglide/runtime'
-setLocale('de')  // writes cookie, triggers reactive update
+import { setLocale } from '$lib/paraglide/runtime';
+setLocale('de'); // writes cookie, triggers reactive update
 ```
 
 No page reload required. SvelteKit's `invalidateAll()` may be needed if load functions
 depend on locale — this is a documented gotcha (see PITFALLS).
 
 ### Confidence: HIGH
+
 Sources: npm registry (v2.11.0 confirmed), inlang official docs, SvelteKit CLI docs, migration guide at dropanote.de.
 
 ---
@@ -171,10 +174,10 @@ keyboard appearance and adjust bottom-sheet position:
 
 ```typescript
 if (browser) {
-  window.visualViewport?.addEventListener('resize', () => {
-    const offset = window.innerHeight - (window.visualViewport?.height ?? 0)
-    // apply offset to floating elements above keyboard
-  })
+	window.visualViewport?.addEventListener('resize', () => {
+		const offset = window.innerHeight - (window.visualViewport?.height ?? 0);
+		// apply offset to floating elements above keyboard
+	});
 }
 ```
 
@@ -184,7 +187,7 @@ No library required. This is a ~10 line pattern.
 
 ```typescript
 function haptic(duration = 10) {
-  if ('vibrate' in navigator) navigator.vibrate(duration)
+	if ('vibrate' in navigator) navigator.vibrate(duration);
 }
 ```
 
@@ -193,7 +196,7 @@ Single utility function. No library. Call on canvas item select/tap.
 ### Photo Capture
 
 ```html
-<input type="file" accept="image/*" capture="environment" hidden bind:this={cameraInput}>
+<input type="file" accept="image/*" capture="environment" hidden bind:this="{cameraInput}" />
 ```
 
 Zero-dependency camera access via `<input>`. Triggers native camera on iOS and Android
@@ -203,16 +206,16 @@ when in a PWA context. Already has an upload endpoint.
 
 ```svelte
 <script>
-  import { browser } from '$app/environment'
-  let online = $state(browser ? navigator.onLine : true)
-  if (browser) {
-    window.addEventListener('online', () => (online = true))
-    window.addEventListener('offline', () => (online = false))
-  }
+	import { browser } from '$app/environment';
+	let online = $state(browser ? navigator.onLine : true);
+	if (browser) {
+		window.addEventListener('online', () => (online = true));
+		window.addEventListener('offline', () => (online = false));
+	}
 </script>
 
 {#if !online}
-  <div class="offline-banner">You are offline</div>
+	<div class="offline-banner">You are offline</div>
 {/if}
 ```
 
@@ -235,8 +238,8 @@ with `@theme` are automatically available as CSS variables at runtime:
 ```css
 /* app.css — extend existing @theme block */
 @theme {
-  --color-brand-primary: oklch(55% 0.2 230);
-  --color-brand-surface: oklch(97% 0.02 230);
+	--color-brand-primary: oklch(55% 0.2 230);
+	--color-brand-surface: oklch(97% 0.02 230);
 }
 ```
 
@@ -247,7 +250,7 @@ and toggle the `.dark` class on `<html>`. This milestone explicitly defers dark 
 
 ```css
 /* Tailwind 4-compatible, already installed */
-@import "tw-animate-css";
+@import 'tw-animate-css';
 ```
 
 **Performance**: Tailwind 4 incremental builds are 100x faster than v3. No action needed —
@@ -274,7 +277,7 @@ v1.0.5 (Svelte 5 compatible with runes). Add `<Toaster />` once to root layout:
 ```svelte
 <!-- +layout.svelte -->
 <script>
-  import { Toaster } from '$lib/components/ui/sonner'
+	import { Toaster } from '$lib/components/ui/sonner';
 </script>
 
 <Toaster position="bottom-right" richColors />
@@ -284,14 +287,14 @@ v1.0.5 (Svelte 5 compatible with runes). Add `<Toaster />` once to root layout:
 Then call from anywhere:
 
 ```typescript
-import { toast } from 'svelte-sonner'
-toast.error('Could not save project')
-toast.success('Project saved')
+import { toast } from 'svelte-sonner';
+toast.error('Could not save project');
+toast.success('Project saved');
 toast.promise(savePromise, {
-  loading: 'Saving...',
-  success: 'Saved',
-  error: 'Failed to save'
-})
+	loading: 'Saving...',
+	success: 'Saved',
+	error: 'Failed to save'
+});
 ```
 
 **Confidence: HIGH** — Both components verified on shadcn-svelte official docs and confirmed
@@ -320,8 +323,9 @@ to the `routes/projects/[id]/` route if missing:
 ```svelte
 <!-- routes/projects/[id]/+error.svelte -->
 <script>
-  import { page } from '$app/state'
+	import { page } from '$app/state';
 </script>
+
 <h1>Could not load project</h1>
 <p>{page.error?.message}</p>
 <a href="/">Back to projects</a>
@@ -333,11 +337,11 @@ Does NOT catch errors in async event handlers — only rendering/effect errors:
 
 ```svelte
 <svelte:boundary onerror={(e) => toast.error('Canvas error: ' + e.message)}>
-  <KonvaCanvas ... />
-  {#snippet failed(error, reset)}
-    <p>Canvas failed to render.</p>
-    <button onclick={reset}>Retry</button>
-  {/snippet}
+	<KonvaCanvas ... />
+	{#snippet failed(error, reset)}
+		<p>Canvas failed to render.</p>
+		<button onclick={reset}>Retry</button>
+	{/snippet}
 </svelte:boundary>
 ```
 
@@ -346,11 +350,11 @@ prevents leaking stack traces:
 
 ```typescript
 export const handleError: HandleServerError = ({ error, event }) => {
-  console.error('Unexpected server error:', error)
-  return {
-    message: 'An unexpected error occurred. Please try again.'
-  }
-}
+	console.error('Unexpected server error:', error);
+	return {
+		message: 'An unexpected error occurred. Please try again.'
+	};
+};
 ```
 
 ### Toast Notifications: svelte-sonner via shadcn-svelte Sonner
@@ -363,10 +367,10 @@ manual state management:
 
 ```typescript
 toast.promise(projectStore.save(), {
-  loading: m.saving(),        // Paraglide translation key
-  success: m.saved(),
-  error: m.save_failed()
-})
+	loading: m.saving(), // Paraglide translation key
+	success: m.saved(),
+	error: m.save_failed()
+});
 ```
 
 ### Loading States: `$app/state` navigating (no new package)
@@ -375,11 +379,11 @@ SvelteKit 2.12+ exposes `navigating` from `$app/state` (Svelte 5 rune-compatible
 
 ```svelte
 <script>
-  import { navigating } from '$app/state'
+	import { navigating } from '$app/state';
 </script>
 
 {#if navigating}
-  <LoadingBar />
+	<LoadingBar />
 {/if}
 ```
 
@@ -391,13 +395,13 @@ Already specified above. Pattern for project list:
 
 ```svelte
 {#if loading}
-  {#each { length: 3 } as _}
-    <Skeleton class="h-40 w-full rounded-xl" />
-  {/each}
+	{#each { length: 3 } as _}
+		<Skeleton class="h-40 w-full rounded-xl" />
+	{/each}
 {:else}
-  {#each projects as project}
-    <ProjectCard {project} />
-  {/each}
+	{#each projects as project}
+		<ProjectCard {project} />
+	{/each}
 {/if}
 ```
 
@@ -506,4 +510,4 @@ This generates `project.inlang/settings.json` and `messages/en.json` scaffold.
 
 ---
 
-*Research by: gsd-project-researcher | Date: 2026-02-17*
+_Research by: gsd-project-researcher | Date: 2026-02-17_

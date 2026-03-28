@@ -30,13 +30,13 @@ key-files:
     - src/routes/projects/[id]/+page.svelte
 
 key-decisions:
-  - "Used .catch() on void authFetch() calls rather than wrapping in try/catch since they only execute client-side from event handlers"
-  - "Skipped collaboration.svelte.ts toast errors since its console.error calls are WebSocket infrastructure, not API failures"
-  - "Browser-native HTML5 required attribute validation satisfies inline form error requirement (ERRH-02)"
+  - 'Used .catch() on void authFetch() calls rather than wrapping in try/catch since they only execute client-side from event handlers'
+  - 'Skipped collaboration.svelte.ts toast errors since its console.error calls are WebSocket infrastructure, not API failures'
+  - 'Browser-native HTML5 required attribute validation satisfies inline form error requirement (ERRH-02)'
 
 patterns-established:
-  - "Error toast pattern: toast.error(m.error_xxx()) in catch blocks, keeping console.error for debugging"
-  - "Fire-and-forget error pattern: void authFetch(...).catch(() => toast.error(m.error_xxx()))"
+  - 'Error toast pattern: toast.error(m.error_xxx()) in catch blocks, keeping console.error for debugging'
+  - 'Fire-and-forget error pattern: void authFetch(...).catch(() => toast.error(m.error_xxx()))'
 
 requirements-completed: [ERRH-01, ERRH-02, ERRH-03, ERRH-06]
 
@@ -57,6 +57,7 @@ completed: 2026-02-21
 - **Files modified:** 7
 
 ## Accomplishments
+
 - Wired toast.error() into 25 catch blocks and fire-and-forget calls in project.svelte.ts
 - Wired toast.error() into 6 catch blocks in comments.svelte.ts
 - Added 29 error message keys in both en.json and de.json with proper German characters
@@ -71,7 +72,8 @@ Each task was committed atomically:
 2. **Task 2: Add auth redirect reason message and form error display pattern** - `c62bd4c` (feat)
 
 ## Files Created/Modified
-- `messages/en.json` - Added 29 error_ keys and 6 comment error keys
+
+- `messages/en.json` - Added 29 error\_ keys and 6 comment error keys
 - `messages/de.json` - Added matching German translations
 - `src/lib/stores/project.svelte.ts` - Imported toast/messages, added toast.error to 25 failure paths
 - `src/lib/stores/comments.svelte.ts` - Imported toast/messages, added toast.error to 6 failure paths
@@ -80,6 +82,7 @@ Each task was committed atomically:
 - `src/routes/projects/[id]/+page.svelte` - Added toast.error before redirect on load failure
 
 ## Decisions Made
+
 - Used .catch() on void authFetch() calls since they only run client-side (called from event handlers)
 - Skipped collaboration.svelte.ts toast errors -- its console.error calls are WebSocket infrastructure
 - Browser-native HTML5 required validation satisfies inline form error requirement (ERRH-02)
@@ -89,6 +92,7 @@ Each task was committed atomically:
 None - plan executed exactly as written.
 
 ## Issues Encountered
+
 - Paraglide compile needed to regenerate types after adding new message keys (expected behavior)
 - 4 pre-existing type errors (count: string vs number in plural forms) unrelated to this plan
 
@@ -97,9 +101,11 @@ None - plan executed exactly as written.
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - Error toasts wired for all API failures, ready for loading state indicators (plan 02)
 - Auth redirect messaging complete
 
 ---
-*Phase: 03-error-handling-loading-states*
-*Completed: 2026-02-21*
+
+_Phase: 03-error-handling-loading-states_
+_Completed: 2026-02-21_

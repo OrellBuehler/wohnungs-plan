@@ -26,7 +26,9 @@
 			<!-- Crosshair at center -->
 			<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 				<div class="w-8 h-8 border-2 border-indigo-500 rounded-full"></div>
-				<div class="absolute top-1/2 left-1/2 w-1.5 h-1.5 -translate-x-1/2 -translate-y-1/2 bg-indigo-500 rounded-full"></div>
+				<div
+					class="absolute top-1/2 left-1/2 w-1.5 h-1.5 -translate-x-1/2 -translate-y-1/2 bg-indigo-500 rounded-full"
+				></div>
 			</div>
 
 			<!-- Buttons at bottom -->
@@ -40,7 +42,9 @@
 		</div>
 	{:else}
 		<!-- Desktop: Banner -->
-		<div class="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-3 text-sm">
+		<div
+			class="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-3 text-sm"
+		>
 			{m.comments_placement_message()}
 			<Button variant="secondary" size="sm" onclick={exitPlacementMode}>{m.common_cancel()}</Button>
 		</div>

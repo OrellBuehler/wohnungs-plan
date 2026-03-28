@@ -20,7 +20,13 @@
 		duplicateProject
 	} from '$lib/stores/project.svelte';
 	import { isAuthenticated, fetchUser, login } from '$lib/stores/auth.svelte';
-	import { downloadProject, importProjectFromJSON, readFileAsJSON, fetchServerThumbnail, fetchServerFloorplan } from '$lib/utils/export';
+	import {
+		downloadProject,
+		importProjectFromJSON,
+		readFileAsJSON,
+		fetchServerThumbnail,
+		fetchServerFloorplan
+	} from '$lib/utils/export';
 	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
 	import * as m from '$lib/paraglide/messages';
 	import { toast } from 'svelte-sonner';
@@ -170,7 +176,10 @@
 
 <div class="bg-slate-50 flex flex-col overflow-hidden" style="height: 100dvh;">
 	<!-- Header -->
-	<header class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0" style="padding-top: max(0.75rem, env(safe-area-inset-top));">
+	<header
+		class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0"
+		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
+	>
 		<a href="/" class="flex items-center gap-2">
 			<img src="/icon.svg" alt={m.app_title()} class="size-8" />
 			<h1 class="text-xl font-semibold text-slate-800">{m.app_title()}</h1>
@@ -182,81 +191,86 @@
 
 	<!-- Main -->
 	<main class="flex-1 overflow-y-auto min-h-0">
-		<div class="p-4 md:p-8 max-w-6xl mx-auto w-full" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
-		<!-- Title + New button -->
-		<div class="flex items-center justify-between flex-wrap gap-4 mb-6">
-			<h2 class="text-2xl font-bold text-slate-800">{m.home_title()}</h2>
-			<div class="flex items-center gap-2">
-				<Button variant="outline" onclick={handleImport}>
-					<Upload class="size-4 mr-2" />
-					{m.home_import_json()}
-				</Button>
-				<Button onclick={handleNew}>
-					<Plus class="size-4 mr-2" />
-					{m.home_new_project()}
-				</Button>
+		<div
+			class="p-4 md:p-8 max-w-6xl mx-auto w-full"
+			style="padding-bottom: max(1rem, env(safe-area-inset-bottom));"
+		>
+			<!-- Title + New button -->
+			<div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+				<h2 class="text-2xl font-bold text-slate-800">{m.home_title()}</h2>
+				<div class="flex items-center gap-2">
+					<Button variant="outline" onclick={handleImport}>
+						<Upload class="size-4 mr-2" />
+						{m.home_import_json()}
+					</Button>
+					<Button onclick={handleNew}>
+						<Plus class="size-4 mr-2" />
+						{m.home_new_project()}
+					</Button>
+				</div>
 			</div>
-		</div>
 
-		<!-- Loading state -->
-		{#if isLoading}
-			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-				{#each Array(6) as _}
-					<div class="rounded-lg border border-slate-200 bg-white overflow-hidden">
-						<div class="aspect-video bg-slate-100 animate-pulse"></div>
-						<div class="p-3 space-y-2">
-							<div class="h-5 bg-slate-100 rounded animate-pulse w-3/4"></div>
-							<div class="h-4 bg-slate-100 rounded animate-pulse w-1/2"></div>
+			<!-- Loading state -->
+			{#if isLoading}
+				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+					{#each Array(6) as _}
+						<div class="rounded-lg border border-slate-200 bg-white overflow-hidden">
+							<div class="aspect-video bg-slate-100 animate-pulse"></div>
+							<div class="p-3 space-y-2">
+								<div class="h-5 bg-slate-100 rounded animate-pulse w-3/4"></div>
+								<div class="h-4 bg-slate-100 rounded animate-pulse w-1/2"></div>
+							</div>
 						</div>
-					</div>
-				{/each}
-			</div>
+					{/each}
+				</div>
 
-		<!-- Error state -->
-		{:else if error}
-			<div class="flex flex-col items-center justify-center py-16 text-center">
-				<p class="text-red-600 mb-4">{error}</p>
-				<Button variant="outline" onclick={loadProjects}>{m.common_retry()}</Button>
-			</div>
+				<!-- Error state -->
+			{:else if error}
+				<div class="flex flex-col items-center justify-center py-16 text-center">
+					<p class="text-red-600 mb-4">{error}</p>
+					<Button variant="outline" onclick={loadProjects}>{m.common_retry()}</Button>
+				</div>
 
-		<!-- Empty state -->
-		{:else if projects.length === 0}
-			<div class="flex flex-col items-center justify-center py-16 text-center">
-				<House class="size-16 text-slate-300 mb-4" />
-				<h3 class="text-lg font-medium text-slate-800 mb-2">{m.home_empty_title()}</h3>
-				<p class="text-slate-500 mb-6">{m.home_empty_description()}</p>
-				<Button onclick={handleNew}>
-					<Plus class="size-4 mr-2" />
-					{m.home_empty_cta()}
-				</Button>
-			</div>
+				<!-- Empty state -->
+			{:else if projects.length === 0}
+				<div class="flex flex-col items-center justify-center py-16 text-center">
+					<House class="size-16 text-slate-300 mb-4" />
+					<h3 class="text-lg font-medium text-slate-800 mb-2">{m.home_empty_title()}</h3>
+					<p class="text-slate-500 mb-6">{m.home_empty_description()}</p>
+					<Button onclick={handleNew}>
+						<Plus class="size-4 mr-2" />
+						{m.home_empty_cta()}
+					</Button>
+				</div>
 
-		<!-- Projects grid -->
-		{:else}
-			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-				{#each projects as project (project.id)}
-					<ProjectCard
-						{project}
-						onOpen={handleOpen}
-						onDelete={handleDeleteClick}
-						onShare={handleShare}
-						onSync={handleSync}
-						onExport={handleExport}
-						onDuplicate={handleDuplicate}
-					/>
-				{/each}
-			</div>
-		{/if}
+				<!-- Projects grid -->
+			{:else}
+				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+					{#each projects as project (project.id)}
+						<ProjectCard
+							{project}
+							onOpen={handleOpen}
+							onDelete={handleDeleteClick}
+							onShare={handleShare}
+							onSync={handleSync}
+							onExport={handleExport}
+							onDuplicate={handleDuplicate}
+						/>
+					{/each}
+				</div>
+			{/if}
 
-		<!-- Sign-in banner -->
-		{#if showSignInBanner}
-			<div class="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between">
-				<p class="text-sm text-blue-800">
-					{m.home_sign_in_banner()}
-				</p>
-				<Button variant="outline" onclick={login}>{m.common_sign_in()}</Button>
-			</div>
-		{/if}
+			<!-- Sign-in banner -->
+			{#if showSignInBanner}
+				<div
+					class="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between"
+				>
+					<p class="text-sm text-blue-800">
+						{m.home_sign_in_banner()}
+					</p>
+					<Button variant="outline" onclick={login}>{m.common_sign_in()}</Button>
+				</div>
+			{/if}
 		</div>
 	</main>
 </div>
@@ -283,8 +297,12 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteDialogOpen = false)}>{m.common_cancel()}</Button>
-			<Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}>{m.common_delete()}</Button>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteDialogOpen = false)}
+				>{m.common_cancel()}</Button
+			>
+			<Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}
+				>{m.common_delete()}</Button
+			>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
@@ -298,7 +316,9 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
-			<Button class="w-full sm:w-auto" onclick={() => (invalidImportDialogOpen = false)}>{m.common_ok()}</Button>
+			<Button class="w-full sm:w-auto" onclick={() => (invalidImportDialogOpen = false)}
+				>{m.common_ok()}</Button
+			>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

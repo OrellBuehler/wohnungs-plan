@@ -43,9 +43,13 @@
 		</div>
 	{:else}
 		{#each members as member (member.userId)}
-			<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-slate-200 p-3">
+			<div
+				class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-slate-200 p-3"
+			>
 				<div class="flex items-center gap-3 min-w-0 flex-1">
-					<div class="h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+					<div
+						class="h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-xs font-medium"
+					>
 						{#if member.avatarUrl && !failedAvatars.has(member.userId)}
 							<img
 								src={member.avatarUrl}
@@ -87,7 +91,9 @@
 							</Select.Content>
 						</Select.Root>
 					{:else}
-						<span class="text-xs text-muted-foreground">{roleOptions.find((o) => o.value === member.role)?.label() ?? member.role}</span>
+						<span class="text-xs text-muted-foreground"
+							>{roleOptions.find((o) => o.value === member.role)?.label() ?? member.role}</span
+						>
 					{/if}
 
 					{#if canManage && member.role !== 'owner'}

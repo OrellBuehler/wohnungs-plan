@@ -59,7 +59,9 @@ export async function generateProjectThumbnail(projectId: string): Promise<Buffe
 	}
 
 	const items = await getBranchItems(projectId, defaultBranch.id);
-	const placedItems = items.filter((item): item is PlacedItem => item.x !== null && item.y !== null);
+	const placedItems = items.filter(
+		(item): item is PlacedItem => item.x !== null && item.y !== null
+	);
 
 	if (placedItems.length === 0) {
 		// No placed items - return placeholder

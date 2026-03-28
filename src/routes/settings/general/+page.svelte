@@ -31,13 +31,7 @@
 		<Card.Content class="space-y-4">
 			<div class="space-y-2">
 				<Label for="name">{m.settings_general_name()}</Label>
-				<Input
-					id="name"
-					type="text"
-					readonly
-					value={data.user.name ?? '—'}
-					class="bg-slate-50"
-				/>
+				<Input id="name" type="text" readonly value={data.user.name ?? '—'} class="bg-slate-50" />
 			</div>
 
 			<div class="space-y-2">

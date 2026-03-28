@@ -31,7 +31,12 @@ describe('auth store', () => {
 
 	describe('fetchUser', () => {
 		it('should set authenticated to true when API returns user', async () => {
-			const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test User', avatarUrl: null };
+			const mockUser = {
+				id: 'user-1',
+				email: 'test@example.com',
+				name: 'Test User',
+				avatarUrl: null
+			};
 			(globalThis.fetch as any).mockResolvedValueOnce({
 				json: async () => ({ user: mockUser })
 			});
@@ -77,7 +82,12 @@ describe('auth store', () => {
 
 	describe('waitForAuth', () => {
 		it('should resolve after fetchUser completes successfully', async () => {
-			const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test User', avatarUrl: null };
+			const mockUser = {
+				id: 'user-1',
+				email: 'test@example.com',
+				name: 'Test User',
+				avatarUrl: null
+			};
 			(globalThis.fetch as any).mockResolvedValueOnce({
 				json: async () => ({ user: mockUser })
 			});
@@ -104,7 +114,12 @@ describe('auth store', () => {
 
 	describe('setUser', () => {
 		it('should set user and authenticated state', () => {
-			const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test User', avatarUrl: null };
+			const mockUser = {
+				id: 'user-1',
+				email: 'test@example.com',
+				name: 'Test User',
+				avatarUrl: null
+			};
 
 			setUser(mockUser);
 
@@ -114,7 +129,12 @@ describe('auth store', () => {
 		});
 
 		it('should clear user when set to null', () => {
-			const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test User', avatarUrl: null };
+			const mockUser = {
+				id: 'user-1',
+				email: 'test@example.com',
+				name: 'Test User',
+				avatarUrl: null
+			};
 			setUser(mockUser);
 			expect(isAuthenticated()).toBe(true);
 
@@ -128,7 +148,12 @@ describe('auth store', () => {
 
 	describe('logout', () => {
 		it('should clear user state on successful logout', async () => {
-			const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test User', avatarUrl: null };
+			const mockUser = {
+				id: 'user-1',
+				email: 'test@example.com',
+				name: 'Test User',
+				avatarUrl: null
+			};
 			setUser(mockUser);
 			expect(isAuthenticated()).toBe(true);
 
@@ -143,7 +168,12 @@ describe('auth store', () => {
 		});
 
 		it('should clear user state even if logout API fails', async () => {
-			const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test User', avatarUrl: null };
+			const mockUser = {
+				id: 'user-1',
+				email: 'test@example.com',
+				name: 'Test User',
+				avatarUrl: null
+			};
 			setUser(mockUser);
 
 			(globalThis.fetch as any).mockRejectedValueOnce(new Error('Network error'));

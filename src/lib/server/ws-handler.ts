@@ -59,13 +59,19 @@ function isValidMessage(raw: unknown): raw is WSMessage {
 			return true;
 		case 'item_updated':
 		case 'item_created':
-			return typeof msg.item === 'object' && msg.item !== null && typeof (msg.item as Record<string, unknown>).id !== 'undefined';
+			return (
+				typeof msg.item === 'object' &&
+				msg.item !== null &&
+				typeof (msg.item as Record<string, unknown>).id !== 'undefined'
+			);
 		case 'item_deleted':
 			return typeof msg.itemId === 'string';
 		case 'comment_created':
 			return typeof msg.comment === 'object' && msg.comment !== null;
 		case 'reply_created':
-			return typeof msg.commentId === 'string' && typeof msg.reply === 'object' && msg.reply !== null;
+			return (
+				typeof msg.commentId === 'string' && typeof msg.reply === 'object' && msg.reply !== null
+			);
 		case 'comment_resolved':
 			return typeof msg.commentId === 'string' && typeof msg.resolved === 'boolean';
 		case 'comment_deleted':
@@ -156,11 +162,13 @@ export function handleWSOpen(ws: ServerWebSocket<WSData>): void {
 
 	// Send current collaborators to new user
 	const collaborators = getCollaborators(roomId);
-	ws.send(JSON.stringify({
-		type: 'init',
-		collaborators: collaborators.filter((c) => c.user.id !== user.id),
-		yourColor: state.color
-	}));
+	ws.send(
+		JSON.stringify({
+			type: 'init',
+			collaborators: collaborators.filter((c) => c.user.id !== user.id),
+			yourColor: state.color
+		})
+	);
 
 	// Broadcast join to others
 	broadcastToProject(

@@ -72,7 +72,10 @@
 </script>
 
 <Sheet.Root {open} onOpenChange={handleOpenChange}>
-	<Sheet.Content side="right" class="!w-full sm:!w-80 sm:!max-w-sm flex flex-col bg-sidebar text-sidebar-foreground p-0">
+	<Sheet.Content
+		side="right"
+		class="!w-full sm:!w-80 sm:!max-w-sm flex flex-col bg-sidebar text-sidebar-foreground p-0"
+	>
 		<Sheet.Header class="p-4 pb-0">
 			<Sheet.Title class="sr-only">{m.nav_menu_title()}</Sheet.Title>
 			<Sheet.Description class="sr-only">{m.nav_menu_description()}</Sheet.Description>
@@ -90,7 +93,9 @@
 							onerror={() => (avatarError = true)}
 						/>
 					{:else}
-						<div class="flex h-10 w-10 items-center justify-center rounded-full bg-sidebar-accent text-sm font-medium shrink-0">
+						<div
+							class="flex h-10 w-10 items-center justify-center rounded-full bg-sidebar-accent text-sm font-medium shrink-0"
+						>
 							{getInitials(user.name)}
 						</div>
 					{/if}
@@ -117,7 +122,9 @@
 				{#each navItems as item}
 					<a
 						href={item.href}
-						class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors {isNavActive(item.href)
+						class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors {isNavActive(
+							item.href
+						)
 							? 'bg-sidebar-accent text-sidebar-accent-foreground'
 							: 'text-sidebar-foreground hover:bg-sidebar-accent/50'}"
 					>
@@ -133,7 +140,9 @@
 				{#if projectContext.branch}
 					<Separator />
 					<div class="px-4 py-3">
-						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{m.branch_title()}</p>
+						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+							{m.branch_title()}
+						</p>
 						<select
 							class="w-full h-9 rounded-md border border-sidebar-border bg-sidebar px-2 text-sm"
 							value={projectContext.branch.activeBranchId ?? ''}
@@ -149,7 +158,10 @@
 								variant="outline"
 								size="sm"
 								class="flex-1 text-xs"
-								onclick={() => { setSidebarOpen(false); projectContext?.branch?.onCreate(); }}
+								onclick={() => {
+									setSidebarOpen(false);
+									projectContext?.branch?.onCreate();
+								}}
 								disabled={projectContext.branch.isSwitching}
 							>
 								{m.branch_new()}
@@ -158,8 +170,12 @@
 								variant="outline"
 								size="sm"
 								class="flex-1 text-xs"
-								onclick={() => { setSidebarOpen(false); projectContext?.branch?.onRename(); }}
-								disabled={!projectContext.branch.activeBranchId || projectContext.branch.isSwitching}
+								onclick={() => {
+									setSidebarOpen(false);
+									projectContext?.branch?.onRename();
+								}}
+								disabled={!projectContext.branch.activeBranchId ||
+									projectContext.branch.isSwitching}
 							>
 								{m.branch_rename()}
 							</Button>
@@ -167,7 +183,10 @@
 								variant="outline"
 								size="sm"
 								class="flex-1 text-xs"
-								onclick={() => { setSidebarOpen(false); projectContext?.branch?.onDelete(); }}
+								onclick={() => {
+									setSidebarOpen(false);
+									projectContext?.branch?.onDelete();
+								}}
 								disabled={!projectContext.branch.canDelete || projectContext.branch.isSwitching}
 							>
 								{m.branch_delete()}
@@ -180,7 +199,11 @@
 				{#each projectContext.actionGroups as group}
 					<Separator />
 					<div class="px-2 py-2">
-						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1">{group.title}</p>
+						<p
+							class="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1"
+						>
+							{group.title}
+						</p>
 						{#each group.actions as action}
 							<button
 								type="button"
@@ -210,18 +233,18 @@
 			<div class="border-t border-sidebar-border px-4 py-3">
 				<LanguageSwitcher />
 			</div>
-		{#if authed}
-			<div class="border-t border-sidebar-border px-2 py-2">
-				<button
-					type="button"
-					class="flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent/50"
-					onclick={handleSignOut}
-				>
-					<LogOut class="size-4 shrink-0" />
-					{m.common_sign_out()}
-				</button>
-			</div>
-		{/if}
+			{#if authed}
+				<div class="border-t border-sidebar-border px-2 py-2">
+					<button
+						type="button"
+						class="flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent/50"
+						onclick={handleSignOut}
+					>
+						<LogOut class="size-4 shrink-0" />
+						{m.common_sign_out()}
+					</button>
+				</div>
+			{/if}
 		</div>
 	</Sheet.Content>
 </Sheet.Root>

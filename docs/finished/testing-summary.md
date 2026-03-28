@@ -32,6 +32,7 @@ This PR implements the testing infrastructure planned to prevent the race condit
 ### ✅ Phase 4: CI Integration (Complete)
 
 **GitHub Actions** (`.github/workflows/docker.yml`)
+
 - Added `test` job that runs before `build`
 - Uses Bun setup action
 - Runs `bun install --frozen-lockfile` for reproducible builds
@@ -41,6 +42,7 @@ This PR implements the testing infrastructure planned to prevent the race condit
 ### ✅ Phase 2: Store Decision Logic Tests (Complete)
 
 **Store Decision Logic Tests** - Successfully implemented with Svelte 5 rune support
+
 - ✅ Created `auth.svelte.test.ts` (12 tests) - auth state management
 - ✅ Created `project.svelte.test.ts` (8 tests) - critical decision logic
 - ✅ Tests cover the auth/online/isLocal state matrix
@@ -51,6 +53,7 @@ This PR implements the testing infrastructure planned to prevent the race condit
 ### ⏭️ Phase 3: Deferred
 
 **Server Pure Function Tests** - Requires SvelteKit environment mocking
+
 - Created OAuth pure function tests (`oauth.test.ts`)
 - Tests cover PKCE validation, token generation, and hashing
 - **Issue**: `$env/dynamic/private` module not resolvable in tests
@@ -66,6 +69,7 @@ Ran 66 tests across 6 files.
 ```
 
 **Test Breakdown:**
+
 - **46 utility tests** (existing - all passing)
   - `src/lib/utils/branch-sync.test.ts` (5 tests)
   - `src/lib/utils/canvas-math.test.ts`
@@ -135,6 +139,7 @@ new:        src/lib/test-utils/mocks/env.ts
 ## Key Discovery: Svelte 5 Testing
 
 The official Svelte 5 docs (https://svelte.dev/docs/svelte/testing) provide the solution:
+
 - Test files must include `.svelte` in the filename (e.g., `auth.svelte.test.ts`)
 - Vitest processes `.svelte` files with the Svelte compiler
 - This enables use of runes (`$state`, `$derived`, `$effect`) in tests

@@ -31,7 +31,8 @@
 				<div class="space-y-4">
 					<div>
 						<p class="text-sm text-slate-600 mb-3">
-							<strong>{data.clientName ?? m.oauth_consent_default_app()}</strong> {m.oauth_consent_permissions_intro()}
+							<strong>{data.clientName ?? m.oauth_consent_default_app()}</strong>
+							{m.oauth_consent_permissions_intro()}
 						</p>
 						<ul class="space-y-2">
 							{#each permissions as permission}

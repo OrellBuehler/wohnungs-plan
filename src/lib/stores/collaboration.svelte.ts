@@ -92,15 +92,13 @@ export function connect(projectId: string, branchId: string): void {
 		ws = null;
 	};
 
-	ws.onerror = () => {
-	};
+	ws.onerror = () => {};
 
 	ws.onmessage = (event) => {
 		try {
 			const msg = JSON.parse(event.data);
 			handleMessage(msg);
-		} catch {
-		}
+		} catch {}
 	};
 }
 
@@ -164,7 +162,9 @@ function handleMessage(msg: unknown): void {
 			break;
 
 		case 'comment_created':
-			handleRemoteCommentCreated(message.comment as Parameters<typeof handleRemoteCommentCreated>[0]);
+			handleRemoteCommentCreated(
+				message.comment as Parameters<typeof handleRemoteCommentCreated>[0]
+			);
 			break;
 		case 'reply_created':
 			handleRemoteReplyCreated(

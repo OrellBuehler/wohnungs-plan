@@ -197,8 +197,18 @@
 						onclick={() => onPlaceOnMap?.()}
 					>
 						<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+							/>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+							/>
 						</svg>
 						{m.comments_panel_pin()}
 					</Button>
@@ -234,12 +244,16 @@
 				{#each filteredComments as comment (comment.id)}
 					<button
 						type="button"
-						class="w-full text-left p-2 rounded-md hover:bg-slate-50 transition-colors {comment.resolved ? 'opacity-60' : ''}"
+						class="w-full text-left p-2 rounded-md hover:bg-slate-50 transition-colors {comment.resolved
+							? 'opacity-60'
+							: ''}"
 						onclick={() => handleCommentClick(comment)}
 					>
 						<div class="flex items-start gap-2">
 							<div
-								class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 {comment.resolved ? 'bg-slate-100 text-slate-500' : 'bg-indigo-100 text-indigo-700'}"
+								class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 {comment.resolved
+									? 'bg-slate-100 text-slate-500'
+									: 'bg-indigo-100 text-indigo-700'}"
 							>
 								{getInitial(comment.authorName)}
 							</div>
@@ -248,18 +262,28 @@
 									<span class="text-sm font-medium text-slate-700 truncate">
 										{comment.authorName ?? m.comments_thread_unknown()}
 									</span>
-									<span class="text-xs text-slate-400 flex-shrink-0">{formatTime(comment.updatedAt ?? comment.createdAt)}</span>
+									<span class="text-xs text-slate-400 flex-shrink-0"
+										>{formatTime(comment.updatedAt ?? comment.createdAt)}</span
+									>
 								</div>
 								<p class="text-xs text-slate-500 truncate">{getPreviewText(comment)}</p>
 								<div class="flex items-center gap-1.5 mt-0.5">
 									{#if comment.x != null && comment.y != null}
-										<span class="text-[10px] px-1 py-0.5 rounded bg-indigo-50 text-indigo-500">pinned</span>
+										<span class="text-[10px] px-1 py-0.5 rounded bg-indigo-50 text-indigo-500"
+											>pinned</span
+										>
 									{/if}
 									{#if comment.resolved}
-										<span class="text-[10px] px-1 py-0.5 rounded bg-green-50 text-green-600">resolved</span>
+										<span class="text-[10px] px-1 py-0.5 rounded bg-green-50 text-green-600"
+											>resolved</span
+										>
 									{/if}
 									{#if comment.replies.length > 0}
-										<span class="text-[10px] text-slate-400">{m.comments_thread_reply_count({ count: comment.replies.length.toString() })}</span>
+										<span class="text-[10px] text-slate-400"
+											>{m.comments_thread_reply_count({
+												count: comment.replies.length.toString()
+											})}</span
+										>
 									{/if}
 								</div>
 							</div>
@@ -280,13 +304,26 @@
 {/snippet}
 
 {#if open}
-	<div class="{isMobile ? 'w-full flex-1' : 'w-72 flex-shrink-0 border-l border-slate-200 h-full'} bg-white p-4 flex flex-col gap-3 overflow-hidden">
+	<div
+		class="{isMobile
+			? 'w-full flex-1'
+			: 'w-72 flex-shrink-0 border-l border-slate-200 h-full'} bg-white p-4 flex flex-col gap-3 overflow-hidden"
+	>
 		<!-- Header -->
 		<div class="flex items-center justify-between flex-shrink-0">
 			{#if isDetailMode}
-				<button type="button" class="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1" onclick={handleBack}>
+				<button
+					type="button"
+					class="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+					onclick={handleBack}
+				>
 					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M15 19l-7-7 7-7"
+						/>
 					</svg>
 					{m.common_back()}
 				</button>

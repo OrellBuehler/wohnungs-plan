@@ -23,10 +23,7 @@ export const GET: RequestHandler = async ({ locals, params, request }) => {
 	const filePath = getFloorplanPath(params.projectId, params.filename);
 
 	try {
-		const [fileBuffer, fileStat] = await Promise.all([
-			readFile(filePath),
-			stat(filePath)
-		]);
+		const [fileBuffer, fileStat] = await Promise.all([readFile(filePath), stat(filePath)]);
 
 		return serveFileWithEtag(fileBuffer, request, {
 			'Content-Type': floorplan.mimeType,
