@@ -68,7 +68,7 @@
 		<span class="text-sm font-medium">{m.nav_comments()}</span>
 		{#if unreadCount > 0}
 			<span
-				class="absolute top-2 right-1/4 flex items-center justify-center min-w-[16px] h-[16px] rounded-full bg-secondary text-white text-[10px] font-bold px-0.5"
+				class="absolute top-2 right-1/4 flex items-center justify-center min-w-[16px] h-[16px] rounded-full bg-secondary text-primary-foreground text-[10px] font-bold px-0.5"
 			>
 				{unreadCount}
 			</span>

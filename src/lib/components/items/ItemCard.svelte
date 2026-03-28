@@ -124,7 +124,7 @@
 
 			<div class="flex-1 min-w-0">
 				<h3 class="font-medium text-on-surface truncate">{item.name}</h3>
-				<p class="text-sm text-on-surface-variant font-mono">
+				<p class="text-sm text-on-surface-variant font-technical">
 					{formatDimension(item.width, item.height)}
 				</p>
 				{#if formattedPrice}
@@ -134,7 +134,7 @@
 
 			<div class="flex flex-col gap-1">
 				{#if item.position}
-					<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded"
+					<span class="text-xs bg-secondary-fixed text-on-secondary-fixed-variant px-2 py-0.5 rounded"
 						>{m.item_card_placed()}</span
 					>
 				{:else}

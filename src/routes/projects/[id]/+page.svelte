@@ -892,8 +892,7 @@
 			<a href="/" class="flex items-center flex-shrink-0 md:hidden">
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			</a>
-			<span class="text-outline flex-shrink-0 md:hidden">|</span>
-			{#if isEditingName}
+{#if isEditingName}
 				<Input
 					bind:ref={nameInputEl}
 					bind:value={editNameValue}
@@ -916,7 +915,7 @@
 			{#if branches.length > 0}
 				<div class="hidden md:flex items-center gap-1.5 min-w-0">
 					<select
-						class="h-8 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-2 text-sm text-on-surface max-w-40"
+						class="h-8 border-0 border-b border-outline-variant bg-transparent rounded-none px-2 text-sm text-on-surface max-w-40"
 						value={activeBranch?.id ?? ''}
 						disabled={isBranchSwitching}
 						onchange={handleBranchSelect}
@@ -999,7 +998,7 @@
 				Comments
 				{#if unreadCount > 0}
 					<span
-						class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary text-white text-[10px] font-bold px-1"
+						class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary text-primary-foreground text-[10px] font-bold px-1"
 					>
 						{unreadCount}
 					</span>

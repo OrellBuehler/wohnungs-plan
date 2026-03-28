@@ -75,7 +75,7 @@
 
 @theme inline {
 	--font-sans: 'Inter', system-ui, sans-serif;
-	--font-mono: 'Space Grotesk', monospace;
+	--font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
 	--font-display: 'Manrope', system-ui, sans-serif;
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);

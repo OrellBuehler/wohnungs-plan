@@ -1,7 +1,6 @@
 <script lang="ts">
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import Home from '@lucide/svelte/icons/home';
@@ -106,10 +105,8 @@
 			</div>
 		{/if}
 
-		<Separator />
-
 		<!-- Navigation -->
-		<nav class="px-2 py-2">
+		<nav class="px-2 py-2 mt-2">
 			{#each navItems as item}
 				<a
 					href={item.href}
@@ -129,13 +126,12 @@
 		{#if projectContext}
 			<!-- Branch section -->
 			{#if projectContext.branch}
-				<Separator />
-				<div class="px-4 py-3">
+				<div class="px-4 py-3 pt-4">
 					<p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
 						{m.branch_title()}
 					</p>
 					<select
-						class="w-full h-9 rounded-lg border border-outline-variant/30 bg-surface-container px-2 text-sm text-on-surface"
+						class="w-full h-9 border-0 border-b border-outline-variant bg-transparent rounded-none px-2 text-sm text-on-surface"
 						value={projectContext.branch.activeBranchId ?? ''}
 						disabled={projectContext.branch.isSwitching}
 						onchange={handleBranchSelect}
@@ -188,8 +184,7 @@
 
 			<!-- Action groups -->
 			{#each projectContext.actionGroups as group}
-				<Separator />
-				<div class="px-2 py-2">
+				<div class="px-2 py-2 pt-2">
 					<p
 						class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-3 mb-1"
 					>
@@ -221,11 +216,11 @@
 
 	<!-- Language + Sign out at bottom -->
 	<div class="mt-auto">
-		<div class="border-t border-outline-variant/15 px-4 py-3">
+		<div class="px-4 py-3">
 			<LanguageSwitcher />
 		</div>
 		{#if authed}
-			<div class="border-t border-outline-variant/15 px-2 py-2">
+			<div class="px-2 py-2">
 				<button
 					type="button"
 					class="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
@@ -240,7 +235,7 @@
 {/snippet}
 
 <!-- Desktop persistent sidebar -->
-<aside class="hidden md:flex flex-col w-64 shrink-0 bg-surface-container-low" style="height: 100dvh;">
+<aside class="hidden md:flex flex-col w-64 shrink-0 bg-surface-container-low">
 	<!-- App title -->
 	<div class="flex items-center px-5 h-16 shrink-0">
 		<span class="font-display text-lg font-extrabold text-on-surface tracking-tight">Wohnungs-Plan</span>

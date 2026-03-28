@@ -3,7 +3,6 @@
 	import type { CurrencyCode } from '$lib/utils/currency';
 	import { CURRENCIES, formatPrice } from '$lib/utils/currency';
 	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
 	import * as Select from '$lib/components/ui/select';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Package from '@lucide/svelte/icons/package';
@@ -138,9 +137,7 @@
 		</div>
 	</div>
 
-	<Separator />
-
-	<div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
+	<div class="flex-1 min-h-0 overflow-y-auto p-4 pt-2 space-y-2">
 		{#if filteredItems.length === 0}
 			<div class="flex flex-col items-center justify-center py-12 text-center">
 				<Package class="size-10 text-outline mb-3" />
@@ -170,8 +167,6 @@
 			{/each}
 		{/if}
 	</div>
-
-	<Separator />
 
 	<div class="flex-shrink-0 p-4 bg-surface-container-low">
 		<div class="flex justify-between items-center">

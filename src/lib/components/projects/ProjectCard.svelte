@@ -69,7 +69,7 @@
 </script>
 
 <div
-	class="group relative rounded-lg border border-outline-variant/10 bg-surface-container-lowest transition-all active:scale-[0.98] cursor-pointer"
+	class="group relative rounded-lg bg-surface-container-lowest transition-all active:scale-[0.98] cursor-pointer"
 	role="button"
 	tabindex={0}
 	onclick={handleCardClick}

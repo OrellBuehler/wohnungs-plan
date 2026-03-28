@@ -91,7 +91,7 @@
 			min={1}
 			max={200}
 			step={1}
-			class="w-16 h-8 font-mono text-sm"
+			class="w-16 h-8 font-technical text-sm"
 		/>
 		{m.canvas_control_px()}
 	</Label>
@@ -113,7 +113,7 @@
 		</span>
 	{/if}
 
-	<span class="text-xs text-outline font-mono">
+	<span class="text-xs text-outline font-technical">
 		{formatDecimal(scale, 2)} px/cm
 	</span>
 
