@@ -3,6 +3,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 import { getSessionWithUser, parseSessionCookie } from '$lib/server/session';
 import { runMigrations } from '$lib/server/db';
+import { logger } from '$lib/server/logger';
 
 // Run migrations on server startup
 export async function init() {
@@ -168,5 +169,5 @@ export const handleError: HandleServerError = ({ status, event }) => {
 			/\.(php|asp|aspx|jsp|cgi|sql|bak|old|orig|swp|log)(\?|$)/.test(path);
 		if (isBotProbe) return;
 	}
-	console.error(`[${status}] ${event.request.method} ${event.url.pathname}`);
+	logger.error(`[${status}] ${event.request.method} ${event.url.pathname}`);
 };

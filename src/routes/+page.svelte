@@ -160,8 +160,8 @@
 					if (thumbnail) {
 						try {
 							await saveThumbnail(imported.id, thumbnail);
-						} catch (error) {
-							console.error('Failed to save thumbnail:', error);
+						} catch {
+							// thumbnail save is a background operation; silently ignore
 						}
 					}
 					await loadProjects();

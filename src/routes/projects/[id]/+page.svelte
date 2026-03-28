@@ -656,10 +656,8 @@
 				const results = await Promise.allSettled(
 					pendingFiles.map((file) => uploadItemImage(newItem.id, file))
 				);
-				for (const result of results) {
-					if (result.status === 'rejected') {
-						console.error('Image upload failed:', result.reason);
-					}
+				if (results.some((r) => r.status === 'rejected')) {
+					toast.error(m.item_image_upload_error());
 				}
 			}
 		}
@@ -870,8 +868,8 @@
 					throw new Error(`Failed to upload thumbnail: ${response.status}`);
 				}
 			}
-		} catch (error) {
-			console.error('Failed to save thumbnail:', error);
+		} catch {
+			// thumbnail save is a background operation; silently ignore
 		}
 	}
 </script>

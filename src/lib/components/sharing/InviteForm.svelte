@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { toast } from 'svelte-sonner';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
@@ -34,8 +35,8 @@
 				inviteLink = `${window.location.origin}/invite/${token}`;
 			}
 			email = '';
-		} catch (err) {
-			console.error('Invite failed:', err);
+		} catch {
+			toast.error(m.share_invite_send_error());
 		} finally {
 			isSubmitting = false;
 		}

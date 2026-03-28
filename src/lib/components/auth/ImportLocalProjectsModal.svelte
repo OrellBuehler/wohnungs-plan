@@ -8,6 +8,7 @@
 	import FolderOpen from '@lucide/svelte/icons/folder-open';
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
+	import { toast } from 'svelte-sonner';
 
 	interface Props {
 		open: boolean;
@@ -34,8 +35,8 @@
 			localProjects = await getAllProjects();
 			// Select all by default
 			selectedIds = new Set(localProjects.map((p) => p.id));
-		} catch (err) {
-			console.error('Failed to load local projects:', err);
+		} catch {
+			toast.error(m.auth_import_load_error());
 		} finally {
 			isLoading = false;
 		}
@@ -72,8 +73,8 @@
 			const validProjects = fullProjects.filter((p): p is Project => p !== null);
 			await onImport(validProjects);
 			onClose();
-		} catch (err) {
-			console.error('Import failed:', err);
+		} catch {
+			toast.error(m.auth_import_failed_error());
 		} finally {
 			isImporting = false;
 		}

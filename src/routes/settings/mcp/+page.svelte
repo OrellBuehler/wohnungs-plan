@@ -6,6 +6,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import type { PageData, ActionData } from './$types';
 	import * as m from '$lib/paraglide/messages';
+	import { toast } from 'svelte-sonner';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -26,8 +27,8 @@
 			setTimeout(() => {
 				copiedField = null;
 			}, 2000);
-		} catch (err) {
-			console.error('Failed to copy:', err);
+		} catch {
+			toast.error(m.settings_mcp_copy_error());
 		}
 	}
 

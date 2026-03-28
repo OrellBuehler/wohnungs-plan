@@ -493,5 +493,10 @@
 	"share_branch_switch_error": "Variante konnte nicht gewechselt werden",
 	"mcp_settings_load_error": "Einstellungen konnten nicht geladen werden",
 	"mcp_settings_save_error": "Einstellungen konnten nicht gespeichert werden",
-	"project_load_error": "Projekte konnten nicht geladen werden"
+	"project_load_error": "Projekte konnten nicht geladen werden",
+	"settings_mcp_copy_error": "Kopieren fehlgeschlagen",
+	"auth_import_load_error": "Lokale Projekte konnten nicht geladen werden",
+	"auth_import_failed_error": "Import fehlgeschlagen. Bitte erneut versuchen.",
+	"share_invite_send_error": "Einladung konnte nicht gesendet werden. Bitte erneut versuchen.",
+	"item_image_upload_error": "Ein oder mehrere Bilder konnten nicht hochgeladen werden"
 }

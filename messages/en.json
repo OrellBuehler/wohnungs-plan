@@ -493,5 +493,10 @@
 	"share_branch_switch_error": "Failed to switch branch",
 	"mcp_settings_load_error": "Failed to load settings",
 	"mcp_settings_save_error": "Failed to save settings",
-	"project_load_error": "Failed to load projects"
+	"project_load_error": "Failed to load projects",
+	"settings_mcp_copy_error": "Failed to copy to clipboard",
+	"auth_import_load_error": "Failed to load local projects",
+	"auth_import_failed_error": "Import failed. Please try again.",
+	"share_invite_send_error": "Failed to send invite. Please try again.",
+	"item_image_upload_error": "One or more images failed to upload"
 }

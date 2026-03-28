@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Store transport instances created by the mock constructor so tests can access them
 const createdTransports: any[] = [];
@@ -138,17 +138,20 @@ describe('getSessionTransport', () => {
 	});
 
 	it('updates lastAccess on successful retrieval', async () => {
+		vi.useFakeTimers();
+
 		await createSessionTransport('user-1', makeCreateServer());
 		createdTransports[0]._onsessioninitialized('session-ts');
 
 		const entry = sessionTransports.get('session-ts')!;
 		const before = entry.lastAccess;
 
-		// Advance time slightly
-		await new Promise((r) => setTimeout(r, 5));
+		vi.advanceTimersByTime(100);
 
 		getSessionTransport('session-ts', 'user-1');
 
 		expect(entry.lastAccess).toBeGreaterThan(before);
+
+		vi.useRealTimers();
 	});
 });

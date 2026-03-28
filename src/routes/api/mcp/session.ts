@@ -54,8 +54,7 @@ export async function createSessionTransport(
 		}
 	}
 
-	let transport!: WebStandardStreamableHTTPServerTransport;
-	transport = new WebStandardStreamableHTTPServerTransport({
+	const transport = new WebStandardStreamableHTTPServerTransport({
 		sessionIdGenerator: () => randomUUID(),
 		onsessioninitialized: (sessionId) => {
 			sessionTransports.set(sessionId, { transport, userId, lastAccess: Date.now() });
