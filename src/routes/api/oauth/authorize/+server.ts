@@ -83,7 +83,7 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 	const sessionId = parseSessionCookie(request.headers.get('cookie'));
 	if (!sessionId) {
 		// Store OAuth parameters and redirect to login
-		const loginUrl = new URL('/login', url.origin);
+		const loginUrl = new URL('/api/auth/login', url.origin);
 		loginUrl.searchParams.set('redirect', url.pathname + url.search);
 		throw redirect(302, loginUrl.toString());
 	}
@@ -91,7 +91,7 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 	const sessionData = await getSessionWithUser(sessionId);
 	if (!sessionData) {
 		// Invalid/expired session - redirect to login
-		const loginUrl = new URL('/login', url.origin);
+		const loginUrl = new URL('/api/auth/login', url.origin);
 		loginUrl.searchParams.set('redirect', url.pathname + url.search);
 		throw redirect(302, loginUrl.toString());
 	}

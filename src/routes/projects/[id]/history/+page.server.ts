@@ -6,7 +6,7 @@ import { getBranchItems, listItemChanges } from '$lib/server/items';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {
-		throw redirect(302, '/login');
+		throw redirect(302, '/api/auth/login');
 	}
 
 	const role = await getProjectRole(params.id, locals.user.id);

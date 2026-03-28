@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ url, request }) => {
 	const sessionId = parseSessionCookie(request.headers.get('cookie'));
 	if (!sessionId) {
 		// Not authenticated - redirect to login with OAuth params preserved
-		const loginUrl = new URL('/login', url.origin);
+		const loginUrl = new URL('/api/auth/login', url.origin);
 		loginUrl.searchParams.set('redirect', url.pathname + url.search);
 		throw redirect(302, loginUrl.toString());
 	}
@@ -37,7 +37,7 @@ export const load: PageServerLoad = async ({ url, request }) => {
 	const sessionData = await getSessionWithUser(sessionId);
 	if (!sessionData) {
 		// Invalid session - redirect to login
-		const loginUrl = new URL('/login', url.origin);
+		const loginUrl = new URL('/api/auth/login', url.origin);
 		loginUrl.searchParams.set('redirect', url.pathname + url.search);
 		throw redirect(302, loginUrl.toString());
 	}
