@@ -100,7 +100,7 @@
 						<Button
 							variant="ghost"
 							size="icon-sm"
-							class="text-red-600 hover:text-red-700 flex-shrink-0"
+							class="text-destructive hover:text-destructive/80 flex-shrink-0"
 							onclick={() => onRemove(member.userId)}
 						>
 							<UserMinus class="h-4 w-4" />

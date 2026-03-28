@@ -38,7 +38,7 @@
 							{#each permissions as permission}
 								<li class="flex items-start gap-2 text-sm">
 									<svg
-										class="size-5 text-green-600 flex-shrink-0 mt-0.5"
+										class="size-5 text-secondary flex-shrink-0 mt-0.5"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"

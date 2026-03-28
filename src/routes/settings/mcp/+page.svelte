@@ -209,7 +209,7 @@
 										type="submit"
 										variant="ghost"
 										size="sm"
-										class="text-red-600 hover:text-red-700 hover:bg-red-50"
+										class="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
 									>
 										{m.common_remove()}
 									</Button>
@@ -259,7 +259,7 @@
 						{#each [m.settings_mcp_capability_1(), m.settings_mcp_capability_2(), m.settings_mcp_capability_3(), m.settings_mcp_capability_4(), m.settings_mcp_capability_5(), m.settings_mcp_capability_6(), m.settings_mcp_capability_7(), m.settings_mcp_capability_8(), m.settings_mcp_capability_9()] as capability}
 							<li class="flex items-start gap-2 text-sm">
 								<svg
-									class="size-5 text-green-600 flex-shrink-0 mt-0.5"
+									class="size-5 text-secondary flex-shrink-0 mt-0.5"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"

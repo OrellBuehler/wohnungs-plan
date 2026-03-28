@@ -138,7 +138,7 @@
 			{#if isLoading}
 				<p class="text-sm text-muted-foreground">{m.sharing_members_loading()}</p>
 			{:else if errorMessage}
-				<p class="text-sm text-red-600">{errorMessage}</p>
+				<p class="text-sm text-destructive">{errorMessage}</p>
 			{:else}
 				<MemberList
 					{members}

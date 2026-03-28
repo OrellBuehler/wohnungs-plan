@@ -96,7 +96,7 @@
 				<Button
 					variant="ghost"
 					size="sm"
-					class="h-6 text-xs {comment.resolved ? 'text-green-600' : 'text-on-surface-variant'}"
+					class="h-6 text-xs {comment.resolved ? 'text-secondary' : 'text-on-surface-variant'}"
 					onclick={() => toggleResolve(projectId, comment.id)}
 				>
 					{comment.resolved ? m.comments_thread_resolved() : m.comments_thread_resolve()}

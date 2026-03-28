@@ -94,7 +94,7 @@
 			<Card.Header>
 				<div class="flex items-center gap-3 mb-2">
 					<div
-						class="flex items-center justify-center size-10 rounded-full bg-red-100 text-red-600"
+						class="flex items-center justify-center size-10 rounded-full bg-error-container text-destructive"
 					>
 						<svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path

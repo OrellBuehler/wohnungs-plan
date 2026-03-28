@@ -1485,7 +1485,7 @@
 			<div class="-mx-1 my-1 h-px bg-muted"></div>
 			<button
 				type="button"
-				class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-red-600 hover:bg-red-50 hover:text-red-600"
+				class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-destructive hover:bg-destructive/10 hover:text-destructive"
 				onclick={() => handleContextMenuAction('unplace')}
 				role="menuitem"
 			>

@@ -43,7 +43,7 @@
 	{:else}
 		<!-- Desktop: Banner -->
 		<div
-			class="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-secondary text-white px-4 py-2 rounded-lg flex items-center gap-3 text-sm"
+			class="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg flex items-center gap-3 text-sm"
 		>
 			{m.comments_placement_message()}
 			<Button variant="secondary" size="sm" onclick={exitPlacementMode}>{m.common_cancel()}</Button>

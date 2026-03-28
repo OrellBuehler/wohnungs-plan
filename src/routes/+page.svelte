@@ -227,7 +227,7 @@
 				<!-- Error state -->
 			{:else if error}
 				<div class="flex flex-col items-center justify-center py-16 text-center">
-					<p class="text-red-600 mb-4">{error}</p>
+					<p class="text-destructive mb-4">{error}</p>
 					<Button variant="outline" onclick={loadProjects}>{m.common_retry()}</Button>
 				</div>
 

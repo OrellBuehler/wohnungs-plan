@@ -213,7 +213,7 @@
 		{/if}
 
 		{#if createError}
-			<p class="text-sm text-red-600">{createError}</p>
+			<p class="text-sm text-destructive">{createError}</p>
 		{/if}
 
 		<Button class="w-full sm:w-auto" type="submit" disabled={isCreating}>
@@ -243,7 +243,7 @@
 		{#if isLoading}
 			<p class="text-sm text-on-surface-variant">{m.sharing_links_loading()}</p>
 		{:else if loadError}
-			<p class="text-sm text-red-600">{loadError}</p>
+			<p class="text-sm text-destructive">{loadError}</p>
 		{:else if links.length === 0}
 			<p class="text-sm text-on-surface-variant">{m.sharing_links_empty()}</p>
 		{:else}

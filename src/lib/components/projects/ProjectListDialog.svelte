@@ -80,7 +80,7 @@
 							<Button
 								size="sm"
 								variant="ghost"
-								class="text-red-600 hover:text-red-700 hover:bg-red-50"
+								class="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
 								onclick={() => requestDelete(project)}
 							>
 								{m.common_delete()}

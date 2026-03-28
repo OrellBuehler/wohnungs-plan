@@ -234,7 +234,7 @@
 				{m.common_loading()}
 			</div>
 		{:else if errorMessage}
-			<div class="text-sm text-red-600 py-4">{errorMessage}</div>
+			<div class="text-sm text-destructive py-4">{errorMessage}</div>
 		{:else}
 			<div class="flex-1 overflow-y-auto space-y-4 py-2 -mx-6 px-6">
 				{#each TOOL_CATEGORIES as category, i}

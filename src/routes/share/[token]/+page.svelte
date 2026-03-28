@@ -320,7 +320,7 @@
 				/>
 			</div>
 			{#if passwordError}
-				<p class="text-sm text-red-600">{passwordError}</p>
+				<p class="text-sm text-destructive">{passwordError}</p>
 			{/if}
 			<Button class="w-full" type="submit" disabled={!password || isVerifyingPassword}>
 				{isVerifyingPassword ? m.share_password_verifying() : m.common_continue()}
@@ -375,7 +375,7 @@
 						</div>
 					{:else if loadError}
 						<div class="h-full flex flex-col items-center justify-center gap-3 text-center px-6">
-							<p class="text-sm text-red-600">{loadError}</p>
+							<p class="text-sm text-destructive">{loadError}</p>
 							<Button variant="outline" onclick={() => loadShareData(activeBranchId ?? undefined)}>
 								{m.common_retry()}
 							</Button>

@@ -21,7 +21,7 @@
 			<Tooltip.Root>
 				<Tooltip.Trigger>
 					<div
-						class="h-8 w-8 rounded-full border-2 border-background flex items-center justify-center text-xs font-medium text-white"
+						class="h-8 w-8 rounded-full border-2 border-background flex items-center justify-center text-xs font-medium text-primary-foreground"
 						style:background-color={user.color}
 					>
 						{#if user.avatarUrl && !failedAvatars.has(user.id)}
