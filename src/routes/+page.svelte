@@ -174,17 +174,18 @@
 	}
 </script>
 
-<div class="bg-surface flex flex-col overflow-hidden" style="height: 100dvh;">
+<div class="flex flex-col flex-1 overflow-hidden">
 	<!-- Header -->
 	<header
 		class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center justify-between px-4 py-3 flex-shrink-0"
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
-		<a href="/" class="flex items-center gap-2">
+		<a href="/" class="flex items-center gap-2 md:hidden">
 			<img src="/icon.svg" alt={m.app_title()} class="size-8" />
 			<h1 class="text-xl font-semibold text-on-surface">{m.app_title()}</h1>
 		</a>
-		<div class="flex-shrink-0">
+		<h1 class="hidden md:block text-xl font-semibold text-on-surface">{m.home_title()}</h1>
+		<div class="flex-shrink-0 md:hidden">
 			<SidebarTrigger />
 		</div>
 	</header>
@@ -195,9 +196,8 @@
 			class="p-4 md:p-8 max-w-6xl mx-auto w-full"
 			style="padding-bottom: max(1rem, env(safe-area-inset-bottom));"
 		>
-			<!-- Title + New button -->
-			<div class="flex items-center justify-between flex-wrap gap-4 mb-6">
-				<h2 class="text-2xl font-bold text-on-surface">{m.home_title()}</h2>
+			<!-- Actions -->
+			<div class="flex items-center justify-end flex-wrap gap-4 mb-6">
 				<div class="flex items-center gap-2">
 					<Button variant="outline" onclick={handleImport}>
 						<Upload class="size-4 mr-2" />

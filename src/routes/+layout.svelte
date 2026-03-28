@@ -35,10 +35,12 @@
 </svelte:head>
 
 <Tooltip.Provider>
-	<div class="h-screen bg-surface flex flex-col overflow-hidden" style="height: 100dvh;">
-		{@render children()}
+	<div class="bg-surface flex overflow-hidden" style="height: 100dvh;">
+		<AppSidebar />
+		<div class="flex-1 flex flex-col overflow-hidden min-w-0">
+			{@render children()}
+		</div>
 	</div>
-	<AppSidebar />
 </Tooltip.Provider>
 
 <Toaster />

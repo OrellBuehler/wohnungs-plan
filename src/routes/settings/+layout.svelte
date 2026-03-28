@@ -20,17 +20,18 @@
 	}
 </script>
 
-<div class="h-screen bg-surface flex flex-col overflow-hidden">
+<div class="flex flex-col flex-1 overflow-hidden">
 	<!-- Header -->
 	<header
 		class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center justify-between px-4 py-3 flex-shrink-0"
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
-		<a href="/" class="flex items-center gap-2">
+		<a href="/" class="flex items-center gap-2 md:hidden">
 			<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			<h1 class="text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
 		</a>
-		<div class="flex-shrink-0">
+		<h1 class="hidden md:block text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
+		<div class="flex-shrink-0 md:hidden">
 			<SidebarTrigger />
 		</div>
 	</header>

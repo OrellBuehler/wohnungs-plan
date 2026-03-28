@@ -889,10 +889,10 @@
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
 		<div class="flex items-center gap-2 min-w-0 flex-1">
-			<a href="/" class="flex items-center flex-shrink-0">
+			<a href="/" class="flex items-center flex-shrink-0 md:hidden">
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			</a>
-			<span class="text-outline flex-shrink-0">|</span>
+			<span class="text-outline flex-shrink-0 md:hidden">|</span>
 			{#if isEditingName}
 				<Input
 					bind:ref={nameInputEl}
@@ -1006,7 +1006,9 @@
 				{/if}
 			</Button>
 			<OfflineBadge />
-			<SidebarTrigger />
+			<div class="md:hidden">
+				<SidebarTrigger />
+			</div>
 		</div>
 	</header>
 
