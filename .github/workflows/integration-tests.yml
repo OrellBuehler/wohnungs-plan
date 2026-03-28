@@ -1,4 +1,4 @@
-name: Integration Tests
+name: PR Checks
 
 on:
   pull_request:
@@ -17,7 +17,7 @@ jobs:
         with:
           bun-version: latest
 
-      - run: bun install
+      - run: bun install --frozen-lockfile
 
       - name: Type check
         run: bun run check
