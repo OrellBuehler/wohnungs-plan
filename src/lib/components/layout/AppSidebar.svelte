@@ -74,7 +74,7 @@
 <Sheet.Root {open} onOpenChange={handleOpenChange}>
 	<Sheet.Content
 		side="right"
-		class="!w-full sm:!w-80 sm:!max-w-sm flex flex-col bg-sidebar text-sidebar-foreground p-0"
+		class="!w-full sm:!w-80 sm:!max-w-sm flex flex-col bg-surface-container-low text-sidebar-foreground p-0"
 	>
 		<Sheet.Header class="p-4 pb-0">
 			<Sheet.Title class="sr-only">{m.nav_menu_title()}</Sheet.Title>
@@ -89,12 +89,12 @@
 						<img
 							src={user.avatarUrl}
 							alt={user.name ?? m.nav_user_fallback()}
-							class="h-10 w-10 rounded-full object-cover shrink-0"
+							class="h-10 w-10 rounded-xl object-cover shrink-0"
 							onerror={() => (avatarError = true)}
 						/>
 					{:else}
 						<div
-							class="flex h-10 w-10 items-center justify-center rounded-full bg-sidebar-accent text-sm font-medium shrink-0"
+							class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-high text-sm font-medium shrink-0"
 						>
 							{getInitials(user.name)}
 						</div>

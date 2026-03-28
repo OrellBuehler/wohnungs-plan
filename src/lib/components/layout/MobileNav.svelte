@@ -12,14 +12,14 @@
 </script>
 
 <nav
-	class="bg-white border-t border-slate-200 flex md:hidden flex-shrink-0"
+	class="bg-surface-container-lowest/80 backdrop-blur-[12px] flex md:hidden flex-shrink-0"
 	style="padding-bottom: env(safe-area-inset-bottom);"
 >
 	<Button
 		variant="ghost"
 		class="flex-1 flex items-center justify-center gap-2 rounded-none h-14 {activeTab === 'plan'
-			? 'text-blue-600 bg-blue-50'
-			: 'text-slate-600'}"
+			? 'text-on-surface bg-surface-container-high'
+			: 'text-on-surface-variant'}"
 		onclick={() => onTabChange('plan')}
 	>
 		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,8 +35,8 @@
 	<Button
 		variant="ghost"
 		class="flex-1 flex items-center justify-center gap-2 rounded-none h-14 {activeTab === 'items'
-			? 'text-blue-600 bg-blue-50'
-			: 'text-slate-600'}"
+			? 'text-on-surface bg-surface-container-high'
+			: 'text-on-surface-variant'}"
 		onclick={() => onTabChange('items')}
 	>
 		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,8 +53,8 @@
 		variant="ghost"
 		class="flex-1 flex items-center justify-center gap-2 rounded-none h-14 relative {activeTab ===
 		'comments'
-			? 'text-blue-600 bg-blue-50'
-			: 'text-slate-600'}"
+			? 'text-on-surface bg-surface-container-high'
+			: 'text-on-surface-variant'}"
 		onclick={() => onTabChange('comments')}
 	>
 		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +68,7 @@
 		<span class="text-sm font-medium">{m.nav_comments()}</span>
 		{#if unreadCount > 0}
 			<span
-				class="absolute top-2 right-1/4 flex items-center justify-center min-w-[16px] h-[16px] rounded-full bg-indigo-600 text-white text-[10px] font-bold px-0.5"
+				class="absolute top-2 right-1/4 flex items-center justify-center min-w-[16px] h-[16px] rounded-full bg-secondary text-white text-[10px] font-bold px-0.5"
 			>
 				{unreadCount}
 			</span>
