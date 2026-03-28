@@ -106,3 +106,18 @@ bun db:studio    # Open Drizzle Studio
 
 - Always commit changes when work is complete
 - Never add "Co-Authored-By" lines to commit messages
+
+## Design Context
+
+See `.impeccable.md` for full design spec. Key principles:
+
+- **"The Digital Drafting Table"** — clean, functional, precision without complexity
+- **No 1px borders for sectioning** — use background color shifts (tonal layering)
+- **Typography:** Manrope (display), Inter (body), Space Grotesk (dimensions/numbers)
+- **Surface hierarchy:** #f7f9fb (base) → #f2f4f6 (panels) → #e0e3e5 (cards) → #ffffff (popovers)
+- **Floating elements:** glassmorphism (80% opacity + 12px backdrop-blur)
+- **Spacing:** strict 4px/8px grid. Layout margins: 2rem. No dividers — use spacing
+- **Icons:** line-art style, 1.5px stroke weight
+- **No pure black text** — use #191c1e (`on_surface`)
+- **Inputs:** bottom-line or filled style, never 4-sided box
+- **Buttons:** rounded-lg (8px), no drop shadows, color contrast for pressability
