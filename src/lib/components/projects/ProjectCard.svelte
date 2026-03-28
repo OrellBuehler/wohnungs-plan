@@ -174,7 +174,7 @@
 	<!-- Card content -->
 	<div class="p-4">
 		<div class="flex items-start justify-between gap-2">
-			<h3 class="font-medium text-on-surface truncate flex-1" title={project.name}>
+			<h3 class="font-display font-medium text-on-surface truncate flex-1" title={project.name}>
 				{project.name}
 			</h3>
 

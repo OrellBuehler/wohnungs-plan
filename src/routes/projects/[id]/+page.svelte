@@ -905,7 +905,7 @@
 				<button
 					type="button"
 					onclick={isMobile ? undefined : startEditingName}
-					class="text-lg font-semibold text-on-surface min-w-0 truncate {isMobile
+					class="font-display text-lg font-semibold text-on-surface min-w-0 truncate {isMobile
 						? ''
 						: 'hover:text-on-surface-variant cursor-pointer'}"
 				>

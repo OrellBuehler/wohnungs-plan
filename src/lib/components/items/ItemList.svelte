@@ -95,7 +95,7 @@
 <div class="flex flex-col h-full min-h-0">
 	<div class="flex-shrink-0 p-4">
 		<div class="flex items-center justify-between mb-4">
-			<h2 class="text-base font-semibold text-on-surface">
+			<h2 class="font-display text-base font-semibold text-on-surface">
 				{m.item_list_title({ count: items.length.toString() })}
 			</h2>
 			{#if !readonly}
@@ -196,7 +196,7 @@
 				{#if isLoadingRates}
 					<span class="text-xs text-outline">{m.item_list_updating()}</span>
 				{/if}
-				<span class="text-lg font-semibold text-on-surface">{formattedTotal}</span>
+				<span class="font-technical text-lg font-semibold text-on-surface">{formattedTotal}</span>
 			</div>
 		</div>
 	</div>

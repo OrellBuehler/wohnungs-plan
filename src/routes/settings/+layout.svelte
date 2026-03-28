@@ -28,9 +28,9 @@
 	>
 		<a href="/" class="flex items-center gap-2 md:hidden">
 			<img src="/icon.svg" alt="Floorplanner" class="size-8" />
-			<h1 class="text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
+			<h1 class="font-display text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
 		</a>
-		<h1 class="hidden md:block text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
+		<h1 class="font-display hidden md:block text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
 		<div class="flex-shrink-0 md:hidden">
 			<SidebarTrigger />
 		</div>
