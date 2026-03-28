@@ -41,6 +41,8 @@
 	"nav_settings": "Settings",
 	"nav_menu_title": "Menu",
 	"nav_menu_description": "App navigation and actions",
+	"nav_expand_sidebar": "Expand sidebar",
+	"nav_collapse_sidebar": "Collapse sidebar",
 	"nav_plan": "Plan",
 	"nav_items": "Items",
 	"nav_comments": "Comments",

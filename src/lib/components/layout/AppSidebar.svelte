@@ -9,6 +9,7 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
 	import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { getUser, isAuthenticated, isLoading, login, logout } from '$lib/stores/auth.svelte';
 	import {
@@ -262,17 +263,16 @@
 		<nav class="px-2 py-2 mt-2 flex flex-col items-center gap-1">
 			{#each navItems as item}
 				<Tooltip.Root>
-					<Tooltip.Trigger>
-						<a
-							href={item.href}
-							class="flex items-center justify-center rounded-lg size-10 transition-colors {isNavActive(
-								item.href
-							)
-								? 'bg-surface-container text-on-surface'
-								: 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}"
-						>
-							<item.icon class="size-4" />
-						</a>
+					<Tooltip.Trigger
+						class="flex items-center justify-center rounded-lg size-10 transition-colors {isNavActive(
+							item.href
+						)
+							? 'bg-surface-container text-on-surface'
+							: 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}"
+						onclick={() => goto(item.href)}
+						aria-label={item.label}
+					>
+						<item.icon class="size-4" />
 					</Tooltip.Trigger>
 					<Tooltip.Content side="right">{item.label}</Tooltip.Content>
 				</Tooltip.Root>
@@ -284,14 +284,12 @@
 		{#if authed}
 			<div class="flex justify-center py-2">
 				<Tooltip.Root>
-					<Tooltip.Trigger>
-						<button
-							type="button"
-							class="flex items-center justify-center rounded-lg size-10 transition-colors hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
-							onclick={handleSignOut}
-						>
-							<LogOut class="size-4" />
-						</button>
+					<Tooltip.Trigger
+						class="flex items-center justify-center rounded-lg size-10 transition-colors hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+						onclick={handleSignOut}
+						aria-label={m.common_sign_out()}
+					>
+						<LogOut class="size-4" />
 					</Tooltip.Trigger>
 					<Tooltip.Content side="right">{m.common_sign_out()}</Tooltip.Content>
 				</Tooltip.Root>
@@ -311,6 +309,7 @@
 		{/if}
 		<button
 			type="button"
+			aria-label={isCollapsed ? m.nav_expand_sidebar() : m.nav_collapse_sidebar()}
 			class="flex items-center justify-center rounded-lg size-8 transition-colors hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
 			onclick={toggleSidebarCollapsed}
 		>

@@ -41,6 +41,8 @@
 	"nav_settings": "Einstellungen",
 	"nav_menu_title": "Menü",
 	"nav_menu_description": "App-Navigation und Aktionen",
+	"nav_expand_sidebar": "Seitenleiste erweitern",
+	"nav_collapse_sidebar": "Seitenleiste einklappen",
 	"nav_plan": "Plan",
 	"nav_items": "Objekte",
 	"nav_comments": "Kommentare",
