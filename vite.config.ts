@@ -42,7 +42,7 @@ export default defineConfig({
 		},
 		server: {
 			deps: {
-				inline: ['drizzle-orm']
+				inline: ['drizzle-orm', 'svelte-sonner', 'runed']
 			}
 		},
 		coverage: {

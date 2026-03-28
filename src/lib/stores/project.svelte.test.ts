@@ -3,7 +3,7 @@ import { createTestProject, createTestBranch, createTestItem } from '$lib/test-u
 
 // Mock UI/platform deps that are unavailable in the test environment
 vi.mock('svelte-sonner', () => ({ toast: { error: vi.fn(), success: vi.fn(), info: vi.fn() } }));
-vi.mock('$lib/paraglide/messages', () => new Proxy({}, { get: () => () => '' }));
+vi.mock('$lib/paraglide/messages');
 vi.mock('$lib/utils/upload', () => ({ uploadWithProgress: vi.fn() }));
 vi.mock('$lib/components/shared/UploadProgress.svelte', () => ({ default: {} }));
 
