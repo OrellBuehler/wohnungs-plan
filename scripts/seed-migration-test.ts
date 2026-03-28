@@ -1,12 +1,12 @@
 import type { SQL } from 'bun';
 
-const U1 = '00000000-0000-0000-0001-000000000001';
-const U2 = '00000000-0000-0000-0001-000000000002';
+export const U1 = '00000000-0000-0000-0001-000000000001';
+export const U2 = '00000000-0000-0000-0001-000000000002';
 const S1 = '00000000-0000-0000-0002-000000000001';
 const P1 = '00000000-0000-0000-0003-000000000001';
 const B1 = '00000000-0000-0000-0004-000000000001';
-const I1 = '00000000-0000-0000-0005-000000000001';
-const I2 = '00000000-0000-0000-0005-000000000002';
+export const I1 = '00000000-0000-0000-0005-000000000001';
+export const I2 = '00000000-0000-0000-0005-000000000002';
 const IC1 = '00000000-0000-0000-0006-000000000001';
 const FP1 = '00000000-0000-0000-0007-000000000001';
 const C1 = '00000000-0000-0000-0008-000000000001';
@@ -75,8 +75,8 @@ export async function seedData(db: SQL): Promise<void> {
 	`;
 
 	await db`
-		INSERT INTO oauth_clients (id, user_id, client_id, client_name, token_endpoint_auth_method)
-		VALUES (${OC1}, ${U1}, 'test-client-001', 'Test Client', 'client_secret_post')
+		INSERT INTO oauth_clients (id, user_id, client_id, client_secret_hash, client_name, token_endpoint_auth_method)
+		VALUES (${OC1}, ${U1}, 'test-client-001', 'hash-placeholder', 'Test Client', 'client_secret_post')
 	`;
 
 	await db`

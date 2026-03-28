@@ -5,7 +5,7 @@ import { migrate } from 'drizzle-orm/bun-sql/migrator';
 import { mkdtemp, writeFile, copyFile, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { seedData } from './seed-migration-test';
+import { seedData, U1, U2, I1, I2 } from './seed-migration-test';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -55,7 +55,8 @@ const modifiedMigrations = modifiedOutput
 	.filter((f) => f.endsWith('.sql') && f.startsWith('drizzle/'));
 
 if (modifiedMigrations.length > 0) {
-	console.warn(`WARNING: existing migrations were modified in this PR: ${modifiedMigrations.join(', ')}`);
+	console.error(`ERROR: existing migrations were modified in this PR: ${modifiedMigrations.join(', ')}`);
+	process.exit(1);
 }
 
 // Phase 2: Build temp "base" migrations folder
@@ -114,17 +115,23 @@ try {
 		console.log('New migrations applied.');
 	}
 
-	// Phase 4: Validate data survived
-	console.log('\nValidating data survived migration...');
-	const [{ count: userCount }] = await client`SELECT count(*)::int AS count FROM users`;
-	if (baseEntries.length > 0 && userCount === 0) {
-		console.error('FAIL: users table is empty after migration — data may have been lost');
-		process.exit(1);
-	}
-	console.log(`users: ${userCount} rows`);
+	// Phase 4: Validate seeded data survived
+	if (baseEntries.length > 0) {
+		console.log('\nValidating seeded data survived migration...');
+		const [{ count: userCount }] = await client`SELECT count(*)::int AS count FROM users WHERE id IN (${U1}, ${U2})`;
+		if (userCount !== 2) {
+			console.error(`FAIL: expected 2 seeded users after migration, found ${userCount}`);
+			process.exit(1);
+		}
+		console.log(`users: ${userCount} rows`);
 
-	const [{ count: itemCount }] = await client`SELECT count(*)::int AS count FROM items`;
-	console.log(`items: ${itemCount} rows`);
+		const [{ count: itemCount }] = await client`SELECT count(*)::int AS count FROM items WHERE id IN (${I1}, ${I2})`;
+		if (itemCount !== 2) {
+			console.error(`FAIL: expected 2 seeded items after migration, found ${itemCount}`);
+			process.exit(1);
+		}
+		console.log(`items: ${itemCount} rows`);
+	}
 
 	console.log('\nMigration test PASSED.');
 } finally {
