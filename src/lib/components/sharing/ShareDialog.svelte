@@ -50,11 +50,11 @@
 		errorMessage = null;
 		try {
 			const response = await fetch(`/api/projects/${projectId}/members`);
-			if (!response.ok) throw new Error('Failed to load members');
+			if (!response.ok) throw new Error(m.share_members_load_error());
 			const data = await response.json();
 			members = data.members ?? [];
 		} catch (err) {
-			errorMessage = err instanceof Error ? err.message : 'Failed to load members';
+			errorMessage = err instanceof Error ? err.message : m.share_members_load_error();
 		} finally {
 			isLoading = false;
 		}

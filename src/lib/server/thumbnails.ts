@@ -7,6 +7,7 @@ import { getFloorplanPath } from '$lib/server/floorplans';
 import { getBranchItems } from '$lib/server/items';
 import { getDefaultBranch } from '$lib/server/branches';
 import type { Item } from '$lib/server/db';
+import { logger } from '$lib/server/logger';
 
 const THUMBNAIL_WIDTH = 800;
 const THUMBNAIL_HEIGHT = 600;
@@ -34,7 +35,7 @@ export async function generateProjectThumbnail(projectId: string): Promise<Buffe
 			const floorplanData = await readFile(floorplanPath);
 			baseImage = sharp(floorplanData);
 		} catch (err) {
-			console.warn(`[Thumbnail] Could not load floorplan for ${projectId}:`, err);
+			logger.warn(`[Thumbnail] Could not load floorplan for ${projectId}:`, err);
 		}
 	}
 

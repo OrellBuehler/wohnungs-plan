@@ -1,5 +1,6 @@
 import { redirect, fail, isRedirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import { logger } from '$lib/server/logger';
 import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
 import {
 	getOAuthClient,
@@ -149,7 +150,7 @@ export const actions = {
 			throw redirect(302, callbackUrl.toString());
 		} catch (error) {
 			if (isRedirect(error)) throw error;
-			console.error('Failed to approve authorization:', error);
+			logger.error('Failed to approve authorization:', error);
 			return fail(500, { error: 'Failed to complete authorization' });
 		}
 	},

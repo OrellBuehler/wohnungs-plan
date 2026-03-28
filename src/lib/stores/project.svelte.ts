@@ -348,7 +348,6 @@ export async function listProjects(): Promise<ProjectMeta[]> {
 			(a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
 		);
 	} catch (error) {
-		console.error('Failed to load remote projects:', error);
 		toast.error(m.error_load_projects());
 		return localMetas;
 	}
@@ -410,7 +409,6 @@ export async function syncProjectToCloud(projectId: string): Promise<boolean> {
 		await deleteLocalProject(projectId);
 		return true;
 	} catch (error) {
-		console.error('Failed to sync project:', error);
 		toast.error(m.error_sync_project());
 		return false;
 	}
@@ -461,7 +459,6 @@ export async function loadProjectById(id: string, branchId?: string): Promise<Pr
 
 		return project;
 	} catch (error) {
-		console.error('Failed to load remote project:', error);
 		toast.error(m.error_load_project());
 		// Fallback to local version if API fails
 		return local ? { ...local, isLocal: true } : null;
@@ -491,7 +488,6 @@ export async function setActiveBranch(branchId: string): Promise<boolean> {
 				return true;
 			}
 		} catch (error) {
-			console.error('Failed to load branch items from cloud:', error);
 			toast.error(m.error_sync());
 		}
 	}
@@ -544,7 +540,6 @@ export async function createProjectBranch(
 		debounceAutoSave();
 		return branch;
 	} catch (error) {
-		console.error('Failed to create branch:', error);
 		toast.error(m.error_branch_create());
 		return null;
 	}
@@ -577,7 +572,6 @@ export async function renameProjectBranch(branchId: string, name: string): Promi
 		debounceAutoSave();
 		return true;
 	} catch (error) {
-		console.error('Failed to rename branch:', error);
 		toast.error(m.error_branch_rename());
 		return false;
 	}
@@ -631,7 +625,6 @@ export async function deleteProjectBranch(branchId: string): Promise<boolean> {
 				currentProject = reloaded;
 			}
 		}
-		console.error('Failed to delete branch:', error);
 		toast.error(m.error_branch_delete());
 		return false;
 	}
@@ -657,7 +650,6 @@ export async function getItemHistory(limit = 50, offset = 0): Promise<ItemChange
 			createdAt: new Date(change.createdAt).toISOString()
 		}));
 	} catch (error) {
-		console.error('Failed to load item history:', error);
 		toast.error(m.error_sync());
 		return [];
 	}
@@ -682,7 +674,6 @@ export async function revertHistoryChanges(changeIds: string[]): Promise<boolean
 		await setActiveBranch(branchId);
 		return true;
 	} catch (error) {
-		console.error('Failed to revert history changes:', error);
 		toast.error(m.error_revert_history());
 		return false;
 	}
@@ -693,7 +684,6 @@ export async function removeProject(id: string): Promise<void> {
 		try {
 			await authFetch(`/api/projects/${id}`, { method: 'DELETE' });
 		} catch (error) {
-			console.error('Failed to delete remote project:', error);
 			toast.error(m.error_delete_project());
 		}
 	} else if (shouldQueue()) {
@@ -764,7 +754,6 @@ export async function duplicateProject(id: string): Promise<ProjectMeta | null> 
 			memberCount: 1
 		};
 	} catch (error) {
-		console.error('Failed to duplicate project:', error);
 		toast.error(m.error_duplicate_project());
 		return null;
 	}
@@ -1114,7 +1103,6 @@ export async function uploadItemImage(itemId: string, file: File): Promise<ItemI
 		return newImage;
 	} catch (err) {
 		toast.dismiss(toastId);
-		console.error('Failed to upload item image:', err);
 		toast.error(m.upload_failed());
 		return null;
 	}
@@ -1149,7 +1137,6 @@ export async function deleteItemImage(itemId: string, imageId: string): Promise<
 		);
 		return true;
 	} catch (err) {
-		console.error('Failed to delete item image:', err);
 		toast.error(m.error_delete_image());
 		return false;
 	}
@@ -1191,7 +1178,6 @@ export async function reorderItemImages(itemId: string, imageIds: string[]): Pro
 		);
 		return true;
 	} catch (err) {
-		console.error('Failed to reorder item images:', err);
 		toast.error(m.error_sync());
 		return false;
 	}
@@ -1337,7 +1323,6 @@ export async function loadFloorplanAnalysis(projectId: string): Promise<void> {
 	try {
 		const response = await authFetch(`/api/projects/${projectId}/floorplan-analysis`);
 		if (!response.ok) {
-			console.warn('Failed to load floorplan analysis:', response.statusText);
 			floorplanAnalysis = {
 				loaded: true,
 				walls: [],
@@ -1362,9 +1347,6 @@ export async function loadFloorplanAnalysis(projectId: string): Promise<void> {
 				scale: result.data.scale || null,
 				visible: true
 			};
-			console.log(
-				`[FloorplanAnalysis] Loaded: ${result.summary?.walls_count || 0} walls, ${result.summary?.doors_count || 0} doors`
-			);
 		} else {
 			floorplanAnalysis = {
 				loaded: true,
@@ -1375,10 +1357,8 @@ export async function loadFloorplanAnalysis(projectId: string): Promise<void> {
 				scale: null,
 				visible: false
 			};
-			console.log('[FloorplanAnalysis] No analysis data available');
 		}
 	} catch (err) {
-		console.error('[FloorplanAnalysis] Failed to load:', err);
 		floorplanAnalysis = {
 			loaded: true,
 			walls: [],

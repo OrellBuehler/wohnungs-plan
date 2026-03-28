@@ -69,7 +69,7 @@
 </script>
 
 <div
-	class="group relative rounded-lg border border-slate-200 bg-white transition-all hover:border-slate-300 hover:shadow-md cursor-pointer"
+	class="group relative rounded-lg border border-slate-200 bg-white transition-all hover:border-slate-300 hover:shadow-md active:scale-[0.98] cursor-pointer"
 	role="button"
 	tabindex={0}
 	onclick={handleCardClick}
@@ -103,7 +103,7 @@
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
-						<Button {...props} variant="secondary" size="icon" class="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white">
+						<Button {...props} variant="secondary" size="icon" class="bg-white/90 backdrop-blur-sm hover:bg-white">
 							<MoreVertical class="size-4" />
 							<span class="sr-only">{m.project_card_actions()}</span>
 						</Button>
@@ -162,7 +162,7 @@
 	</div>
 
 	<!-- Card content -->
-	<div class="p-3">
+	<div class="p-4">
 		<div class="flex items-start justify-between gap-2">
 			<h3 class="font-medium text-slate-800 truncate flex-1" title={project.name}>
 				{project.name}

@@ -78,7 +78,6 @@ export async function processPendingChanges(): Promise<void> {
 		state.lastSynced = new Date();
 	} catch (err) {
 		state.error = err instanceof Error ? err.message : 'Sync failed';
-		console.error('Sync error:', err);
 	} finally {
 		state.isSyncing = false;
 	}

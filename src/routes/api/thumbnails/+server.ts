@@ -1,5 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { logger } from '$lib/server/logger';
 import { config } from '$lib/server/env';
 import { getProjectById, getProjectRole } from '$lib/server/projects';
 import { ensureMainBranch, getDefaultBranch } from '$lib/server/branches';
@@ -89,7 +90,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		if (err && typeof err === 'object' && 'status' in err) {
 			throw err;
 		}
-		console.error('Failed to save thumbnail:', err);
+		logger.error('Failed to save thumbnail:', err);
 		throw error(500, `Failed to save thumbnail: ${err instanceof Error ? err.message : String(err)}`);
 	}
 };

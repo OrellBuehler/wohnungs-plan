@@ -84,7 +84,7 @@
 </script>
 
 <Card.Root
-  class="cursor-pointer transition-colors {isSelected
+  class="cursor-pointer transition-all active:scale-[0.98] {isSelected
     ? 'border-blue-500 bg-blue-50'
     : 'hover:border-slate-300'}"
   onclick={onSelect}
@@ -92,7 +92,7 @@
   tabindex={0}
   onkeydown={(e) => e.key === 'Enter' && onSelect()}
 >
-  <Card.Content class="p-3">
+  <Card.Content class="p-4">
     <div class="flex items-start gap-3">
       {#if item.images && item.images.length > 0}
         <img

@@ -6,6 +6,7 @@
   import { Separator } from '$lib/components/ui/separator';
   import * as Select from '$lib/components/ui/select';
   import Plus from '@lucide/svelte/icons/plus';
+  import Package from '@lucide/svelte/icons/package';
   import * as m from '$lib/paraglide/messages';
   import ItemCard from './ItemCard.svelte';
 
@@ -89,8 +90,8 @@
 
 <div class="flex flex-col h-full min-h-0">
   <div class="flex-shrink-0 p-4">
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="font-semibold text-slate-800">{m.item_list_title({ count: items.length.toString() })}</h2>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-semibold text-slate-800">{m.item_list_title({ count: items.length.toString() })}</h2>
       {#if !readonly}
         <Button size="sm" onclick={onAddItem}><Plus size={16} class="mr-1" /> {m.item_list_add()}</Button>
       {/if}
@@ -102,7 +103,7 @@
         value={filterBy}
         onValueChange={(v) => (filterBy = v as typeof filterBy)}
       >
-        <Select.Trigger class="w-[100px] h-8">
+        <Select.Trigger class="w-[100px]">
           {filterLabel}
         </Select.Trigger>
         <Select.Content>
@@ -117,7 +118,7 @@
         value={sortBy}
         onValueChange={(v) => (sortBy = v as typeof sortBy)}
       >
-        <Select.Trigger class="w-[90px] h-8">
+        <Select.Trigger class="w-[90px]">
           {sortLabel}
         </Select.Trigger>
         <Select.Content>
@@ -133,9 +134,17 @@
 
   <div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
     {#if filteredItems.length === 0}
-      <p class="text-slate-500 text-sm text-center py-8">
-        {items.length === 0 ? m.item_list_empty_new() : m.item_list_empty_filtered()}
-      </p>
+      <div class="flex flex-col items-center justify-center py-12 text-center">
+        <Package class="size-10 text-slate-300 mb-3" />
+        <p class="text-slate-500 text-sm">
+          {items.length === 0 ? m.item_list_empty_new() : m.item_list_empty_filtered()}
+        </p>
+        {#if items.length === 0 && !readonly}
+          <Button variant="outline" size="sm" class="mt-4" onclick={onAddItem}>
+            <Plus size={16} class="mr-1" /> {m.item_list_add()}
+          </Button>
+        {/if}
+      </div>
     {:else}
       {#each filteredItems as item (item.id)}
         <ItemCard
@@ -164,7 +173,7 @@
           value={displayCurrency}
           onValueChange={(v) => onDisplayCurrencyChange(v as CurrencyCode)}
         >
-          <Select.Trigger class="w-[90px] h-7 text-xs">
+          <Select.Trigger class="w-[90px] h-8 text-xs">
             {displayCurrency}
           </Select.Trigger>
           <Select.Content>

@@ -46,7 +46,7 @@
 	function formatDate(value: string | null): string {
 		if (!value) return m.sharing_link_expires_never();
 		const parsed = new Date(value);
-		if (Number.isNaN(parsed.getTime())) return 'Invalid date';
+		if (Number.isNaN(parsed.getTime())) return m.share_invalid_date();
 		return parsed.toLocaleString(getLocale());
 	}
 
@@ -57,12 +57,12 @@
 		try {
 			const response = await fetch(`/api/projects/${projectId}/share-links`);
 			if (!response.ok) {
-				throw new Error('Failed to load share links');
+				throw new Error(m.share_load_error());
 			}
 			const payload = (await response.json()) as { links: ShareLink[] };
 			links = payload.links ?? [];
 		} catch (err) {
-			loadError = err instanceof Error ? err.message : 'Failed to load share links';
+			loadError = err instanceof Error ? err.message : m.share_load_error();
 		} finally {
 			isLoading = false;
 		}
@@ -115,7 +115,7 @@
 			});
 
 			if (!response.ok) {
-				throw new Error('Failed to create share link');
+				throw new Error(m.share_create_error());
 			}
 
 			const payload = (await response.json()) as { link: ShareLink };
@@ -126,7 +126,7 @@
 			showNoPasswordWarning = false;
 			await loadLinks();
 		} catch (err) {
-			createError = err instanceof Error ? err.message : 'Failed to create share link';
+			createError = err instanceof Error ? err.message : m.share_create_error();
 		} finally {
 			isCreating = false;
 		}
@@ -140,11 +140,11 @@
 				method: 'DELETE'
 			});
 			if (!response.ok) {
-				throw new Error('Failed to revoke share link');
+				throw new Error(m.share_revoke_error());
 			}
 			links = links.filter((candidate) => candidate.id !== link.id);
 		} catch (err) {
-			loadError = err instanceof Error ? err.message : 'Failed to revoke share link';
+			loadError = err instanceof Error ? err.message : m.share_revoke_error();
 		} finally {
 			isRevokingId = null;
 		}

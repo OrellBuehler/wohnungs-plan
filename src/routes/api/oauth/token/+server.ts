@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { logger } from '$lib/server/logger';
 import {
 	verifyOAuthClient,
 	getPublicOAuthClient,
@@ -147,7 +148,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 
 	if (!client) {
-		console.error('[SECURITY] Failed client authentication', {
+		logger.error('[SECURITY] Failed client authentication', {
 			clientId,
 			ip: request.headers.get('x-forwarded-for') || 'unknown'
 		});
@@ -164,7 +165,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const userId = await consumeAuthorizationCode(code, clientId, redirectUri, codeVerifier);
 
 	if (!userId) {
-		console.error('[SECURITY] Failed authorization code exchange', {
+		logger.error('[SECURITY] Failed authorization code exchange', {
 			clientId,
 			ip: request.headers.get('x-forwarded-for') || 'unknown'
 		});

@@ -133,8 +133,7 @@ export function mergeObjects<Sources extends readonly MaybeThunk<any>[]>(
 			return {
 				configurable: true,
 				enumerable: true,
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				value: (src as any)[key],
+					value: (src as Record<PropertyKey, unknown>)[key],
 				writable: true,
 			};
 		},

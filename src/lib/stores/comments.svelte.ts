@@ -179,7 +179,6 @@ export async function loadComments(projectId: string, branchId: string): Promise
 			`/api/projects/${projectId}/comments?branchId=${encodeURIComponent(branchId)}`
 		);
 		if (!res.ok) {
-			console.error('Failed to load comments:', res.status);
 			return;
 		}
 		const data = await res.json();
@@ -188,7 +187,6 @@ export async function loadComments(projectId: string, branchId: string): Promise
 			state.lastSeenAt = localStorage.getItem(`comments-seen-${projectId}`) ?? null;
 		} catch {}
 	} catch (err) {
-		console.error('Failed to load comments:', err);
 		toast.error(m.error_load_comments());
 	} finally {
 		state.loading = false;
@@ -208,7 +206,6 @@ export async function createComment(
 			body: JSON.stringify({ type: 'canvas', branchId, body, ...position })
 		});
 		if (!res.ok) {
-			console.error('Failed to create comment:', res.status);
 			return null;
 		}
 		const data = await res.json();
@@ -219,7 +216,6 @@ export async function createComment(
 		sendCommentCreated(data.comment);
 		return comment;
 	} catch (err) {
-		console.error('Failed to create comment:', err);
 		toast.error(m.error_create_comment());
 		return null;
 	}
@@ -237,7 +233,6 @@ export async function addReplyToComment(
 			body: JSON.stringify({ body })
 		});
 		if (!res.ok) {
-			console.error('Failed to add reply:', res.status);
 			return null;
 		}
 		const data = await res.json();
@@ -249,7 +244,6 @@ export async function addReplyToComment(
 		sendReplyCreated(commentId, data.reply);
 		return reply;
 	} catch (err) {
-		console.error('Failed to add reply:', err);
 		toast.error(m.error_add_reply());
 		return null;
 	}
@@ -276,7 +270,6 @@ export async function toggleResolve(projectId: string, commentId: string): Promi
 			state.comments = state.comments.map((c) =>
 				c.id === commentId ? { ...c, resolved: previousResolved } : c
 			);
-			console.error('Failed to toggle resolve:', res.status);
 			return;
 		}
 		sendCommentResolved(commentId, newResolved);
@@ -284,7 +277,6 @@ export async function toggleResolve(projectId: string, commentId: string): Promi
 		state.comments = state.comments.map((c) =>
 			c.id === commentId ? { ...c, resolved: previousResolved } : c
 		);
-		console.error('Failed to toggle resolve:', err);
 		toast.error(m.error_resolve_comment());
 	}
 }
@@ -309,13 +301,11 @@ export async function updateCommentPosition(
 		});
 		if (!res.ok) {
 			state.comments = previous;
-			console.error('Failed to update comment position:', res.status);
 			return false;
 		}
 		return true;
 	} catch (err) {
 		state.comments = previous;
-		console.error('Failed to update comment position:', err);
 		toast.error(m.error_update_comment_position());
 		return false;
 	}
@@ -335,13 +325,11 @@ export async function removeComment(projectId: string, commentId: string): Promi
 		});
 		if (!res.ok) {
 			state.comments = previous;
-			console.error('Failed to delete comment:', res.status);
 			return;
 		}
 		sendCommentDeleted(commentId);
 	} catch (err) {
 		state.comments = previous;
-		console.error('Failed to delete comment:', err);
 		toast.error(m.error_delete_comment());
 	}
 }

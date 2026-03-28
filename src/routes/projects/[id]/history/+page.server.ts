@@ -6,7 +6,9 @@ import { getBranchItems, listItemChanges } from '$lib/server/items';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {
-		throw redirect(302, '/api/auth/login');
+		const loginUrl = new URL('/api/auth/login', url.origin);
+		loginUrl.searchParams.set('redirect', url.pathname + url.search);
+		throw redirect(302, loginUrl.toString());
 	}
 
 	const role = await getProjectRole(params.id, locals.user.id);

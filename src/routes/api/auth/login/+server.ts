@@ -17,8 +17,21 @@ export const GET: RequestHandler = async ({ cookies, url, request }) => {
 	});
 
 	const redirectPath = url.searchParams.get('redirect');
-	if (redirectPath && isSafeRedirectPath(redirectPath)) {
-		cookies.set('login_redirect', redirectPath, {
+	const reason = url.searchParams.get('reason');
+
+	let destination = redirectPath && isSafeRedirectPath(redirectPath) ? redirectPath : null;
+	if (reason) {
+		if (destination) {
+			const dest = new URL(destination, 'http://x');
+			dest.searchParams.set('reason', reason);
+			destination = dest.pathname + dest.search;
+		} else {
+			destination = `/?reason=${encodeURIComponent(reason)}`;
+		}
+	}
+
+	if (destination) {
+		cookies.set('login_redirect', destination, {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'lax',

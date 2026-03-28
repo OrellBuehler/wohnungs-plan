@@ -47,8 +47,7 @@ export async function fetchExchangeRates(baseCurrency: CurrencyCode): Promise<Ex
     cacheTimestamp = Date.now();
 
     return rates;
-  } catch (error) {
-    console.error('Failed to fetch exchange rates:', error);
+  } catch {
     // Return fallback rates (all 1:1, will show unconverted)
     return {
       base: baseCurrency,
@@ -105,7 +104,6 @@ export function convertCurrency(
   }
 
   // Fallback: return original amount
-  console.warn(`No exchange rate found for ${fromCurrency} -> ${toCurrency}`);
   return amount;
 }
 

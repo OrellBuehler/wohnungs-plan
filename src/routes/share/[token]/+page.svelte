@@ -142,7 +142,7 @@
 			}
 
 			if (!response.ok) {
-				throw new Error('Failed to load shared project');
+				throw new Error(m.share_project_load_error());
 			}
 
 			const payload = (await response.json()) as SharePayload;
@@ -182,7 +182,7 @@
 				return;
 			}
 			if (!response.ok) {
-				throw new Error('Failed to switch branch');
+				throw new Error(m.share_branch_switch_error());
 			}
 
 			const payload = (await response.json()) as { items: ShareItemApi[] };
@@ -192,7 +192,7 @@
 			selectedItemId = null;
 		} catch (err) {
 			if (requestId !== branchRequestId) return;
-			loadError = err instanceof Error ? err.message : 'Failed to switch branch';
+			loadError = err instanceof Error ? err.message : m.share_branch_switch_error();
 		} finally {
 			if (requestId === branchRequestId) {
 				isBranchSwitching = false;

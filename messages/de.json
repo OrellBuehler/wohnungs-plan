@@ -482,5 +482,16 @@
 	"upload_in_progress": "Wird hochgeladen...",
 	"upload_success": "Upload abgeschlossen",
 	"upload_failed": "Upload fehlgeschlagen",
-	"confirm_delete_image": "Dieses Bild löschen?"
+	"confirm_delete_image": "Dieses Bild löschen?",
+
+	"share_invalid_date": "Ungültiges Datum",
+	"share_load_error": "Freigabelinks konnten nicht geladen werden",
+	"share_create_error": "Freigabelink konnte nicht erstellt werden",
+	"share_revoke_error": "Freigabelink konnte nicht widerrufen werden",
+	"share_members_load_error": "Mitglieder konnten nicht geladen werden",
+	"share_project_load_error": "Freigegebenes Projekt konnte nicht geladen werden",
+	"share_branch_switch_error": "Variante konnte nicht gewechselt werden",
+	"mcp_settings_load_error": "Einstellungen konnten nicht geladen werden",
+	"mcp_settings_save_error": "Einstellungen konnten nicht gespeichert werden",
+	"project_load_error": "Projekte konnten nicht geladen werden"
 }

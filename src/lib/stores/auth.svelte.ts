@@ -41,7 +41,6 @@ export async function fetchUser(): Promise<void> {
 		state.user = data.user;
 		state.isAuthenticated = !!data.user;
 	} catch (error) {
-		console.error('Failed to fetch user:', error);
 		state.user = null;
 		state.isAuthenticated = false;
 	} finally {
@@ -79,8 +78,7 @@ export async function authFetch(input: RequestInfo | URL, init?: RequestInit): P
 export async function logout(): Promise<void> {
 	try {
 		await fetch('/api/auth/logout', { method: 'POST' });
-	} catch (error) {
-		console.error('Logout failed:', error);
+	} catch {
 	} finally {
 		// Always clear user state, even if API call fails
 		state.user = null;

@@ -23,6 +23,7 @@
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import ClockIcon from '@lucide/svelte/icons/clock';
 	import HistoryActionBadge from '$lib/components/projects/HistoryActionBadge.svelte';
 	import {
 		getProject,
@@ -337,7 +338,7 @@
 				rowSelection = {};
 			}}
 		>
-			<Select.Trigger class="w-[180px] h-8">
+			<Select.Trigger class="w-[180px]">
 				{filterItemLabel}
 			</Select.Trigger>
 			<Select.Content>
@@ -356,7 +357,7 @@
 				rowSelection = {};
 			}}
 		>
-			<Select.Trigger class="w-[160px] h-8">
+			<Select.Trigger class="w-[160px]">
 				{filterUserLabel}
 			</Select.Trigger>
 			<Select.Content>
@@ -375,7 +376,7 @@
 				rowSelection = {};
 			}}
 		>
-			<Select.Trigger class="w-[140px] h-8">
+			<Select.Trigger class="w-[140px]">
 				{filterSource === 'mcp' ? m.history_filter_source_mcp() : filterSource === 'user' ? m.history_filter_source_user() : m.history_filter_sources_all()}
 			</Select.Trigger>
 			<Select.Content>
@@ -416,7 +417,8 @@
 				</Table.Body>
 			</Table.Root>
 		{:else if filteredData.length === 0}
-			<div class="flex items-center justify-center py-12">
+			<div class="flex flex-col items-center justify-center py-16 text-center">
+				<ClockIcon class="size-10 text-slate-300 mb-3" />
 				<p class="text-muted-foreground">
 					{changes.length === 0 ? m.history_empty() : m.history_empty_filtered()}
 				</p>

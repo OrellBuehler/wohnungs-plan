@@ -182,6 +182,100 @@ describe('project store - critical decision logic', () => {
 			expect(success).toBe(true);
 			expect(getProject()?.activeBranchId).toBe('feature-1');
 		});
+
+		it('returns false when no project is loaded', async () => {
+			setProject(null);
+
+			const success = await setActiveBranch('branch-1');
+
+			expect(success).toBe(false);
+			expect(globalThis.fetch).not.toHaveBeenCalled();
+		});
+
+		it('returns false when branchId does not exist in current project', async () => {
+			const branch = createTestBranch({ id: 'main-1' });
+			const project = createTestProject({
+				id: 'proj-1',
+				branches: [branch],
+				activeBranchId: 'main-1'
+			});
+
+			setProject(project);
+
+			const success = await setActiveBranch('nonexistent-branch');
+
+			expect(success).toBe(false);
+			expect(globalThis.fetch).not.toHaveBeenCalled();
+		});
+
+		it('authenticated + online + API error → falls back to local-only switch', async () => {
+			const mainBranch = createTestBranch({ id: 'main-1' });
+			const featureBranch = createTestBranch({ id: 'feature-1' });
+			const project = createTestProject({
+				id: 'proj-1',
+				branches: [mainBranch, featureBranch],
+				activeBranchId: 'main-1'
+			});
+
+			setProject(project);
+
+			(authStore.isAuthenticated as any).mockReturnValue(true);
+			(syncStore.isOnline as any).mockReturnValue(true);
+
+			(globalThis.fetch as any).mockResolvedValueOnce({ ok: false });
+
+			const success = await setActiveBranch('feature-1');
+
+			expect(success).toBe(true);
+			expect(getProject()?.activeBranchId).toBe('feature-1');
+		});
+
+		it('loads items for the new branch from API response', async () => {
+			const mainBranch = createTestBranch({ id: 'main-1' });
+			const featureBranch = createTestBranch({ id: 'feature-1' });
+			const item = createTestItem({ name: 'Chair' });
+			const project = createTestProject({
+				id: 'proj-1',
+				branches: [mainBranch, featureBranch],
+				activeBranchId: 'main-1',
+				items: []
+			});
+
+			setProject(project);
+
+			(authStore.isAuthenticated as any).mockReturnValue(true);
+			(syncStore.isOnline as any).mockReturnValue(true);
+
+			(globalThis.fetch as any).mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					items: [{
+						id: item.id,
+						name: item.name,
+						width: item.width,
+						height: item.height,
+						x: 10,
+						y: 20,
+						rotation: 0,
+						color: item.color,
+						price: null,
+						priceCurrency: 'USD',
+						productUrl: null,
+						shape: 'rectangle',
+						cutoutWidth: null,
+						cutoutHeight: null,
+						cutoutCorner: null
+					}]
+				})
+			});
+
+			await setActiveBranch('feature-1');
+
+			const loaded = getProject();
+			expect(loaded?.items).toHaveLength(1);
+			expect(loaded?.items[0].name).toBe('Chair');
+			expect(loaded?.items[0].position).toEqual({ x: 10, y: 20 });
+		});
 	});
 
 	describe('addItem - auth/online decision matrix', () => {

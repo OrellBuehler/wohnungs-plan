@@ -16,6 +16,7 @@
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import X from '@lucide/svelte/icons/x';
+	import MessageCircle from '@lucide/svelte/icons/message-circle';
 
 	interface Props {
 		projectId: string;
@@ -225,7 +226,10 @@
 		<!-- Comment list -->
 		<div class="flex-1 overflow-y-auto space-y-1.5 min-h-0">
 			{#if filteredComments.length === 0}
-				<p class="text-sm text-slate-400 text-center py-4">{m.comments_panel_empty()}</p>
+				<div class="flex flex-col items-center justify-center py-8 text-center">
+					<MessageCircle class="size-8 text-slate-300 mb-2" />
+					<p class="text-sm text-slate-400">{m.comments_panel_empty()}</p>
+				</div>
 			{:else}
 				{#each filteredComments as comment (comment.id)}
 					<button

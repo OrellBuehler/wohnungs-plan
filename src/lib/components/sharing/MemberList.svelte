@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Select from '$lib/components/ui/select';
 	import UserMinus from '@lucide/svelte/icons/user-minus';
+	import Users from '@lucide/svelte/icons/users';
 	import { getInitials } from '$lib/utils/format';
 
 	export type ProjectRole = 'owner' | 'editor' | 'viewer';
@@ -34,9 +35,12 @@
 	];
 </script>
 
-<div class="space-y-3">
+<div class="space-y-4">
 	{#if members.length === 0}
-		<p class="text-sm text-muted-foreground">{m.sharing_members_empty()}</p>
+		<div class="flex flex-col items-center justify-center py-8 text-center">
+			<Users class="size-8 text-slate-300 mb-2" />
+			<p class="text-sm text-muted-foreground">{m.sharing_members_empty()}</p>
+		</div>
 	{:else}
 		{#each members as member (member.userId)}
 			<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-slate-200 p-3">

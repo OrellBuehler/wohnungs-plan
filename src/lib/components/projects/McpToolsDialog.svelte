@@ -94,12 +94,12 @@
 		errorMessage = null;
 		try {
 			const res = await fetch(`/api/projects/${projectId}/mcp-tools`);
-			if (!res.ok) throw new Error('Failed to load settings');
+			if (!res.ok) throw new Error(m.mcp_settings_load_error());
 			const data = await res.json();
 			disabledTools = new Set(data.disabledTools);
 			savedDisabledTools = new Set(data.disabledTools);
 		} catch (err) {
-			errorMessage = err instanceof Error ? err.message : 'Failed to load settings';
+			errorMessage = err instanceof Error ? err.message : m.mcp_settings_load_error();
 		} finally {
 			isLoading = false;
 		}
@@ -114,12 +114,12 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ disabledTools: [...disabledTools] })
 			});
-			if (!res.ok) throw new Error('Failed to save settings');
+			if (!res.ok) throw new Error(m.mcp_settings_save_error());
 			savedDisabledTools = new Set(disabledTools);
 			open = false;
 			onClose();
 		} catch (err) {
-			errorMessage = err instanceof Error ? err.message : 'Failed to save settings';
+			errorMessage = err instanceof Error ? err.message : m.mcp_settings_save_error();
 		} finally {
 			isSaving = false;
 		}

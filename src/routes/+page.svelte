@@ -61,7 +61,7 @@
 		try {
 			projects = await listProjects();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load projects';
+			error = err instanceof Error ? err.message : m.project_load_error();
 		} finally {
 			isLoading = false;
 		}

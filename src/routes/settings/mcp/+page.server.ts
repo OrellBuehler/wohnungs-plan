@@ -1,5 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import { logger } from '$lib/server/logger';
 import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
 import { getOrCreateOAuthClient, regenerateClientSecret, addAllowedRedirectUri } from '$lib/server/oauth';
 import { getDB, oauthClients } from '$lib/server/db';
@@ -26,7 +27,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 			allowedRedirectUris: client.allowedRedirectUris
 		};
 	} catch (error) {
-		console.error('Failed to load MCP settings:', error);
+		logger.error('Failed to load MCP settings:', error);
 		return fail(500, { error: 'Failed to load MCP settings' });
 	}
 };
@@ -69,7 +70,7 @@ export const actions = {
 				serverUrl
 			};
 		} catch (error) {
-			console.error('Failed to regenerate client secret:', error);
+			logger.error('Failed to regenerate client secret:', error);
 			return fail(500, { error: 'Failed to regenerate client secret' });
 		}
 	},
@@ -127,7 +128,7 @@ export const actions = {
 
 			return { success: true, action: 'addRedirectUri' };
 		} catch (error) {
-			console.error('Failed to add redirect URI:', error);
+			logger.error('Failed to add redirect URI:', error);
 			return fail(500, { error: 'Failed to add redirect URI' });
 		}
 	},
@@ -177,7 +178,7 @@ export const actions = {
 
 			return { success: true, action: 'removeRedirectUri' };
 		} catch (error) {
-			console.error('Failed to remove redirect URI:', error);
+			logger.error('Failed to remove redirect URI:', error);
 			return fail(500, { error: 'Failed to remove redirect URI' });
 		}
 	}

@@ -11,6 +11,7 @@ import { getProjectRole } from './projects';
 import { getSessionWithUser, parseSessionCookie } from './session';
 import type { DBUser } from './types';
 import { getBranchById } from './branches';
+import { logger } from './logger';
 
 interface WSData {
 	projectId: string;
@@ -223,7 +224,7 @@ export function handleWSMessage(ws: ServerWebSocket<WSData>, message: string): v
 				break;
 		}
 	} catch (err) {
-		console.error('WebSocket message error:', err);
+		logger.error('WebSocket message error:', err);
 	}
 }
 

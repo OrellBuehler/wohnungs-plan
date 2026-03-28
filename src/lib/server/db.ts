@@ -4,6 +4,7 @@ import { SQL } from 'bun';
 import { join } from 'node:path';
 import { config } from './env';
 import * as schema from './schema';
+import { logger } from './logger';
 
 let client: SQL | null = null;
 let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
@@ -23,12 +24,12 @@ export async function runMigrations(): Promise<void> {
 	const database = getDB();
 	// Use absolute path from process.cwd() to ensure correct resolution in Docker
 	const migrationsPath = join(process.cwd(), 'drizzle');
-	console.log(`Running database migrations from ${migrationsPath}...`);
+	logger.info(`Running database migrations from ${migrationsPath}...`);
 	try {
 		await migrate(database, { migrationsFolder: migrationsPath });
-		console.log('Migrations completed successfully');
+		logger.info('Migrations completed successfully');
 	} catch (error) {
-		console.error('Migration failed:', error);
+		logger.error('Migration failed:', error);
 		throw error;
 	}
 }

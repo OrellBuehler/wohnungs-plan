@@ -92,16 +92,14 @@ export function connect(projectId: string, branchId: string): void {
 		ws = null;
 	};
 
-	ws.onerror = (error) => {
-		console.error('WebSocket error:', error);
+	ws.onerror = () => {
 	};
 
 	ws.onmessage = (event) => {
 		try {
 			const msg = JSON.parse(event.data);
 			handleMessage(msg);
-		} catch (err) {
-			console.error('Failed to parse WebSocket message:', err);
+		} catch {
 		}
 	};
 }

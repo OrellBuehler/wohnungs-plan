@@ -1,5 +1,6 @@
 import { redirect, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { logger } from '$lib/server/logger';
 import { exchangeCodeForTokens, getUserInfo } from '$lib/server/oidc';
 import { upsertUser } from '$lib/server/users';
 import { createSession, createSessionCookie } from '$lib/server/session';
@@ -80,7 +81,7 @@ export const GET: RequestHandler = async ({ url, cookies, request }) => {
 		if (err && typeof err === 'object' && 'status' in err && 'location' in err) {
 			throw err;
 		}
-		console.error('Auth callback error:', err);
+		logger.error('Auth callback error:', err);
 		throw redirect(302, '/?login=error');
 	}
 };
