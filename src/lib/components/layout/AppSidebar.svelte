@@ -1,16 +1,21 @@
 <script lang="ts">
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Button } from '$lib/components/ui/button';
+	import * as Tooltip from '$lib/components/ui/tooltip';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import Home from '@lucide/svelte/icons/home';
 	import Settings from '@lucide/svelte/icons/settings';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
+	import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
 	import { page } from '$app/stores';
 	import { getUser, isAuthenticated, isLoading, login, logout } from '$lib/stores/auth.svelte';
 	import {
 		isSidebarOpen,
 		setSidebarOpen,
+		isSidebarCollapsed,
+		toggleSidebarCollapsed,
 		getProjectContext,
 		type ProjectAction
 	} from '$lib/stores/sidebar.svelte';
@@ -22,13 +27,13 @@
 	const authed = $derived(isAuthenticated());
 	const loading = $derived(isLoading());
 	const open = $derived(isSidebarOpen());
+	const isCollapsed = $derived(isSidebarCollapsed());
 	const projectContext = $derived(getProjectContext());
 
 	function handleOpenChange(value: boolean) {
 		setSidebarOpen(value);
 	}
 
-	// Auto-close on route navigation
 	let lastPath = $state('');
 	$effect(() => {
 		const currentPath = $page.url.pathname;
@@ -40,7 +45,6 @@
 
 	function handleAction(action: ProjectAction) {
 		setSidebarOpen(false);
-		// Brief delay to let Sheet close animation start
 		setTimeout(() => action.onclick(), 150);
 	}
 
@@ -72,7 +76,6 @@
 
 {#snippet sidebarBody(onAction: (action: ProjectAction) => void)}
 	<div class="flex-1 overflow-y-auto">
-		<!-- User info -->
 		{#if authed && user}
 			<div class="flex items-center gap-3 px-4 py-4">
 				{#if user.avatarUrl && !avatarError}
@@ -105,7 +108,6 @@
 			</div>
 		{/if}
 
-		<!-- Navigation -->
 		<nav class="px-2 py-2 mt-2">
 			{#each navItems as item}
 				<a
@@ -122,9 +124,7 @@
 			{/each}
 		</nav>
 
-		<!-- Project context groups -->
 		{#if projectContext}
-			<!-- Branch section -->
 			{#if projectContext.branch}
 				<div class="px-4 py-3 pt-4">
 					<p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
@@ -182,7 +182,6 @@
 				</div>
 			{/if}
 
-			<!-- Action groups -->
 			{#each projectContext.actionGroups as group}
 				<div class="px-2 py-2 pt-2">
 					<p
@@ -214,7 +213,6 @@
 		{/if}
 	</div>
 
-	<!-- Language + Sign out at bottom -->
 	<div class="mt-auto">
 		<div class="px-4 py-3">
 			<LanguageSwitcher />
@@ -234,13 +232,101 @@
 	</div>
 {/snippet}
 
-<!-- Desktop persistent sidebar -->
-<aside class="hidden md:flex flex-col w-64 shrink-0 bg-surface-container-low">
-	<!-- App title -->
-	<div class="flex items-center px-5 h-16 shrink-0">
-		<span class="font-display text-lg font-extrabold text-on-surface tracking-tight">Wohnungs-Plan</span>
+{#snippet collapsedBody()}
+	<div class="flex-1 overflow-y-auto">
+		{#if authed && user}
+			<div class="flex justify-center py-4">
+				{#if user.avatarUrl && !avatarError}
+					<img
+						src={user.avatarUrl}
+						alt={user.name ?? m.nav_user_fallback()}
+						class="h-9 w-9 rounded-xl object-cover shrink-0"
+						onerror={() => (avatarError = true)}
+					/>
+				{:else}
+					<div
+						class="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container-high text-sm font-medium shrink-0"
+					>
+						{getInitials(user.name)}
+					</div>
+				{/if}
+			</div>
+		{:else if !authed}
+			<div class="flex justify-center py-4">
+				<Button variant="outline" size="icon" onclick={login} disabled={loading}>
+					<LogIn class="size-4" />
+				</Button>
+			</div>
+		{/if}
+
+		<nav class="px-2 py-2 mt-2 flex flex-col items-center gap-1">
+			{#each navItems as item}
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						<a
+							href={item.href}
+							class="flex items-center justify-center rounded-lg size-10 transition-colors {isNavActive(
+								item.href
+							)
+								? 'bg-surface-container text-on-surface'
+								: 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}"
+						>
+							<item.icon class="size-4" />
+						</a>
+					</Tooltip.Trigger>
+					<Tooltip.Content side="right">{item.label}</Tooltip.Content>
+				</Tooltip.Root>
+			{/each}
+		</nav>
 	</div>
-	{@render sidebarBody(handleAction)}
+
+	<div class="mt-auto">
+		{#if authed}
+			<div class="flex justify-center py-2">
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						<button
+							type="button"
+							class="flex items-center justify-center rounded-lg size-10 transition-colors hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+							onclick={handleSignOut}
+						>
+							<LogOut class="size-4" />
+						</button>
+					</Tooltip.Trigger>
+					<Tooltip.Content side="right">{m.common_sign_out()}</Tooltip.Content>
+				</Tooltip.Root>
+			</div>
+		{/if}
+	</div>
+{/snippet}
+
+<!-- Desktop persistent sidebar -->
+<aside
+	class="hidden md:flex flex-col shrink-0 bg-surface-container-low transition-[width] duration-200 ease-in-out {isCollapsed ? 'w-16' : 'w-64'}"
+>
+	<!-- Header with title + collapse toggle -->
+	<div class="flex items-center h-16 shrink-0 {isCollapsed ? 'justify-center px-2' : 'justify-between px-5'}">
+		{#if !isCollapsed}
+			<span class="font-display text-lg font-extrabold text-on-surface tracking-tight">Wohnungs-Plan</span>
+		{/if}
+		<button
+			type="button"
+			class="flex items-center justify-center rounded-lg size-8 transition-colors hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+			onclick={toggleSidebarCollapsed}
+		>
+			{#if isCollapsed}
+				<PanelLeftOpen class="size-4" />
+			{:else}
+				<PanelLeftClose class="size-4" />
+			{/if}
+		</button>
+	</div>
+
+	{#if isCollapsed}
+		{@render collapsedBody()}
+	{:else}
+		{@render sidebarBody(handleAction)}
+	{/if}
 </aside>
 
 <!-- Mobile sheet -->
