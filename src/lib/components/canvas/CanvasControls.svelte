@@ -55,19 +55,19 @@
 </script>
 
 <div class="flex-shrink-0 flex items-center gap-4 px-4 pb-4 text-sm">
-	<Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
+	<Label class="flex items-center gap-2 text-on-surface-variant cursor-pointer">
 		<Checkbox bind:checked={showGrid} />
 		{m.canvas_control_grid()}
 	</Label>
 
-	<Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
+	<Label class="flex items-center gap-2 text-on-surface-variant cursor-pointer">
 		<Checkbox bind:checked={snapToGrid} />
 		{m.canvas_control_snap()}
 	</Label>
 
 	{#if hasAnalysis}
 		<Label
-			class="flex items-center gap-2 text-slate-600 cursor-pointer"
+			class="flex items-center gap-2 text-on-surface-variant cursor-pointer"
 			title={m.canvas_control_walls_doors_title()}
 		>
 			<Checkbox checked={showWallsDoors} onCheckedChange={() => toggleWallsDoors()} />
@@ -75,14 +75,14 @@
 		</Label>
 	{/if}
 
-	<Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
+	<Label class="flex items-center gap-2 text-on-surface-variant cursor-pointer">
 		<Checkbox checked={showComments} onCheckedChange={() => toggleCommentsVisibility()} />
 		{m.canvas_control_comments()}
 	</Label>
 
 	<Separator orientation="vertical" class="h-6" />
 
-	<Label class="flex items-center gap-2 text-slate-600">
+	<Label class="flex items-center gap-2 text-on-surface-variant">
 		{m.canvas_control_gridsize()}
 		<Input
 			type="number"
@@ -99,7 +99,7 @@
 	<div class="flex-1"></div>
 
 	{#if hasAnalysis && showWallsDoors}
-		<span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+		<span class="text-xs text-on-surface-variant bg-surface-container-low px-2 py-1 rounded">
 			{m.canvas_control_analysis({
 				walls: floorplanAnalysis.walls.length.toString(),
 				doors: floorplanAnalysis.doors.length.toString()
@@ -108,19 +108,19 @@
 	{/if}
 
 	{#if showComments && commentCount > 0}
-		<span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+		<span class="text-xs text-on-surface-variant bg-surface-container-low px-2 py-1 rounded">
 			{m.canvas_control_comments_count({ count: commentCount.toString() })}
 		</span>
 	{/if}
 
-	<span class="text-xs text-slate-400 font-mono">
+	<span class="text-xs text-outline font-mono">
 		{formatDecimal(scale, 2)} px/cm
 	</span>
 
 	<Button
 		variant="ghost"
 		size="sm"
-		class="text-slate-500 hover:text-slate-700"
+		class="text-on-surface-variant hover:text-on-surface"
 		onclick={onRecalibrate}
 	>
 		{m.canvas_control_recalibrate()}
@@ -129,7 +129,7 @@
 	<Button
 		variant="ghost"
 		size="sm"
-		class="text-slate-500 hover:text-slate-700"
+		class="text-on-surface-variant hover:text-on-surface"
 		onclick={onChangeFloorplan}
 	>
 		{m.canvas_control_change_floorplan()}

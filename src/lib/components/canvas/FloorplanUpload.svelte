@@ -53,7 +53,7 @@
 >
 	<div class="bg-slate-800 rounded-lg p-8 max-w-md">
 		<svg
-			class="w-16 h-16 mx-auto mb-4 text-slate-400"
+			class="w-16 h-16 mx-auto mb-4 text-outline"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
@@ -66,7 +66,7 @@
 			/>
 		</svg>
 		<h2 class="text-xl font-semibold text-white mb-2">{m.canvas_upload_title()}</h2>
-		<p class="text-slate-400 mb-6">
+		<p class="text-outline mb-6">
 			{m.canvas_upload_description()}
 		</p>
 		<input

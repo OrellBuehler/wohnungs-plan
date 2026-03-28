@@ -162,11 +162,11 @@
 
 <section class="space-y-4">
 	<div>
-		<h3 class="text-sm font-semibold text-slate-900">{m.sharing_links_title()}</h3>
-		<p class="text-xs text-slate-500">{m.sharing_links_description()}</p>
+		<h3 class="text-sm font-semibold text-on-surface">{m.sharing_links_title()}</h3>
+		<p class="text-xs text-on-surface-variant">{m.sharing_links_description()}</p>
 	</div>
 
-	<form class="space-y-3 rounded-lg border border-slate-200 p-3" onsubmit={handleSubmit}>
+	<form class="space-y-3 rounded-lg p-3" onsubmit={handleSubmit}>
 		<div class="space-y-1.5">
 			<Label for="share-link-label">{m.sharing_link_label_label()}</Label>
 			<Input
@@ -223,7 +223,7 @@
 
 	{#if createdShareUrl}
 		<div
-			class="rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs flex items-center gap-2 overflow-hidden"
+			class="rounded-lg bg-surface p-2 text-xs flex items-center gap-2 overflow-hidden"
 		>
 			<span class="truncate flex-1 min-w-0">{createdShareUrl}</span>
 			<Button type="button" variant="ghost" size="icon-sm" onclick={copyCreatedLink}>
@@ -239,33 +239,33 @@
 	<Separator />
 
 	<div class="space-y-2">
-		<h4 class="text-sm font-medium text-slate-800">{m.sharing_links_active()}</h4>
+		<h4 class="text-sm font-medium text-on-surface">{m.sharing_links_active()}</h4>
 		{#if isLoading}
-			<p class="text-sm text-slate-500">{m.sharing_links_loading()}</p>
+			<p class="text-sm text-on-surface-variant">{m.sharing_links_loading()}</p>
 		{:else if loadError}
 			<p class="text-sm text-red-600">{loadError}</p>
 		{:else if links.length === 0}
-			<p class="text-sm text-slate-500">{m.sharing_links_empty()}</p>
+			<p class="text-sm text-on-surface-variant">{m.sharing_links_empty()}</p>
 		{:else}
 			{#each links as link (link.id)}
-				<div class="rounded-lg border border-slate-200 p-3 space-y-2">
+				<div class="rounded-lg p-3 space-y-2">
 					<div class="flex items-start justify-between gap-2">
 						<div class="min-w-0">
-							<p class="text-sm font-medium text-slate-900 truncate">
+							<p class="text-sm font-medium text-on-surface truncate">
 								{link.label || m.sharing_link_untitled()}
 							</p>
-							<p class="text-xs text-slate-500">
+							<p class="text-xs text-on-surface-variant">
 								{m.sharing_link_created()}
 								{formatDate(link.createdAt)}
 							</p>
-							<p class="text-xs text-slate-500">
+							<p class="text-xs text-on-surface-variant">
 								{m.sharing_link_expires()}
 								{formatDate(link.expiresAt)}
 							</p>
 						</div>
 						{#if link.hasPassword}
 							<span
-								class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700"
+								class="inline-flex items-center gap-1 rounded-full bg-surface-container-low px-2 py-1 text-xs text-on-surface"
 							>
 								<Lock class="h-3 w-3" />
 								{m.sharing_link_password_indicator()}

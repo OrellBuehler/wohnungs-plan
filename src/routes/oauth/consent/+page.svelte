@@ -14,7 +14,7 @@
 	]);
 </script>
 
-<div class="h-full overflow-y-auto bg-slate-50 flex items-center justify-center p-4">
+<div class="h-full overflow-y-auto bg-surface flex items-center justify-center p-4">
 	<div class="w-full max-w-md">
 		<Card.Root>
 			<Card.Header>
@@ -30,7 +30,7 @@
 			<Card.Content>
 				<div class="space-y-4">
 					<div>
-						<p class="text-sm text-slate-600 mb-3">
+						<p class="text-sm text-on-surface-variant mb-3">
 							<strong>{data.clientName ?? m.oauth_consent_default_app()}</strong>
 							{m.oauth_consent_permissions_intro()}
 						</p>
@@ -50,14 +50,14 @@
 											d="M5 13l4 4L19 7"
 										/>
 									</svg>
-									<span class="text-slate-700">{permission}</span>
+									<span class="text-on-surface">{permission}</span>
 								</li>
 							{/each}
 						</ul>
 					</div>
 
-					<div class="pt-4 border-t">
-						<p class="text-xs text-slate-500">
+					<div class="pt-4">
+						<p class="text-xs text-on-surface-variant">
 							{m.oauth_consent_warning()}
 						</p>
 					</div>

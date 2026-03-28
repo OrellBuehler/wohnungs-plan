@@ -421,7 +421,7 @@
 			</Table.Root>
 		{:else if filteredData.length === 0}
 			<div class="flex flex-col items-center justify-center py-16 text-center">
-				<ClockIcon class="size-10 text-slate-300 mb-3" />
+				<ClockIcon class="size-10 text-outline mb-3" />
 				<p class="text-muted-foreground">
 					{changes.length === 0 ? m.history_empty() : m.history_empty_filtered()}
 				</p>

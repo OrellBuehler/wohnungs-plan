@@ -88,7 +88,7 @@
 	const error = $derived(errorCodes[code] ?? errorCodes['unknown']);
 </script>
 
-<div class="h-full overflow-y-auto bg-slate-50 flex items-center justify-center p-4">
+<div class="h-full overflow-y-auto bg-surface flex items-center justify-center p-4">
 	<div class="w-full max-w-md">
 		<Card.Root>
 			<Card.Header>
@@ -114,24 +114,24 @@
 
 			<Card.Content>
 				<div class="space-y-4">
-					<p class="text-sm text-slate-600">{error.description}</p>
+					<p class="text-sm text-on-surface-variant">{error.description}</p>
 
 					{#if detail}
-						<div class="rounded-md bg-slate-100 px-3 py-2">
-							<p class="text-xs text-slate-500 mb-1">Detail</p>
-							<p class="text-sm font-mono text-slate-700 break-all">{detail}</p>
+						<div class="rounded-md bg-surface-container-low px-3 py-2">
+							<p class="text-xs text-on-surface-variant mb-1">Detail</p>
+							<p class="text-sm font-mono text-on-surface break-all">{detail}</p>
 						</div>
 					{/if}
 
 					<div>
-						<p class="text-sm font-medium text-slate-700 mb-2">
+						<p class="text-sm font-medium text-on-surface mb-2">
 							{m.oauth_error_suggestions_title()}
 						</p>
 						<ul class="space-y-2">
 							{#each error.suggestions as suggestion}
 								<li class="flex items-start gap-2 text-sm">
 									<svg
-										class="size-4 text-slate-400 flex-shrink-0 mt-0.5"
+										class="size-4 text-outline flex-shrink-0 mt-0.5"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -143,7 +143,7 @@
 											d="M9 5l7 7-7 7"
 										/>
 									</svg>
-									<span class="text-slate-600">{suggestion}</span>
+									<span class="text-on-surface-variant">{suggestion}</span>
 								</li>
 							{/each}
 						</ul>
