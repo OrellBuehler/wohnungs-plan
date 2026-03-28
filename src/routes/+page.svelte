@@ -174,15 +174,15 @@
 	}
 </script>
 
-<div class="bg-slate-50 flex flex-col overflow-hidden" style="height: 100dvh;">
+<div class="bg-surface flex flex-col overflow-hidden" style="height: 100dvh;">
 	<!-- Header -->
 	<header
-		class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0"
+		class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center justify-between px-4 py-3 flex-shrink-0"
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
 		<a href="/" class="flex items-center gap-2">
 			<img src="/icon.svg" alt={m.app_title()} class="size-8" />
-			<h1 class="text-xl font-semibold text-slate-800">{m.app_title()}</h1>
+			<h1 class="text-xl font-semibold text-on-surface">{m.app_title()}</h1>
 		</a>
 		<div class="flex-shrink-0">
 			<SidebarTrigger />
@@ -197,7 +197,7 @@
 		>
 			<!-- Title + New button -->
 			<div class="flex items-center justify-between flex-wrap gap-4 mb-6">
-				<h2 class="text-2xl font-bold text-slate-800">{m.home_title()}</h2>
+				<h2 class="text-2xl font-bold text-on-surface">{m.home_title()}</h2>
 				<div class="flex items-center gap-2">
 					<Button variant="outline" onclick={handleImport}>
 						<Upload class="size-4 mr-2" />
@@ -214,11 +214,11 @@
 			{#if isLoading}
 				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 					{#each Array(6) as _}
-						<div class="rounded-lg border border-slate-200 bg-white overflow-hidden">
-							<div class="aspect-video bg-slate-100 animate-pulse"></div>
+						<div class="rounded-lg bg-surface-container-lowest overflow-hidden">
+							<div class="aspect-video bg-surface-container animate-pulse"></div>
 							<div class="p-3 space-y-2">
-								<div class="h-5 bg-slate-100 rounded animate-pulse w-3/4"></div>
-								<div class="h-4 bg-slate-100 rounded animate-pulse w-1/2"></div>
+								<div class="h-5 bg-surface-container rounded animate-pulse w-3/4"></div>
+								<div class="h-4 bg-surface-container rounded animate-pulse w-1/2"></div>
 							</div>
 						</div>
 					{/each}
@@ -234,9 +234,9 @@
 				<!-- Empty state -->
 			{:else if projects.length === 0}
 				<div class="flex flex-col items-center justify-center py-16 text-center">
-					<House class="size-16 text-slate-300 mb-4" />
-					<h3 class="text-lg font-medium text-slate-800 mb-2">{m.home_empty_title()}</h3>
-					<p class="text-slate-500 mb-6">{m.home_empty_description()}</p>
+					<House class="size-16 text-outline mb-4" />
+					<h3 class="text-lg font-medium text-on-surface mb-2">{m.home_empty_title()}</h3>
+					<p class="text-on-surface-variant mb-6">{m.home_empty_description()}</p>
 					<Button onclick={handleNew}>
 						<Plus class="size-4 mr-2" />
 						{m.home_empty_cta()}
@@ -263,9 +263,9 @@
 			<!-- Sign-in banner -->
 			{#if showSignInBanner}
 				<div
-					class="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between"
+					class="mt-8 p-4 bg-secondary-fixed rounded-lg flex items-center justify-between"
 				>
-					<p class="text-sm text-blue-800">
+					<p class="text-sm text-on-surface">
 						{m.home_sign_in_banner()}
 					</p>
 					<Button variant="outline" onclick={login}>{m.common_sign_in()}</Button>

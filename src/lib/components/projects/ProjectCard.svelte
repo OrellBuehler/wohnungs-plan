@@ -69,26 +69,29 @@
 </script>
 
 <div
-	class="group relative rounded-lg border border-slate-200 bg-white transition-all hover:border-slate-300 hover:shadow-md active:scale-[0.98] cursor-pointer"
+	class="group relative rounded-lg border border-outline-variant/10 bg-surface-container-lowest transition-all active:scale-[0.98] cursor-pointer"
 	role="button"
 	tabindex={0}
 	onclick={handleCardClick}
 	onkeydown={handleKeyDown}
 >
 	<!-- Thumbnail area -->
-	<div class="aspect-video bg-slate-100 rounded-t-lg overflow-hidden relative">
+	<div
+		class="aspect-video bg-surface-container-low rounded-t-lg overflow-hidden relative"
+		style="background-image: radial-gradient(circle, #e0e3e5 1px, transparent 1px); background-size: 24px 24px;"
+	>
 		{#if thumbnailUrl}
 			<img src={thumbnailUrl} alt="{project.name} preview" class="w-full h-full object-cover" />
 		{:else}
 			<div class="w-full h-full flex items-center justify-center">
-				<House class="size-12 text-slate-300" />
+				<House class="size-12 text-outline" />
 			</div>
 		{/if}
 
 		<!-- Member count badge -->
 		{#if showMemberBadge}
 			<div
-				class="absolute top-2 left-2 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium text-slate-700"
+				class="absolute top-2 left-2 flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-sm rounded-xl px-2 py-1 text-xs font-medium text-on-surface-variant"
 			>
 				<Users class="size-3" />
 				<span>{project.memberCount}</span>
@@ -109,7 +112,7 @@
 							{...props}
 							variant="secondary"
 							size="icon"
-							class="bg-white/90 backdrop-blur-sm hover:bg-white"
+							class="bg-surface-container-lowest/90 backdrop-blur-sm hover:bg-surface-container-lowest"
 						>
 							<MoreVertical class="size-4" />
 							<span class="sr-only">{m.project_card_actions()}</span>
@@ -171,7 +174,7 @@
 	<!-- Card content -->
 	<div class="p-4">
 		<div class="flex items-start justify-between gap-2">
-			<h3 class="font-medium text-slate-800 truncate flex-1" title={project.name}>
+			<h3 class="font-medium text-on-surface truncate flex-1" title={project.name}>
 				{project.name}
 			</h3>
 
@@ -197,7 +200,7 @@
 			{/if}
 		</div>
 
-		<p class="text-sm text-slate-500 mt-1">
+		<p class="text-sm text-on-surface-variant mt-1">
 			{relativeTime}
 		</p>
 	</div>
