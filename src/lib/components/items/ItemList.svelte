@@ -95,7 +95,7 @@
 <div class="flex flex-col h-full min-h-0">
 	<div class="flex-shrink-0 p-4">
 		<div class="flex items-center justify-between mb-4">
-			<h2 class="text-base font-semibold text-slate-800">
+			<h2 class="text-base font-semibold text-on-surface">
 				{m.item_list_title({ count: items.length.toString() })}
 			</h2>
 			{#if !readonly}
@@ -143,8 +143,8 @@
 	<div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
 		{#if filteredItems.length === 0}
 			<div class="flex flex-col items-center justify-center py-12 text-center">
-				<Package class="size-10 text-slate-300 mb-3" />
-				<p class="text-slate-500 text-sm">
+				<Package class="size-10 text-outline mb-3" />
+				<p class="text-on-surface-variant text-sm">
 					{items.length === 0 ? m.item_list_empty_new() : m.item_list_empty_filtered()}
 				</p>
 				{#if items.length === 0 && !readonly}
@@ -173,10 +173,10 @@
 
 	<Separator />
 
-	<div class="flex-shrink-0 p-4 bg-slate-50">
+	<div class="flex-shrink-0 p-4 bg-surface-container-low">
 		<div class="flex justify-between items-center">
 			<div class="flex items-center gap-2">
-				<span class="text-sm text-slate-600">{m.item_list_total()}</span>
+				<span class="text-sm text-on-surface-variant">{m.item_list_total()}</span>
 				<Select.Root
 					type="single"
 					value={displayCurrency}
@@ -194,9 +194,9 @@
 			</div>
 			<div class="flex items-center gap-2">
 				{#if isLoadingRates}
-					<span class="text-xs text-slate-400">{m.item_list_updating()}</span>
+					<span class="text-xs text-outline">{m.item_list_updating()}</span>
 				{/if}
-				<span class="text-lg font-semibold text-slate-800">{formattedTotal}</span>
+				<span class="text-lg font-semibold text-on-surface">{formattedTotal}</span>
 			</div>
 		</div>
 	</div>

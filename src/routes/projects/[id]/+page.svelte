@@ -885,14 +885,14 @@
 
 {#if project}
 	<header
-		class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0 gap-2"
+		class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center justify-between px-4 py-3 flex-shrink-0 gap-2"
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
 		<div class="flex items-center gap-2 min-w-0 flex-1">
 			<a href="/" class="flex items-center flex-shrink-0">
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			</a>
-			<span class="text-slate-300 flex-shrink-0">|</span>
+			<span class="text-outline flex-shrink-0">|</span>
 			{#if isEditingName}
 				<Input
 					bind:ref={nameInputEl}
@@ -905,9 +905,9 @@
 				<button
 					type="button"
 					onclick={isMobile ? undefined : startEditingName}
-					class="text-lg font-semibold text-slate-800 min-w-0 truncate {isMobile
+					class="text-lg font-semibold text-on-surface min-w-0 truncate {isMobile
 						? ''
-						: 'hover:text-slate-600 cursor-pointer'}"
+						: 'hover:text-on-surface-variant cursor-pointer'}"
 				>
 					{project.name}
 				</button>
@@ -916,7 +916,7 @@
 			{#if branches.length > 0}
 				<div class="hidden md:flex items-center gap-1.5 min-w-0">
 					<select
-						class="h-8 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700 max-w-40"
+						class="h-8 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-2 text-sm text-on-surface max-w-40"
 						value={activeBranch?.id ?? ''}
 						disabled={isBranchSwitching}
 						onchange={handleBranchSelect}
@@ -999,7 +999,7 @@
 				Comments
 				{#if unreadCount > 0}
 					<span
-						class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1"
+						class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary text-white text-[10px] font-bold px-1"
 					>
 						{unreadCount}
 					</span>
@@ -1071,7 +1071,7 @@
 
 			<!-- Mobile: Comments panel below canvas when comments tab is active -->
 			{#if isMobile && activeTab === 'comments'}
-				<div class="flex-1 min-h-0 border-t border-slate-200">
+				<div class="flex-1 min-h-0">
 					<CommentPanel
 						projectId={project.id}
 						canEdit={true}
@@ -1091,12 +1091,12 @@
 		<aside
 			class="w-full md:w-80 min-h-0 {activeTab === 'items'
 				? 'flex'
-				: 'hidden'} md:flex flex-col bg-white border-l border-slate-200"
+				: 'hidden'} md:flex flex-col bg-surface-container-low"
 			ontouchstart={handleSwipeStart}
 			ontouchend={handleSwipeEnd}
 		>
 			{#if isRefreshing}
-				<div class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-slate-500">
+				<div class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-on-surface-variant">
 					<svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
 						<circle
 							class="opacity-25"
@@ -1153,10 +1153,10 @@
 
 		{#if isBranchSwitching}
 			<div
-				class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center"
+				class="absolute inset-0 z-40 bg-surface-container-lowest/70 backdrop-blur-[1px] flex items-center justify-center"
 			>
 				<div
-					class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm"
+					class="rounded-md bg-surface-container-lowest px-3 py-2 text-sm text-on-surface"
 				>
 					{m.branch_switching()}
 				</div>
@@ -1285,19 +1285,19 @@
 	<!-- Loading skeleton -->
 	<div class="flex flex-col h-full">
 		<!-- Header skeleton -->
-		<header class="min-h-14 bg-white border-b border-slate-200 flex items-center px-4 py-3 gap-2">
-			<div class="w-8 h-8 rounded bg-slate-200 animate-pulse"></div>
-			<div class="w-px h-6 bg-slate-200"></div>
-			<div class="h-6 w-40 rounded bg-slate-200 animate-pulse"></div>
+		<header class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center px-4 py-3 gap-2">
+			<div class="w-8 h-8 rounded bg-surface-container-high animate-pulse"></div>
+			<div class="w-px h-6 bg-surface-container-high"></div>
+			<div class="h-6 w-40 rounded bg-surface-container-high animate-pulse"></div>
 			<div class="flex-1"></div>
-			<div class="h-8 w-20 rounded bg-slate-200 animate-pulse"></div>
+			<div class="h-8 w-20 rounded bg-surface-container-high animate-pulse"></div>
 		</header>
 		<!-- Canvas skeleton -->
 		<main class="flex-1 flex flex-col md:flex-row overflow-hidden">
-			<div class="flex-1 m-2 md:m-4 rounded-lg bg-slate-200 animate-pulse"></div>
-			<aside class="hidden md:flex w-80 flex-col bg-white border-l border-slate-200 p-4 gap-3">
+			<div class="flex-1 m-2 md:m-4 rounded-lg bg-surface-container-high animate-pulse"></div>
+			<aside class="hidden md:flex w-80 flex-col bg-surface-container-low p-4 gap-3">
 				{#each Array(4) as _}
-					<div class="h-20 rounded bg-slate-200 animate-pulse"></div>
+					<div class="h-20 rounded bg-surface-container-high animate-pulse"></div>
 				{/each}
 			</aside>
 		</main>

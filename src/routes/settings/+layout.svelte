@@ -20,15 +20,15 @@
 	}
 </script>
 
-<div class="h-screen bg-slate-50 flex flex-col overflow-hidden">
+<div class="h-screen bg-surface flex flex-col overflow-hidden">
 	<!-- Header -->
 	<header
-		class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0"
+		class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center justify-between px-4 py-3 flex-shrink-0"
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
 		<a href="/" class="flex items-center gap-2">
 			<img src="/icon.svg" alt="Floorplanner" class="size-8" />
-			<h1 class="text-xl font-semibold text-slate-800">{m.settings_title()}</h1>
+			<h1 class="text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
 		</a>
 		<div class="flex-shrink-0">
 			<SidebarTrigger />
@@ -36,7 +36,7 @@
 	</header>
 
 	<!-- Mobile tab nav -->
-	<div class="md:hidden flex border-b border-slate-200 bg-white px-2">
+	<div class="md:hidden flex bg-surface-container-lowest px-2">
 		{#each navItems as item}
 			<a
 				href={item.href}
@@ -44,7 +44,7 @@
 					'flex items-center gap-2 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors',
 					isActive(item.href)
 						? 'border-primary text-primary'
-						: 'border-transparent text-slate-500 hover:text-slate-700'
+						: 'border-transparent text-on-surface-variant hover:text-on-surface'
 				)}
 			>
 				<item.icon class="size-4" />
@@ -57,7 +57,7 @@
 	<div class="flex flex-1 overflow-hidden min-h-0">
 		<!-- Desktop sidebar -->
 		<aside
-			class="hidden md:flex w-60 flex-col border-r border-slate-200 bg-white p-4 flex-shrink-0"
+			class="hidden md:flex w-60 flex-col bg-surface-container-low p-4 flex-shrink-0"
 		>
 			<nav class="flex flex-col gap-1">
 				{#each navItems as item}
@@ -66,8 +66,8 @@
 						class={cn(
 							'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
 							isActive(item.href)
-								? 'bg-slate-100 text-slate-900'
-								: 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+								? 'bg-surface-container text-on-surface'
+								: 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
 						)}
 					>
 						<item.icon class="size-4" />

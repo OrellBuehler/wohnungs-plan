@@ -244,7 +244,7 @@
 							{m.item_form_shape_lshape()}
 						</Button>
 					</div>
-					<svg width="60" height="40" class="border rounded bg-slate-50">
+					<svg width="60" height="40" class="border rounded bg-surface">
 						<path d={previewPath} fill={color} stroke="#374151" stroke-width="1" />
 					</svg>
 				</div>
@@ -262,8 +262,8 @@
 			</div>
 
 			{#if shape === 'l-shape'}
-				<div class="p-3 bg-slate-50 rounded-lg space-y-3">
-					<Label class="text-slate-600">{m.item_form_lshape_cutout()}</Label>
+				<div class="p-3 bg-surface rounded-lg space-y-3">
+					<Label class="text-on-surface-variant">{m.item_form_lshape_cutout()}</Label>
 					<div class="grid grid-cols-3 gap-3">
 						<div class="space-y-1">
 							<Label for="cutoutWidth" class="text-xs">{m.item_form_cutout_width()}</Label>
@@ -315,7 +315,7 @@
 							variant="ghost"
 							size="icon-sm"
 							class="w-8 h-8 rounded border-2 p-0 transition-all {color === presetColor
-								? 'border-blue-500 scale-110'
+								? 'border-secondary scale-110'
 								: 'border-transparent'}"
 							style="background-color: {presetColor}"
 							onclick={() => (color = presetColor)}
@@ -365,7 +365,7 @@
 				<Label>{m.item_form_images_label()}</Label>
 				<div class="flex gap-2 flex-wrap">
 					{#each existingImages as img (img.id)}
-						<div class="relative group w-16 h-16 rounded border border-slate-200 overflow-hidden">
+						<div class="relative group w-16 h-16 rounded overflow-hidden">
 							<img
 								src={img.thumbUrl}
 								alt={img.originalName ?? m.item_form_image_alt()}
@@ -387,7 +387,7 @@
 					{/each}
 					{#each pendingPreviews as preview, i}
 						<div
-							class="relative group w-16 h-16 rounded border border-dashed border-blue-300 overflow-hidden"
+							class="relative group w-16 h-16 rounded border border-dashed border-secondary/50 overflow-hidden"
 						>
 							<img
 								src={preview}
@@ -405,7 +405,7 @@
 					{/each}
 					<button
 						type="button"
-						class="w-16 h-16 rounded border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-slate-400 hover:text-slate-500 transition-colors"
+						class="w-16 h-16 rounded border-2 border-dashed border-outline-variant/30 flex items-center justify-center text-outline hover:border-outline hover:text-on-surface-variant transition-colors"
 						onclick={() => fileInputEl?.click()}
 						disabled={isUploading}
 					>

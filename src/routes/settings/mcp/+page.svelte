@@ -47,8 +47,8 @@
 
 <div class="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
 	<div>
-		<h1 class="text-3xl font-bold text-slate-900">{m.settings_mcp_title()}</h1>
-		<p class="text-slate-600 mt-1">
+		<h1 class="text-3xl font-bold text-on-surface">{m.settings_mcp_title()}</h1>
+		<p class="text-on-surface-variant mt-1">
 			{m.settings_mcp_description()}
 		</p>
 	</div>
@@ -144,8 +144,8 @@
 						</span>
 					</p>
 				{:else}
-					<div class="rounded-md bg-slate-100 border border-slate-200 p-4">
-						<p class="text-sm text-slate-600">
+					<div class="rounded-md bg-surface-container-low p-4">
+						<p class="text-sm text-on-surface-variant">
 							{m.settings_mcp_secret_hidden()}
 						</p>
 					</div>
@@ -153,11 +153,11 @@
 			</div>
 
 			<!-- Regenerate Secret -->
-			<div class="pt-4 border-t">
+			<div class="pt-4">
 				<div class="space-y-3">
 					<div>
-						<h4 class="font-medium text-slate-900">{m.settings_mcp_regenerate_title()}</h4>
-						<p class="text-sm text-slate-600 mt-1">
+						<h4 class="font-medium text-on-surface">{m.settings_mcp_regenerate_title()}</h4>
+						<p class="text-sm text-on-surface-variant mt-1">
 							{m.settings_mcp_regenerate_description()}
 						</p>
 					</div>
@@ -201,7 +201,7 @@
 					<Label>{m.settings_mcp_registered_uris()}</Label>
 					<ul class="space-y-2">
 						{#each data.allowedRedirectUris as uri}
-							<li class="flex items-center justify-between rounded-md border bg-slate-50 px-3 py-2">
+							<li class="flex items-center justify-between rounded-md bg-surface px-3 py-2">
 								<code class="text-sm font-mono truncate flex-1">{uri}</code>
 								<form method="POST" action="?/removeRedirectUri" use:enhance class="ml-2">
 									<input type="hidden" name="redirectUri" value={uri} />
@@ -238,23 +238,23 @@
 		<Card.Content>
 			<div class="space-y-4">
 				<div>
-					<h4 class="font-medium text-slate-900 mb-3">{m.settings_mcp_step1_title()}</h4>
+					<h4 class="font-medium text-on-surface mb-3">{m.settings_mcp_step1_title()}</h4>
 					<ol class="space-y-2 list-decimal list-inside">
 						{#each setupInstructions as instruction}
-							<li class="text-sm text-slate-700">{instruction}</li>
+							<li class="text-sm text-on-surface">{instruction}</li>
 						{/each}
 					</ol>
 				</div>
 
-				<div class="pt-4 border-t">
-					<h4 class="font-medium text-slate-900 mb-3">{m.settings_mcp_step2_title()}</h4>
-					<p class="text-sm text-slate-700">
+				<div class="pt-4">
+					<h4 class="font-medium text-on-surface mb-3">{m.settings_mcp_step2_title()}</h4>
+					<p class="text-sm text-on-surface">
 						{m.settings_mcp_step2_description()}
 					</p>
 				</div>
 
-				<div class="pt-4 border-t">
-					<h4 class="font-medium text-slate-900 mb-3">{m.settings_mcp_step3_title()}</h4>
+				<div class="pt-4">
+					<h4 class="font-medium text-on-surface mb-3">{m.settings_mcp_step3_title()}</h4>
 					<ul class="space-y-2">
 						{#each [m.settings_mcp_capability_1(), m.settings_mcp_capability_2(), m.settings_mcp_capability_3(), m.settings_mcp_capability_4(), m.settings_mcp_capability_5(), m.settings_mcp_capability_6(), m.settings_mcp_capability_7(), m.settings_mcp_capability_8(), m.settings_mcp_capability_9()] as capability}
 							<li class="flex items-start gap-2 text-sm">
@@ -271,7 +271,7 @@
 										d="M5 13l4 4L19 7"
 									/>
 								</svg>
-								<span class="text-slate-700">{capability}</span>
+								<span class="text-on-surface">{capability}</span>
 							</li>
 						{/each}
 					</ul>

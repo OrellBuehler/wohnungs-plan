@@ -72,7 +72,7 @@
 					{#if item.images.length === 1}
 						<button
 							type="button"
-							class="w-full h-40 rounded-lg border border-slate-200 overflow-hidden"
+							class="w-full h-40 rounded-lg overflow-hidden"
 							onclick={() => openImageViewer(0)}
 						>
 							<img
@@ -86,7 +86,7 @@
 							{#each item.images as img, i (img.id)}
 								<button
 									type="button"
-									class="flex-shrink-0 w-36 h-28 rounded-lg border border-slate-200 overflow-hidden snap-start"
+									class="flex-shrink-0 w-36 h-28 rounded-lg overflow-hidden snap-start"
 									onclick={() => openImageViewer(i)}
 								>
 									<img
@@ -103,18 +103,18 @@
 				<!-- Info grid -->
 				<div class="grid grid-cols-2 gap-3">
 					<div>
-						<p class="text-xs text-slate-500">{m.item_sheet_price()}</p>
+						<p class="text-xs text-on-surface-variant">{m.item_sheet_price()}</p>
 						<p class="text-sm font-semibold">{formattedPrice}</p>
 					</div>
 					<div>
-						<p class="text-xs text-slate-500">{m.item_sheet_dimensions()}</p>
+						<p class="text-xs text-on-surface-variant">{m.item_sheet_dimensions()}</p>
 						<p class="text-sm">{dimensions}</p>
 					</div>
 					<div>
-						<p class="text-xs text-slate-500">{m.item_sheet_color()}</p>
+						<p class="text-xs text-on-surface-variant">{m.item_sheet_color()}</p>
 						<div class="flex items-center gap-1.5">
 							<div
-								class="w-5 h-5 rounded border border-slate-200"
+								class="w-5 h-5 rounded"
 								style="background-color: {item.color}"
 							></div>
 							<span class="text-xs font-mono">{item.color}</span>
@@ -122,12 +122,12 @@
 					</div>
 					{#if item.productUrl}
 						<div>
-							<p class="text-xs text-slate-500">{m.item_sheet_product()}</p>
+							<p class="text-xs text-on-surface-variant">{m.item_sheet_product()}</p>
 							<a
 								href={item.productUrl}
 								target="_blank"
 								rel="noopener noreferrer"
-								class="text-blue-600 underline text-xs truncate block"
+								class="text-secondary underline text-xs truncate block"
 							>
 								{m.item_sheet_view_product()}
 							</a>
