@@ -930,7 +930,7 @@
 						<DropdownMenu.Content align="start">
 							<DropdownMenu.RadioGroup
 								value={activeBranch?.id ?? ''}
-								onValueChange={(branchId) => switchBranchWithTransition(branchId)}
+								onValueChange={(branchId) => branchId && switchBranchWithTransition(branchId)}
 							>
 								{#each branches as branch}
 									<DropdownMenu.RadioItem value={branch.id}>

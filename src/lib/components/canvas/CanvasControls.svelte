@@ -104,7 +104,7 @@
 
 	<div class="flex items-center gap-2">
 		{#if hasAnalysis && showWallsDoors}
-			<span class="text-xs text-on-surface-variant/70 font-technical">
+			<span class="text-xs text-outline font-technical">
 				{m.canvas_control_analysis({
 					walls: floorplanAnalysis.walls.length.toString(),
 					doors: floorplanAnalysis.doors.length.toString()
@@ -113,7 +113,7 @@
 		{/if}
 
 		{#if showComments && commentCount > 0}
-			<span class="text-xs text-on-surface-variant/70 font-technical">
+			<span class="text-xs text-outline font-technical">
 				{m.canvas_control_comments_count({ count: commentCount.toString() })}
 			</span>
 		{/if}
