@@ -97,7 +97,7 @@
 <div
 	class="rounded-lg cursor-pointer transition-all active:scale-[0.98] {isSelected
 		? 'bg-secondary-fixed'
-		: 'bg-surface-container-lowest hover:bg-surface-container-highest/60'}"
+		: 'bg-surface-container-lowest hover:bg-surface-container'}"
 	onclick={onSelect}
 	role="button"
 	tabindex={0}
