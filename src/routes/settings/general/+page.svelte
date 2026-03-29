@@ -36,13 +36,7 @@
 
 			<div class="space-y-2">
 				<Label for="email">{m.settings_general_email()}</Label>
-				<Input
-					id="email"
-					type="email"
-					readonly
-					value={data.user.email ?? '—'}
-					class="bg-surface"
-				/>
+				<Input id="email" type="email" readonly value={data.user.email ?? '—'} class="bg-surface" />
 			</div>
 		</Card.Content>
 	</Card.Root>

@@ -222,9 +222,7 @@
 	</form>
 
 	{#if createdShareUrl}
-		<div
-			class="rounded-lg bg-surface p-2 text-xs flex items-center gap-2 overflow-hidden"
-		>
+		<div class="rounded-lg bg-surface p-2 text-xs flex items-center gap-2 overflow-hidden">
 			<span class="truncate flex-1 min-w-0">{createdShareUrl}</span>
 			<Button type="button" variant="ghost" size="icon-sm" onclick={copyCreatedLink}>
 				{#if copiedId === 'created'}

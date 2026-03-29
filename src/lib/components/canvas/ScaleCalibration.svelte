@@ -473,7 +473,13 @@
 		<div class="flex flex-col md:flex-row md:items-end gap-3 md:gap-4">
 			<div class="flex-1">
 				<Label for="length">{m.canvas_calibrate_length_label()}</Label>
-				<Input id="length" type="number" bind:value={referenceLength} min={1} class="font-technical" />
+				<Input
+					id="length"
+					type="number"
+					bind:value={referenceLength}
+					min={1}
+					class="font-technical"
+				/>
 			</div>
 			<div class="text-sm text-on-surface-variant pb-2">
 				{#if scale > 0}

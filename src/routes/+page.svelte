@@ -184,7 +184,9 @@
 			<img src="/icon.svg" alt={m.app_title()} class="size-8" />
 			<h1 class="font-display text-xl font-semibold text-on-surface">{m.app_title()}</h1>
 		</a>
-		<h1 class="font-display hidden md:block text-xl font-semibold text-on-surface">{m.home_title()}</h1>
+		<h1 class="font-display hidden md:block text-xl font-semibold text-on-surface">
+			{m.home_title()}
+		</h1>
 		<div class="flex-shrink-0 md:hidden">
 			<SidebarTrigger />
 		</div>
@@ -262,9 +264,7 @@
 
 			<!-- Sign-in banner -->
 			{#if showSignInBanner}
-				<div
-					class="mt-8 p-4 bg-secondary-fixed rounded-lg flex items-center justify-between"
-				>
+				<div class="mt-8 p-4 bg-secondary-fixed rounded-lg flex items-center justify-between">
 					<p class="text-sm text-on-surface">
 						{m.home_sign_in_banner()}
 					</p>

@@ -75,9 +75,7 @@
 	</div>
 
 	{#if inviteLink}
-		<div
-			class="flex items-center gap-2 rounded-lg bg-surface p-2 text-xs overflow-hidden"
-		>
+		<div class="flex items-center gap-2 rounded-lg bg-surface p-2 text-xs overflow-hidden">
 			<span class="truncate flex-1 min-w-0">{inviteLink}</span>
 			<Button variant="ghost" size="icon-sm" class="flex-shrink-0" onclick={copyInviteLink}>
 				<Copy class="h-4 w-4" />

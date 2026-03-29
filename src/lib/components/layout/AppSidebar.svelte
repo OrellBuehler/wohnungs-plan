@@ -94,7 +94,9 @@
 					</div>
 				{/if}
 				<div class="min-w-0">
-					<p class="text-sm font-medium truncate text-on-surface">{user.name ?? m.nav_user_fallback()}</p>
+					<p class="text-sm font-medium truncate text-on-surface">
+						{user.name ?? m.nav_user_fallback()}
+					</p>
 					{#if user.email}
 						<p class="text-xs text-on-surface-variant truncate">{user.email}</p>
 					{/if}
@@ -162,8 +164,7 @@
 								setSidebarOpen(false);
 								projectContext?.branch?.onRename();
 							}}
-							disabled={!projectContext.branch.activeBranchId ||
-								projectContext.branch.isSwitching}
+							disabled={!projectContext.branch.activeBranchId || projectContext.branch.isSwitching}
 						>
 							{m.branch_rename()}
 						</Button>
@@ -300,12 +301,20 @@
 
 <!-- Desktop persistent sidebar -->
 <aside
-	class="hidden md:flex flex-col shrink-0 bg-surface-container-low transition-[width] duration-200 ease-in-out {isCollapsed ? 'w-16' : 'w-64'}"
+	class="hidden md:flex flex-col shrink-0 bg-surface-container-low transition-[width] duration-200 ease-in-out {isCollapsed
+		? 'w-16'
+		: 'w-64'}"
 >
 	<!-- Header with title + collapse toggle -->
-	<div class="flex items-center h-16 shrink-0 {isCollapsed ? 'justify-center px-2' : 'justify-between px-5'}">
+	<div
+		class="flex items-center h-16 shrink-0 {isCollapsed
+			? 'justify-center px-2'
+			: 'justify-between px-5'}"
+	>
 		{#if !isCollapsed}
-			<span class="font-display text-lg font-extrabold text-on-surface tracking-tight">Wohnungs-Plan</span>
+			<span class="font-display text-lg font-extrabold text-on-surface tracking-tight"
+				>Wohnungs-Plan</span
+			>
 		{/if}
 		<button
 			type="button"

@@ -63,10 +63,7 @@ async function seedProject(page: import('@playwright/test').Page) {
 
 test('home — empty state', async ({ page }) => {
 	await page.goto('/');
-	await page.waitForFunction(
-		() => !document.querySelector('.animate-pulse'),
-		{ timeout: 10_000 }
-	);
+	await page.waitForFunction(() => !document.querySelector('.animate-pulse'), { timeout: 10_000 });
 	await page.screenshot({
 		path: join(SCREENSHOT_DIR, 'home-empty.png'),
 		fullPage: true
@@ -77,10 +74,7 @@ test('home — with project', async ({ page }) => {
 	await page.goto('/');
 	await seedProject(page);
 	await page.reload();
-	await page.waitForFunction(
-		() => !document.querySelector('.animate-pulse'),
-		{ timeout: 10_000 }
-	);
+	await page.waitForFunction(() => !document.querySelector('.animate-pulse'), { timeout: 10_000 });
 	await page.screenshot({
 		path: join(SCREENSHOT_DIR, 'home-with-project.png'),
 		fullPage: true

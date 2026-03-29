@@ -1384,7 +1384,9 @@
 	</Stage>
 
 	<!-- Zoom controls -->
-	<div class="absolute top-2 right-2 flex flex-col gap-1 bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg p-1">
+	<div
+		class="absolute top-2 right-2 flex flex-col gap-1 bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg p-1"
+	>
 		<Button
 			variant="ghost"
 			size="icon-sm"

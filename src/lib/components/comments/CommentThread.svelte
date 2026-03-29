@@ -87,9 +87,7 @@
 				{m.comments_thread_pin()}
 			</Button>
 		{:else}
-			<span class="text-xs text-outline uppercase tracking-wide"
-				>{m.comments_thread_header()}</span
-			>
+			<span class="text-xs text-outline uppercase tracking-wide">{m.comments_thread_header()}</span>
 		{/if}
 		{#if canEdit}
 			<div class="flex items-center gap-1">
@@ -129,7 +127,9 @@
 						</span>
 						<span class="text-xs text-outline">{formatTime(reply.createdAt)}</span>
 					</div>
-					<p class="text-sm text-on-surface-variant whitespace-pre-wrap break-words">{reply.body}</p>
+					<p class="text-sm text-on-surface-variant whitespace-pre-wrap break-words">
+						{reply.body}
+					</p>
 				</div>
 			</div>
 		{/each}

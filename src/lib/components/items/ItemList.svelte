@@ -123,11 +123,7 @@
 			</Select.Content>
 		</Select.Root>
 
-		<Select.Root
-			type="single"
-			value={sortBy}
-			onValueChange={(v) => (sortBy = v as typeof sortBy)}
-		>
+		<Select.Root type="single" value={sortBy} onValueChange={(v) => (sortBy = v as typeof sortBy)}>
 			<Select.Trigger class="w-[90px]">
 				{sortLabel}
 			</Select.Trigger>

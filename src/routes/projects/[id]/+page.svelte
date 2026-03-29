@@ -896,7 +896,7 @@
 			<a href="/" class="flex items-center flex-shrink-0 md:hidden">
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			</a>
-{#if isEditingName}
+			{#if isEditingName}
 				<Input
 					bind:ref={nameInputEl}
 					bind:value={editNameValue}
@@ -943,7 +943,10 @@
 								<GitBranchPlus size={14} class="mr-2" />
 								{m.branch_create_title()}
 							</DropdownMenu.Item>
-							<DropdownMenu.Item onclick={handleRenameBranch} disabled={!activeBranch || isBranchSwitching}>
+							<DropdownMenu.Item
+								onclick={handleRenameBranch}
+								disabled={!activeBranch || isBranchSwitching}
+							>
 								<Pencil size={14} class="mr-2" />
 								{m.branch_rename_title()}
 							</DropdownMenu.Item>
@@ -1105,7 +1108,9 @@
 			ontouchend={handleSwipeEnd}
 		>
 			{#if isRefreshing}
-				<div class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-on-surface-variant">
+				<div
+					class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-on-surface-variant"
+				>
 					<Loader2 size={16} class="animate-spin mr-2" />
 					{m.project_refreshing()}
 				</div>
@@ -1149,9 +1154,7 @@
 			<div
 				class="absolute inset-0 z-40 bg-surface-container-lowest/70 backdrop-blur-[1px] flex items-center justify-center"
 			>
-				<div
-					class="rounded-md bg-surface-container-lowest px-3 py-2 text-sm text-on-surface"
-				>
+				<div class="rounded-md bg-surface-container-lowest px-3 py-2 text-sm text-on-surface">
 					{m.branch_switching()}
 				</div>
 			</div>
@@ -1279,7 +1282,9 @@
 	<!-- Loading skeleton -->
 	<div class="flex flex-col h-full">
 		<!-- Header skeleton -->
-		<header class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center px-4 py-3 gap-2">
+		<header
+			class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center px-4 py-3 gap-2"
+		>
 			<div class="w-8 h-8 rounded bg-surface-container-high animate-pulse"></div>
 			<div class="w-px h-6 bg-surface-container-high"></div>
 			<div class="h-6 w-40 rounded bg-surface-container-high animate-pulse"></div>

@@ -59,9 +59,7 @@
 			{:else}
 				<div class="space-y-2">
 					{#each projects as project (project.id)}
-						<div
-							class="flex items-center justify-between p-3 rounded-lg transition-colors"
-						>
+						<div class="flex items-center justify-between p-3 rounded-lg transition-colors">
 							<Button
 								variant="ghost"
 								class="flex-1 text-left justify-start h-auto py-0"

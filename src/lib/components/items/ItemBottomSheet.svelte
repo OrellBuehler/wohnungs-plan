@@ -113,10 +113,7 @@
 					<div>
 						<p class="text-xs text-on-surface-variant">{m.item_sheet_color()}</p>
 						<div class="flex items-center gap-1.5">
-							<div
-								class="w-5 h-5 rounded"
-								style="background-color: {item.color}"
-							></div>
+							<div class="w-5 h-5 rounded" style="background-color: {item.color}"></div>
 							<span class="text-xs font-technical">{item.color}</span>
 						</div>
 					</div>

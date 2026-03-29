@@ -30,7 +30,9 @@
 			<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			<h1 class="font-display text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
 		</a>
-		<h1 class="font-display hidden md:block text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
+		<h1 class="font-display hidden md:block text-xl font-semibold text-on-surface">
+			{m.settings_title()}
+		</h1>
 		<div class="flex-shrink-0 md:hidden">
 			<SidebarTrigger />
 		</div>
@@ -57,9 +59,7 @@
 	<!-- Body -->
 	<div class="flex flex-1 overflow-hidden min-h-0">
 		<!-- Desktop sidebar -->
-		<aside
-			class="hidden md:flex w-60 flex-col bg-surface-container-low p-4 flex-shrink-0"
-		>
+		<aside class="hidden md:flex w-60 flex-col bg-surface-container-low p-4 flex-shrink-0">
 			<nav class="flex flex-col gap-1">
 				{#each navItems as item}
 					<a

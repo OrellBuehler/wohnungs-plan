@@ -305,7 +305,9 @@
 			class="max-w-md w-full rounded-xl bg-surface-container-lowest p-6 space-y-4"
 			onsubmit={handlePasswordSubmit}
 		>
-			<h1 class="text-xl font-semibold text-on-surface">{projectName || m.share_default_title()}</h1>
+			<h1 class="text-xl font-semibold text-on-surface">
+				{projectName || m.share_default_title()}
+			</h1>
 			<p class="text-sm text-on-surface-variant">{m.share_password_prompt()}</p>
 			<div class="space-y-2">
 				<label class="text-sm font-medium text-on-surface" for="share-password"
@@ -368,7 +370,9 @@
 			<div
 				class="flex-1 min-w-0 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col"
 			>
-				<div class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden bg-surface-container-lowest">
+				<div
+					class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden bg-surface-container-lowest"
+				>
 					{#if isLoading}
 						<div class="h-full flex items-center justify-center text-sm text-on-surface-variant">
 							{m.share_loading()}
@@ -429,9 +433,7 @@
 				<div
 					class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center"
 				>
-					<div
-						class="rounded-md bg-surface-container-lowest px-3 py-2 text-sm text-on-surface"
-					>
+					<div class="rounded-md bg-surface-container-lowest px-3 py-2 text-sm text-on-surface">
 						{m.branch_switching()}
 					</div>
 				</div>
