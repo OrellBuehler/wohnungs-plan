@@ -9,7 +9,6 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
 	import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
-	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { getUser, isAuthenticated, isLoading, login, logout } from '$lib/stores/auth.svelte';
 	import {
@@ -264,16 +263,18 @@
 		<nav class="px-2 py-2 mt-2 flex flex-col items-center gap-1">
 			{#each navItems as item}
 				<Tooltip.Root>
-					<Tooltip.Trigger
-						class="flex items-center justify-center rounded-lg size-10 transition-colors {isNavActive(
-							item.href
-						)
-							? 'bg-surface-container text-on-surface'
-							: 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}"
-						onclick={() => goto(item.href)}
-						aria-label={item.label}
-					>
-						<item.icon class="size-4" />
+					<Tooltip.Trigger>
+						<a
+							href={item.href}
+							class="flex items-center justify-center rounded-lg size-10 transition-colors {isNavActive(
+								item.href
+							)
+								? 'bg-surface-container text-on-surface'
+								: 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}"
+							aria-label={item.label}
+						>
+							<item.icon class="size-4" />
+						</a>
 					</Tooltip.Trigger>
 					<Tooltip.Content side="right">{item.label}</Tooltip.Content>
 				</Tooltip.Root>

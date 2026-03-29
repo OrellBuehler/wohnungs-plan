@@ -3,7 +3,7 @@
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Separator } from '$lib/components/ui/separator';
+
 	import * as m from '$lib/paraglide/messages';
 	import { formatDecimal } from '$lib/utils/format';
 	import {
@@ -83,9 +83,7 @@
 			{m.canvas_control_comments()}
 		</Label>
 
-		<Separator orientation="vertical" class="h-5" />
-
-		<Label class="flex items-center gap-2 text-on-surface-variant">
+		<Label class="flex items-center gap-2 text-on-surface-variant ml-2">
 			{m.canvas_control_gridsize()}
 			<Input
 				type="number"
@@ -123,9 +121,7 @@
 		</span>
 	</div>
 
-	<Separator orientation="vertical" class="h-5" />
-
-	<div class="flex items-center gap-1">
+	<div class="flex items-center gap-1 ml-2">
 		<Button
 			variant="ghost"
 			size="sm"

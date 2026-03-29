@@ -187,6 +187,7 @@
 		<h1 class="font-display hidden md:block text-xl font-semibold text-on-surface">
 			{m.home_title()}
 		</h1>
+		<span class="sr-only md:hidden" role="heading" aria-level={2}>{m.home_title()}</span>
 		<div class="flex-shrink-0 md:hidden">
 			<SidebarTrigger />
 		</div>
