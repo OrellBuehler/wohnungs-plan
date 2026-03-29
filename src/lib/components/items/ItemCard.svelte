@@ -3,7 +3,6 @@
 	import { formatPrice } from '$lib/utils/currency';
 	import { getLShapePoints, getRectPoints } from '$lib/utils/geometry';
 	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
 	import { Separator } from '$lib/components/ui/separator';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import MapPin from '@lucide/svelte/icons/map-pin';
@@ -95,16 +94,16 @@
 	}
 </script>
 
-<Card.Root
-	class="cursor-pointer transition-all active:scale-[0.98] {isSelected
-		? 'border-secondary bg-secondary-fixed'
-		: ''}"
+<div
+	class="rounded-lg cursor-pointer transition-all active:scale-[0.98] {isSelected
+		? 'bg-secondary-fixed'
+		: 'bg-surface-container-lowest hover:bg-surface-container-highest/60'}"
 	onclick={onSelect}
 	role="button"
 	tabindex={0}
 	onkeydown={(e) => e.key === 'Enter' && onSelect()}
 >
-	<Card.Content class="p-4">
+	<div class="p-3">
 		<div class="flex items-start gap-3">
 			{#if item.images && item.images.length > 0}
 				<img
@@ -230,8 +229,8 @@
 				</Button>
 			</div>
 		{/if}
-	</Card.Content>
-</Card.Root>
+	</div>
+</div>
 
 {#if item.images && item.images.length > 0}
 	<ImageViewer

@@ -21,6 +21,7 @@
 	import Crosshair from '@lucide/svelte/icons/crosshair';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
+	import Loader2 from '@lucide/svelte/icons/loader-2';
 	import * as m from '$lib/paraglide/messages';
 	import { toast } from 'svelte-sonner';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
@@ -1105,22 +1106,7 @@
 		>
 			{#if isRefreshing}
 				<div class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-on-surface-variant">
-					<svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-						<circle
-							class="opacity-25"
-							cx="12"
-							cy="12"
-							r="10"
-							stroke="currentColor"
-							stroke-width="4"
-							fill="none"
-						/>
-						<path
-							class="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-						/>
-					</svg>
+					<Loader2 size={16} class="animate-spin mr-2" />
 					{m.project_refreshing()}
 				</div>
 			{/if}

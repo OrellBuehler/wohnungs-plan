@@ -92,8 +92,9 @@
 </script>
 
 <div class="flex flex-col h-full min-h-0">
-	<div class="flex-shrink-0 p-4">
-		<div class="flex items-center justify-between mb-4">
+	<!-- Header: title + add -->
+	<div class="flex-shrink-0 px-4 pt-4 pb-3">
+		<div class="flex items-center justify-between">
 			<h2 class="font-display text-base font-semibold text-on-surface">
 				{m.item_list_title({ count: items.length.toString() })}
 			</h2>
@@ -103,41 +104,43 @@
 				>
 			{/if}
 		</div>
-
-		<div class="flex gap-2 text-sm">
-			<Select.Root
-				type="single"
-				value={filterBy}
-				onValueChange={(v) => (filterBy = v as typeof filterBy)}
-			>
-				<Select.Trigger class="w-[100px]">
-					{filterLabel}
-				</Select.Trigger>
-				<Select.Content>
-					{#each filterOptions as option (option.value)}
-						<Select.Item value={option.value}>{option.label}</Select.Item>
-					{/each}
-				</Select.Content>
-			</Select.Root>
-
-			<Select.Root
-				type="single"
-				value={sortBy}
-				onValueChange={(v) => (sortBy = v as typeof sortBy)}
-			>
-				<Select.Trigger class="w-[90px]">
-					{sortLabel}
-				</Select.Trigger>
-				<Select.Content>
-					{#each sortOptions as option (option.value)}
-						<Select.Item value={option.value}>{option.label}</Select.Item>
-					{/each}
-				</Select.Content>
-			</Select.Root>
-		</div>
 	</div>
 
-	<div class="flex-1 min-h-0 overflow-y-auto p-4 pt-2 space-y-2">
+	<!-- Filters -->
+	<div class="flex-shrink-0 flex gap-2 px-4 pb-3 text-sm">
+		<Select.Root
+			type="single"
+			value={filterBy}
+			onValueChange={(v) => (filterBy = v as typeof filterBy)}
+		>
+			<Select.Trigger class="w-[100px]">
+				{filterLabel}
+			</Select.Trigger>
+			<Select.Content>
+				{#each filterOptions as option (option.value)}
+					<Select.Item value={option.value}>{option.label}</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
+
+		<Select.Root
+			type="single"
+			value={sortBy}
+			onValueChange={(v) => (sortBy = v as typeof sortBy)}
+		>
+			<Select.Trigger class="w-[90px]">
+				{sortLabel}
+			</Select.Trigger>
+			<Select.Content>
+				{#each sortOptions as option (option.value)}
+					<Select.Item value={option.value}>{option.label}</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
+	</div>
+
+	<!-- Item list -->
+	<div class="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-2">
 		{#if filteredItems.length === 0}
 			<div class="flex flex-col items-center justify-center py-12 text-center">
 				<Package class="size-10 text-outline mb-3" />
@@ -168,7 +171,8 @@
 		{/if}
 	</div>
 
-	<div class="flex-shrink-0 p-4 bg-surface-container-low">
+	<!-- Total cost footer -->
+	<div class="flex-shrink-0 px-4 py-3 bg-surface-container">
 		<div class="flex justify-between items-center">
 			<div class="flex items-center gap-2">
 				<span class="text-sm text-on-surface-variant">{m.item_list_total()}</span>
@@ -191,7 +195,7 @@
 				{#if isLoadingRates}
 					<span class="text-xs text-outline">{m.item_list_updating()}</span>
 				{/if}
-				<span class="font-technical text-lg font-semibold text-on-surface">{formattedTotal}</span>
+				<span class="font-technical text-xl font-semibold text-on-surface">{formattedTotal}</span>
 			</div>
 		</div>
 	</div>
