@@ -4,7 +4,12 @@ import type { PageServerLoad } from './$types';
 const BASE_URL = 'https://floorplanner.orellbuehler.ch';
 
 export const load: PageServerLoad = async ({ params }) => {
-	const project = await getProjectById(params.id);
+	let project;
+	try {
+		project = await getProjectById(params.id);
+	} catch {
+		return { seo: null };
+	}
 
 	if (!project) {
 		return { seo: null };
