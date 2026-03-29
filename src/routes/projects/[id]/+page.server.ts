@@ -7,8 +7,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	let project;
 	try {
 		project = await getProjectById(params.id);
-	} catch (e) {
-		console.error('Failed to load project for SEO:', e);
+	} catch {
 		return { seo: null };
 	}
 

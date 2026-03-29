@@ -28,25 +28,14 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright system deps
-        run: bunx playwright install-deps chromium
-
       - name: Install Playwright Chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: bunx playwright install chromium
+        run: bunx playwright install chromium --with-deps
 
       - name: Run visual screenshot tests
         run: bunx playwright test
 
       - name: Upload screenshots
-        if: '!cancelled()'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: visual-screenshots
@@ -54,7 +43,7 @@ jobs:
           retention-days: 30
 
       - name: Post PR comment
-        if: ${{ !cancelled() }}
+        if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
