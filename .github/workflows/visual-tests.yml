@@ -35,9 +35,12 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
+      - name: Install Playwright system deps
+        run: bunx playwright install-deps chromium
+
       - name: Install Playwright Chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: bunx playwright install chromium --with-deps
+        run: bunx playwright install chromium
 
       - name: Run visual screenshot tests
         run: bunx playwright test
@@ -51,7 +54,7 @@ jobs:
           retention-days: 30
 
       - name: Post PR comment
-        if: '!cancelled()' && github.event_name == 'pull_request'
+        if: ${{ !cancelled() }}
         uses: actions/github-script@v7
         with:
           script: |
