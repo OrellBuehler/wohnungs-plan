@@ -32,6 +32,7 @@ export interface ProjectContext {
 }
 
 let open = $state(false);
+let collapsed = $state(false);
 let projectContext = $state<ProjectContext | null>(null);
 
 export function isSidebarOpen(): boolean {
@@ -40,6 +41,18 @@ export function isSidebarOpen(): boolean {
 
 export function setSidebarOpen(value: boolean): void {
 	open = value;
+}
+
+export function isSidebarCollapsed(): boolean {
+	return collapsed;
+}
+
+export function setSidebarCollapsed(value: boolean): void {
+	collapsed = value;
+}
+
+export function toggleSidebarCollapsed(): void {
+	collapsed = !collapsed;
 }
 
 export function getProjectContext(): ProjectContext | null {

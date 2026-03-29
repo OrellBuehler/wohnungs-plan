@@ -3,7 +3,6 @@
 	import { formatPrice } from '$lib/utils/currency';
 	import { getLShapePoints, getRectPoints } from '$lib/utils/geometry';
 	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
 	import { Separator } from '$lib/components/ui/separator';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import MapPin from '@lucide/svelte/icons/map-pin';
@@ -95,50 +94,47 @@
 	}
 </script>
 
-<Card.Root
-	class="cursor-pointer transition-all active:scale-[0.98] {isSelected
-		? 'border-blue-500 bg-blue-50'
-		: 'hover:border-slate-300'}"
+<div
+	class="rounded-lg cursor-pointer transition-all active:scale-[0.98] {isSelected
+		? 'bg-secondary-fixed'
+		: 'bg-surface-container-lowest hover:bg-surface-container'}"
 	onclick={onSelect}
 	role="button"
 	tabindex={0}
 	onkeydown={(e) => e.key === 'Enter' && onSelect()}
 >
-	<Card.Content class="p-4">
+	<div class="p-3">
 		<div class="flex items-start gap-3">
 			{#if item.images && item.images.length > 0}
 				<img
 					src={item.images[0].thumbUrl}
 					alt={item.name}
-					class="w-8 h-8 flex-shrink-0 rounded border border-slate-200 object-cover"
+					class="w-8 h-8 flex-shrink-0 rounded object-cover"
 				/>
 			{:else}
-				<svg
-					width="32"
-					height="32"
-					class="flex-shrink-0 rounded border border-slate-200 bg-slate-50"
-				>
+				<svg width="32" height="32" class="flex-shrink-0 rounded bg-surface">
 					<path d={previewPath} fill={item.color} stroke="#374151" stroke-width="0.5" />
 				</svg>
 			{/if}
 
 			<div class="flex-1 min-w-0">
-				<h3 class="font-medium text-slate-800 truncate">{item.name}</h3>
-				<p class="text-sm text-slate-500 font-mono">
+				<h3 class="font-medium text-on-surface truncate">{item.name}</h3>
+				<p class="text-sm text-on-surface-variant font-technical">
 					{formatDimension(item.width, item.height)}
 				</p>
 				{#if formattedPrice}
-					<p class="text-sm font-medium text-slate-700">{formattedPrice}</p>
+					<p class="text-sm font-medium text-on-surface">{formattedPrice}</p>
 				{/if}
 			</div>
 
 			<div class="flex flex-col gap-1">
 				{#if item.position}
-					<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded"
+					<span
+						class="text-xs bg-secondary-fixed text-on-secondary-fixed-variant px-2 py-0.5 rounded"
 						>{m.item_card_placed()}</span
 					>
 				{:else}
-					<span class="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded"
+					<span class="text-xs bg-surface-container text-on-surface-variant px-2 py-0.5 rounded"
 						>{m.item_card_unplaced()}</span
 					>
 				{/if}
@@ -147,7 +143,7 @@
 						href={item.productUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
+						class="text-xs text-secondary hover:underline inline-flex items-center gap-1"
 						onclick={(e) => e.stopPropagation()}
 					>
 						<ExternalLink size={12} />
@@ -164,7 +160,7 @@
 					{#each item.images as img, i (img.id)}
 						<button
 							type="button"
-							class="flex-shrink-0 w-20 h-16 rounded border border-slate-200 overflow-hidden snap-start hover:border-blue-400 transition-colors"
+							class="flex-shrink-0 w-20 h-16 rounded overflow-hidden snap-start hover:border-secondary transition-colors"
 							onclick={withStopPropagation(() => openImageViewer(i))}
 						>
 							<img
@@ -230,8 +226,8 @@
 				</Button>
 			</div>
 		{/if}
-	</Card.Content>
-</Card.Root>
+	</div>
+</div>
 
 {#if item.images && item.images.length > 0}
 	<ImageViewer

@@ -348,9 +348,9 @@
 </script>
 
 <div class="flex flex-col h-full">
-	<div class="p-4 bg-blue-600 text-white">
+	<div class="p-4 bg-secondary text-primary-foreground">
 		<h2 class="font-semibold mb-1">{m.canvas_calibrate_title()}</h2>
-		<p class="text-sm text-blue-100">
+		<p class="text-sm text-secondary-foreground/70">
 			{m.canvas_calibrate_description()}
 			<span class="hidden md:inline"><strong>{m.canvas_calibrate_desktop_hint()}</strong></span>
 			<span class="md:hidden"><strong>{m.canvas_calibrate_mobile_hint()}</strong></span>
@@ -359,7 +359,7 @@
 
 	<div
 		bind:this={containerEl}
-		class="flex-1 bg-slate-900 relative cursor-crosshair"
+		class="flex-1 bg-primary-container relative cursor-crosshair"
 		onwheel={handleWheel}
 		oncontextmenu={handleContextMenu}
 		onpointerdown={handlePointerDown}
@@ -435,23 +435,23 @@
 		</Stage>
 
 		<!-- Zoom controls -->
-		<div class="absolute top-2 right-2 flex flex-col gap-1 bg-white rounded shadow-lg p-1">
+		<div class="absolute top-2 right-2 flex flex-col gap-1 bg-surface-container-lowest rounded p-1">
 			<Button
 				variant="ghost"
 				size="icon-sm"
-				class="text-slate-600"
+				class="text-on-surface-variant"
 				onclick={zoomIn}
 				title={m.canvas_zoom_in()}
 			>
 				<Plus size={16} />
 			</Button>
-			<div class="text-xs text-center text-slate-500 py-1">
+			<div class="text-xs text-center text-on-surface-variant py-1">
 				{Math.round(zoom * 100)}%
 			</div>
 			<Button
 				variant="ghost"
 				size="icon-sm"
-				class="text-slate-600"
+				class="text-on-surface-variant"
 				onclick={zoomOut}
 				title={m.canvas_zoom_out()}
 			>
@@ -460,7 +460,7 @@
 			<Button
 				variant="ghost"
 				size="icon-sm"
-				class="text-slate-600"
+				class="text-on-surface-variant"
 				onclick={resetView}
 				title={m.canvas_reset_view()}
 			>
@@ -469,13 +469,19 @@
 		</div>
 	</div>
 
-	<div class="p-4 bg-white border-t border-slate-200">
+	<div class="p-4 bg-surface-container-lowest">
 		<div class="flex flex-col md:flex-row md:items-end gap-3 md:gap-4">
 			<div class="flex-1">
 				<Label for="length">{m.canvas_calibrate_length_label()}</Label>
-				<Input id="length" type="number" bind:value={referenceLength} min={1} class="font-mono" />
+				<Input
+					id="length"
+					type="number"
+					bind:value={referenceLength}
+					min={1}
+					class="font-technical"
+				/>
 			</div>
-			<div class="text-sm text-slate-600 pb-2">
+			<div class="text-sm text-on-surface-variant pb-2">
 				{#if scale > 0}
 					{m.canvas_calibrate_scale({ scale: scale.toFixed(2) })}
 				{:else}

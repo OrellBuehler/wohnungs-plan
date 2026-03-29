@@ -230,11 +230,11 @@
 		</Dialog.Header>
 
 		{#if isLoading}
-			<div class="flex items-center justify-center py-8 text-sm text-slate-500">
+			<div class="flex items-center justify-center py-8 text-sm text-on-surface-variant">
 				{m.common_loading()}
 			</div>
 		{:else if errorMessage}
-			<div class="text-sm text-red-600 py-4">{errorMessage}</div>
+			<div class="text-sm text-destructive py-4">{errorMessage}</div>
 		{:else}
 			<div class="flex-1 overflow-y-auto space-y-4 py-2 -mx-6 px-6">
 				{#each TOOL_CATEGORIES as category, i}
@@ -242,7 +242,7 @@
 						<Separator />
 					{/if}
 					<div>
-						<h3 class="text-sm font-medium text-slate-700 mb-2">{category.title()}</h3>
+						<h3 class="text-sm font-medium text-on-surface mb-2">{category.title()}</h3>
 						<div class="space-y-2">
 							{#each category.tools as tool}
 								<div class="flex items-center justify-between gap-4 py-1">

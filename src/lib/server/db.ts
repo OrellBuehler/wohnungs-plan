@@ -21,6 +21,10 @@ export function getDB() {
 }
 
 export async function runMigrations(): Promise<void> {
+	if (!config.database.url) {
+		logger.warn('DATABASE_URL not set — skipping migrations');
+		return;
+	}
 	const database = getDB();
 	// Use absolute path from process.cwd() to ensure correct resolution in Docker
 	const migrationsPath = join(process.cwd(), 'drizzle');

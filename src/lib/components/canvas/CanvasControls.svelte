@@ -3,7 +3,7 @@
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Separator } from '$lib/components/ui/separator';
+
 	import * as m from '$lib/paraglide/messages';
 	import { formatDecimal } from '$lib/utils/format';
 	import {
@@ -54,84 +54,90 @@
 	}
 </script>
 
-<div class="flex-shrink-0 flex items-center gap-4 px-4 pb-4 text-sm">
-	<Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
-		<Checkbox bind:checked={showGrid} />
-		{m.canvas_control_grid()}
-	</Label>
-
-	<Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
-		<Checkbox bind:checked={snapToGrid} />
-		{m.canvas_control_snap()}
-	</Label>
-
-	{#if hasAnalysis}
-		<Label
-			class="flex items-center gap-2 text-slate-600 cursor-pointer"
-			title={m.canvas_control_walls_doors_title()}
-		>
-			<Checkbox checked={showWallsDoors} onCheckedChange={() => toggleWallsDoors()} />
-			{m.canvas_control_walls_doors()}
+<div
+	class="bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg px-3 py-2 flex items-center gap-3 text-sm"
+>
+	<div class="flex items-center gap-3">
+		<Label class="flex items-center gap-2 text-on-surface-variant cursor-pointer">
+			<Checkbox bind:checked={showGrid} />
+			{m.canvas_control_grid()}
 		</Label>
-	{/if}
 
-	<Label class="flex items-center gap-2 text-slate-600 cursor-pointer">
-		<Checkbox checked={showComments} onCheckedChange={() => toggleCommentsVisibility()} />
-		{m.canvas_control_comments()}
-	</Label>
+		<Label class="flex items-center gap-2 text-on-surface-variant cursor-pointer">
+			<Checkbox bind:checked={snapToGrid} />
+			{m.canvas_control_snap()}
+		</Label>
 
-	<Separator orientation="vertical" class="h-6" />
+		{#if hasAnalysis}
+			<Label
+				class="flex items-center gap-2 text-on-surface-variant cursor-pointer"
+				title={m.canvas_control_walls_doors_title()}
+			>
+				<Checkbox checked={showWallsDoors} onCheckedChange={() => toggleWallsDoors()} />
+				{m.canvas_control_walls_doors()}
+			</Label>
+		{/if}
 
-	<Label class="flex items-center gap-2 text-slate-600">
-		{m.canvas_control_gridsize()}
-		<Input
-			type="number"
-			value={gridSize}
-			oninput={handleGridSizeInput}
-			min={1}
-			max={200}
-			step={1}
-			class="w-16 h-8 font-mono text-sm"
-		/>
-		{m.canvas_control_px()}
-	</Label>
+		<Label class="flex items-center gap-2 text-on-surface-variant cursor-pointer">
+			<Checkbox checked={showComments} onCheckedChange={() => toggleCommentsVisibility()} />
+			{m.canvas_control_comments()}
+		</Label>
+
+		<Label class="flex items-center gap-2 text-on-surface-variant ml-2">
+			{m.canvas_control_gridsize()}
+			<Input
+				type="number"
+				value={gridSize}
+				oninput={handleGridSizeInput}
+				min={1}
+				max={200}
+				step={1}
+				class="w-14 h-7 font-technical text-sm"
+			/>
+			{m.canvas_control_px()}
+		</Label>
+	</div>
 
 	<div class="flex-1"></div>
 
-	{#if hasAnalysis && showWallsDoors}
-		<span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-			{m.canvas_control_analysis({
-				walls: floorplanAnalysis.walls.length.toString(),
-				doors: floorplanAnalysis.doors.length.toString()
-			})}
+	<div class="flex items-center gap-2">
+		{#if hasAnalysis && showWallsDoors}
+			<span class="text-xs text-outline font-technical">
+				{m.canvas_control_analysis({
+					walls: floorplanAnalysis.walls.length.toString(),
+					doors: floorplanAnalysis.doors.length.toString()
+				})}
+			</span>
+		{/if}
+
+		{#if showComments && commentCount > 0}
+			<span class="text-xs text-outline font-technical">
+				{m.canvas_control_comments_count({ count: commentCount.toString() })}
+			</span>
+		{/if}
+
+		<span class="text-xs text-outline font-technical">
+			{formatDecimal(scale, 2)} px/cm
 		</span>
-	{/if}
+	</div>
 
-	{#if showComments && commentCount > 0}
-		<span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-			{m.canvas_control_comments_count({ count: commentCount.toString() })}
-		</span>
-	{/if}
+	<div class="flex items-center gap-1 ml-2">
+		<Button
+			variant="ghost"
+			size="sm"
+			class="h-7 px-2 text-xs text-on-surface-variant hover:text-on-surface"
+			onclick={onRecalibrate}
+		>
+			{m.canvas_control_recalibrate()}
+		</Button>
 
-	<span class="text-xs text-slate-400 font-mono">
-		{formatDecimal(scale, 2)} px/cm
-	</span>
-
-	<Button
-		variant="ghost"
-		size="sm"
-		class="text-slate-500 hover:text-slate-700"
-		onclick={onRecalibrate}
-	>
-		{m.canvas_control_recalibrate()}
-	</Button>
-
-	<Button
-		variant="ghost"
-		size="sm"
-		class="text-slate-500 hover:text-slate-700"
-		onclick={onChangeFloorplan}
-	>
-		{m.canvas_control_change_floorplan()}
-	</Button>
+		<Button
+			variant="ghost"
+			size="sm"
+			class="h-7 px-2 text-xs text-on-surface-variant hover:text-on-surface"
+			onclick={onChangeFloorplan}
+		>
+			{m.canvas_control_change_floorplan()}
+		</Button>
+	</div>
 </div>

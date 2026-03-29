@@ -89,5 +89,7 @@ export async function seedData(db: SQL): Promise<void> {
 		VALUES (${PI1}, ${P1}, 'charlie@example.com', 'viewer', 'invite-token-001', ${far})
 	`;
 
-	console.log('Seeded: 2 users, 1 session, 1 project, 1 branch, 2 members, 2 items, 1 change, 1 floorplan, 1 comment, 1 reply, 1 oauth client, 1 share link, 1 invite');
+	console.log(
+		'Seeded: 2 users, 1 session, 1 project, 1 branch, 2 members, 2 items, 1 change, 1 floorplan, 1 comment, 1 reply, 1 oauth client, 1 share link, 1 invite'
+	);
 }

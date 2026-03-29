@@ -15,8 +15,8 @@
 
 <div class="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
 	<div>
-		<h1 class="text-3xl font-bold text-slate-900">{m.settings_general_title()}</h1>
-		<p class="text-slate-600 mt-1">{m.settings_general_description()}</p>
+		<h1 class="text-3xl font-bold text-on-surface">{m.settings_general_title()}</h1>
+		<p class="text-on-surface-variant mt-1">{m.settings_general_description()}</p>
 	</div>
 
 	<!-- Profile Card -->
@@ -31,18 +31,12 @@
 		<Card.Content class="space-y-4">
 			<div class="space-y-2">
 				<Label for="name">{m.settings_general_name()}</Label>
-				<Input id="name" type="text" readonly value={data.user.name ?? '—'} class="bg-slate-50" />
+				<Input id="name" type="text" readonly value={data.user.name ?? '—'} class="bg-surface" />
 			</div>
 
 			<div class="space-y-2">
 				<Label for="email">{m.settings_general_email()}</Label>
-				<Input
-					id="email"
-					type="email"
-					readonly
-					value={data.user.email ?? '—'}
-					class="bg-slate-50"
-				/>
+				<Input id="email" type="email" readonly value={data.user.email ?? '—'} class="bg-surface" />
 			</div>
 		</Card.Content>
 	</Card.Root>
@@ -59,5 +53,5 @@
 		</Card.Content>
 	</Card.Root>
 
-	<p class="text-xs text-slate-400">Version {import.meta.env.VITE_APP_VERSION || 'dev'}</p>
+	<p class="text-xs text-outline">Version {import.meta.env.VITE_APP_VERSION || 'dev'}</p>
 </div>

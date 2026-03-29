@@ -15,19 +15,19 @@
 {#if authed}
 	<Button
 		variant="ghost"
-		class="relative h-9 w-9 rounded-full p-0 overflow-hidden shrink-0"
+		class="relative h-9 w-9 rounded-xl p-0 overflow-hidden shrink-0"
 		onclick={() => setSidebarOpen(true)}
 	>
 		{#if user?.avatarUrl && !avatarError}
 			<img
 				src={user.avatarUrl}
 				alt={user.name ?? 'User avatar'}
-				class="absolute inset-0 h-full w-full rounded-full object-cover"
+				class="absolute inset-0 h-full w-full rounded-xl object-cover"
 				onerror={() => (avatarError = true)}
 			/>
 		{:else}
 			<div
-				class="flex h-full w-full items-center justify-center rounded-full bg-muted text-sm font-medium"
+				class="flex h-full w-full items-center justify-center rounded-xl bg-muted text-sm font-medium"
 			>
 				{getInitials(user?.name ?? null)}
 			</div>

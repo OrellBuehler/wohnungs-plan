@@ -29,16 +29,18 @@
 	<link rel="icon" href="/icon.svg" type="image/svg+xml" />
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 	<link rel="manifest" href="/manifest.json" />
-	<meta name="theme-color" content="#4E74FF" />
+	<meta name="theme-color" content="#f7f9fb" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </svelte:head>
 
 <Tooltip.Provider>
-	<div class="h-screen bg-slate-100 flex flex-col overflow-hidden" style="height: 100dvh;">
-		{@render children()}
+	<div class="bg-surface flex overflow-hidden" style="height: 100dvh;">
+		<AppSidebar />
+		<div class="flex-1 flex flex-col overflow-hidden min-w-0">
+			{@render children()}
+		</div>
 	</div>
-	<AppSidebar />
 </Tooltip.Provider>
 
 <Toaster />

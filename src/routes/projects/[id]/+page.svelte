@@ -7,7 +7,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import Share2 from '@lucide/svelte/icons/share-2';
+	import GitBranch from '@lucide/svelte/icons/git-branch';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 	import GitBranchPlus from '@lucide/svelte/icons/git-branch-plus';
 	import Pencil from '@lucide/svelte/icons/pencil';
@@ -18,6 +21,7 @@
 	import Crosshair from '@lucide/svelte/icons/crosshair';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
+	import Loader2 from '@lucide/svelte/icons/loader-2';
 	import * as m from '$lib/paraglide/messages';
 	import { toast } from 'svelte-sonner';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
@@ -885,14 +889,13 @@
 
 {#if project}
 	<header
-		class="min-h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 flex-shrink-0 gap-2"
+		class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center justify-between px-4 py-3 flex-shrink-0 gap-2"
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
 		<div class="flex items-center gap-2 min-w-0 flex-1">
-			<a href="/" class="flex items-center flex-shrink-0">
+			<a href="/" class="flex items-center flex-shrink-0 md:hidden">
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			</a>
-			<span class="text-slate-300 flex-shrink-0">|</span>
 			{#if isEditingName}
 				<Input
 					bind:ref={nameInputEl}
@@ -905,53 +908,58 @@
 				<button
 					type="button"
 					onclick={isMobile ? undefined : startEditingName}
-					class="text-lg font-semibold text-slate-800 min-w-0 truncate {isMobile
+					class="font-display text-lg font-semibold text-on-surface min-w-0 truncate {isMobile
 						? ''
-						: 'hover:text-slate-600 cursor-pointer'}"
+						: 'hover:text-on-surface-variant cursor-pointer'}"
 				>
 					{project.name}
 				</button>
 			{/if}
 
 			{#if branches.length > 0}
-				<div class="hidden md:flex items-center gap-1.5 min-w-0">
-					<select
-						class="h-8 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700 max-w-40"
-						value={activeBranch?.id ?? ''}
-						disabled={isBranchSwitching}
-						onchange={handleBranchSelect}
-					>
-						{#each branches as branch}
-							<option value={branch.id}>{branch.name}</option>
-						{/each}
-					</select>
-					<Button
-						variant="outline"
-						size="icon-sm"
-						onclick={handleCreateBranch}
-						disabled={isBranchSwitching}
-						title={m.branch_create_title()}
-					>
-						<GitBranchPlus size={14} />
-					</Button>
-					<Button
-						variant="outline"
-						size="icon-sm"
-						onclick={handleRenameBranch}
-						disabled={!activeBranch || isBranchSwitching}
-						title={m.branch_rename_title()}
-					>
-						<Pencil size={14} />
-					</Button>
-					<Button
-						variant="outline"
-						size="icon-sm"
-						onclick={handleDeleteBranch}
-						disabled={!activeBranch || branches.length <= 1 || isBranchSwitching}
-						title={m.branch_delete_title()}
-					>
-						<Trash2 size={14} />
-					</Button>
+				<div class="hidden md:flex items-center min-w-0">
+					<DropdownMenu.Root>
+						<DropdownMenu.Trigger
+							disabled={isBranchSwitching}
+							class="flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors disabled:opacity-50 disabled:pointer-events-none"
+						>
+							<GitBranch size={14} />
+							<span class="max-w-32 truncate">{activeBranch?.name ?? ''}</span>
+							<ChevronDown size={12} />
+						</DropdownMenu.Trigger>
+						<DropdownMenu.Content align="start">
+							<DropdownMenu.RadioGroup
+								value={activeBranch?.id ?? ''}
+								onValueChange={(branchId) => branchId && switchBranchWithTransition(branchId)}
+							>
+								{#each branches as branch}
+									<DropdownMenu.RadioItem value={branch.id}>
+										{branch.name}
+									</DropdownMenu.RadioItem>
+								{/each}
+							</DropdownMenu.RadioGroup>
+							<DropdownMenu.Separator />
+							<DropdownMenu.Item onclick={handleCreateBranch} disabled={isBranchSwitching}>
+								<GitBranchPlus size={14} class="mr-2" />
+								{m.branch_create_title()}
+							</DropdownMenu.Item>
+							<DropdownMenu.Item
+								onclick={handleRenameBranch}
+								disabled={!activeBranch || isBranchSwitching}
+							>
+								<Pencil size={14} class="mr-2" />
+								{m.branch_rename_title()}
+							</DropdownMenu.Item>
+							<DropdownMenu.Item
+								onclick={handleDeleteBranch}
+								disabled={!activeBranch || branches.length <= 1 || isBranchSwitching}
+								class="text-destructive focus:text-destructive"
+							>
+								<Trash2 size={14} class="mr-2" />
+								{m.branch_delete_title()}
+							</DropdownMenu.Item>
+						</DropdownMenu.Content>
+					</DropdownMenu.Root>
 				</div>
 			{/if}
 		</div>
@@ -996,17 +1004,19 @@
 				}}
 			>
 				<MessageSquare size={16} class="mr-1" />
-				Comments
+				{m.nav_comments()}
 				{#if unreadCount > 0}
 					<span
-						class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1"
+						class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary text-primary-foreground text-[10px] font-bold px-1"
 					>
 						{unreadCount}
 					</span>
 				{/if}
 			</Button>
 			<OfflineBadge />
-			<SidebarTrigger />
+			<div class="md:hidden">
+				<SidebarTrigger />
+			</div>
 		</div>
 	</header>
 
@@ -1019,7 +1029,7 @@
 			<div
 				class="{activeTab === 'comments' && isMobile
 					? 'h-[40vh] flex-shrink-0'
-					: 'flex-1'} min-h-0 m-2 md:m-4 rounded-lg overflow-hidden"
+					: 'flex-1'} min-h-0 m-2 md:m-4 rounded-lg overflow-hidden relative"
 			>
 				{#if pendingImageData}
 					<ScaleCalibration
@@ -1055,23 +1065,25 @@
 						onCommentMove={handleCommentMove}
 					/>
 				{/if}
-			</div>
 
-			{#if project.floorplan && !pendingImageData && !isRecalibrating && !isMobile}
-				<CanvasControls
-					bind:showGrid
-					bind:snapToGrid
-					{gridSize}
-					scale={project.floorplan.scale}
-					onChangeFloorplan={handleChangeFloorplan}
-					onGridSizeChange={handleGridSizeChange}
-					onRecalibrate={handleRecalibrate}
-				/>
-			{/if}
+				{#if project.floorplan && !pendingImageData && !isRecalibrating && !isMobile}
+					<div class="absolute bottom-3 left-3 right-3 z-10">
+						<CanvasControls
+							bind:showGrid
+							bind:snapToGrid
+							{gridSize}
+							scale={project.floorplan.scale}
+							onChangeFloorplan={handleChangeFloorplan}
+							onGridSizeChange={handleGridSizeChange}
+							onRecalibrate={handleRecalibrate}
+						/>
+					</div>
+				{/if}
+			</div>
 
 			<!-- Mobile: Comments panel below canvas when comments tab is active -->
 			{#if isMobile && activeTab === 'comments'}
-				<div class="flex-1 min-h-0 border-t border-slate-200">
+				<div class="flex-1 min-h-0">
 					<CommentPanel
 						projectId={project.id}
 						canEdit={true}
@@ -1091,28 +1103,15 @@
 		<aside
 			class="w-full md:w-80 min-h-0 {activeTab === 'items'
 				? 'flex'
-				: 'hidden'} md:flex flex-col bg-white border-l border-slate-200"
+				: 'hidden'} md:flex flex-col bg-surface-container-low"
 			ontouchstart={handleSwipeStart}
 			ontouchend={handleSwipeEnd}
 		>
 			{#if isRefreshing}
-				<div class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-slate-500">
-					<svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-						<circle
-							class="opacity-25"
-							cx="12"
-							cy="12"
-							r="10"
-							stroke="currentColor"
-							stroke-width="4"
-							fill="none"
-						/>
-						<path
-							class="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-						/>
-					</svg>
+				<div
+					class="flex-shrink-0 flex items-center justify-center py-3 text-sm text-on-surface-variant"
+				>
+					<Loader2 size={16} class="animate-spin mr-2" />
 					{m.project_refreshing()}
 				</div>
 			{/if}
@@ -1153,11 +1152,9 @@
 
 		{#if isBranchSwitching}
 			<div
-				class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center"
+				class="absolute inset-0 z-40 bg-surface-container-lowest/70 backdrop-blur-[1px] flex items-center justify-center"
 			>
-				<div
-					class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm"
-				>
+				<div class="rounded-md bg-surface-container-lowest px-3 py-2 text-sm text-on-surface">
 					{m.branch_switching()}
 				</div>
 			</div>
@@ -1285,19 +1282,21 @@
 	<!-- Loading skeleton -->
 	<div class="flex flex-col h-full">
 		<!-- Header skeleton -->
-		<header class="min-h-14 bg-white border-b border-slate-200 flex items-center px-4 py-3 gap-2">
-			<div class="w-8 h-8 rounded bg-slate-200 animate-pulse"></div>
-			<div class="w-px h-6 bg-slate-200"></div>
-			<div class="h-6 w-40 rounded bg-slate-200 animate-pulse"></div>
+		<header
+			class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center px-4 py-3 gap-2"
+		>
+			<div class="w-8 h-8 rounded bg-surface-container-high animate-pulse"></div>
+			<div class="w-px h-6 bg-surface-container-high"></div>
+			<div class="h-6 w-40 rounded bg-surface-container-high animate-pulse"></div>
 			<div class="flex-1"></div>
-			<div class="h-8 w-20 rounded bg-slate-200 animate-pulse"></div>
+			<div class="h-8 w-20 rounded bg-surface-container-high animate-pulse"></div>
 		</header>
 		<!-- Canvas skeleton -->
 		<main class="flex-1 flex flex-col md:flex-row overflow-hidden">
-			<div class="flex-1 m-2 md:m-4 rounded-lg bg-slate-200 animate-pulse"></div>
-			<aside class="hidden md:flex w-80 flex-col bg-white border-l border-slate-200 p-4 gap-3">
+			<div class="flex-1 m-2 md:m-4 rounded-lg bg-surface-container-high animate-pulse"></div>
+			<aside class="hidden md:flex w-80 flex-col bg-surface-container-low p-4 gap-3">
 				{#each Array(4) as _}
-					<div class="h-20 rounded bg-slate-200 animate-pulse"></div>
+					<div class="h-20 rounded bg-surface-container-high animate-pulse"></div>
 				{/each}
 			</aside>
 		</main>

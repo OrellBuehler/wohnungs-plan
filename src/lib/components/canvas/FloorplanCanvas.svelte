@@ -1384,24 +1384,26 @@
 	</Stage>
 
 	<!-- Zoom controls -->
-	<div class="absolute top-2 right-2 flex flex-col gap-1 bg-white rounded shadow-lg p-1">
+	<div
+		class="absolute top-2 right-2 flex flex-col gap-1 bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg p-1"
+	>
 		<Button
 			variant="ghost"
 			size="icon-sm"
-			class="text-slate-600"
+			class="text-on-surface-variant"
 			onclick={zoomIn}
 			title={m.canvas_zoom_in()}
 			disabled={zoomLocked}
 		>
 			<Plus size={16} />
 		</Button>
-		<div class="text-xs text-center text-slate-500 py-1">
+		<div class="text-xs text-center text-on-surface-variant py-1 font-technical">
 			{Math.round(zoom * 100)}%
 		</div>
 		<Button
 			variant="ghost"
 			size="icon-sm"
-			class="text-slate-600"
+			class="text-on-surface-variant"
 			onclick={zoomOut}
 			title={m.canvas_zoom_out()}
 			disabled={zoomLocked}
@@ -1411,7 +1413,7 @@
 		<Button
 			variant="ghost"
 			size="icon-sm"
-			class="text-slate-600"
+			class="text-on-surface-variant"
 			onclick={resetView}
 			title={m.canvas_reset_view()}
 		>
@@ -1420,7 +1422,7 @@
 		<Button
 			variant="ghost"
 			size="icon-sm"
-			class={zoomLocked ? 'text-blue-600 bg-blue-50' : 'text-slate-600'}
+			class={zoomLocked ? 'text-secondary bg-secondary-fixed' : 'text-on-surface-variant'}
 			onclick={() => (zoomLocked = !zoomLocked)}
 			title={zoomLocked ? m.canvas_unlock_zoom() : m.canvas_lock_zoom()}
 		>
@@ -1436,13 +1438,13 @@
 	{#if floorplan?.scale}
 		{@const scaleBarWidth = 100 * effectiveScale * zoom}
 		<div
-			class="absolute bottom-2 right-2 flex flex-col items-end gap-0.5 bg-white/90 rounded shadow-lg px-2 py-1"
+			class="absolute bottom-2 right-2 flex flex-col items-end gap-0.5 bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg px-2 py-1"
 		>
 			<div
-				class="h-1.5 bg-slate-700 rounded-sm"
+				class="h-1.5 bg-on-surface-variant/40 rounded-sm"
 				style="width: {Math.max(20, Math.min(200, scaleBarWidth))}px;"
 			></div>
-			<span class="text-xs text-slate-600 font-mono">{m.canvas_scale_bar()}</span>
+			<span class="text-xs text-on-surface-variant font-technical">{m.canvas_scale_bar()}</span>
 		</div>
 	{/if}
 
@@ -1485,7 +1487,7 @@
 			<div class="-mx-1 my-1 h-px bg-muted"></div>
 			<button
 				type="button"
-				class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-red-600 hover:bg-red-50 hover:text-red-600"
+				class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-destructive hover:bg-destructive/10 hover:text-destructive"
 				onclick={() => handleContextMenuAction('unplace')}
 				role="menuitem"
 			>

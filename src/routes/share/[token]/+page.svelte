@@ -291,9 +291,9 @@
 
 {#if isInvalid}
 	<div class="flex-1 flex items-center justify-center p-6">
-		<div class="max-w-md w-full rounded-xl border bg-white p-6 text-center space-y-4">
-			<h1 class="text-xl font-semibold text-slate-900">{m.share_error_invalid_title()}</h1>
-			<p class="text-sm text-slate-600">{m.share_error_invalid_message()}</p>
+		<div class="max-w-md w-full rounded-xl bg-surface-container-lowest p-6 text-center space-y-4">
+			<h1 class="text-xl font-semibold text-on-surface">{m.share_error_invalid_title()}</h1>
+			<p class="text-sm text-on-surface-variant">{m.share_error_invalid_message()}</p>
 			<a href="/">
 				<Button variant="outline">{m.share_error_home()}</Button>
 			</a>
@@ -302,13 +302,15 @@
 {:else if requiresPassword}
 	<div class="flex-1 flex items-center justify-center p-6">
 		<form
-			class="max-w-md w-full rounded-xl border bg-white p-6 space-y-4"
+			class="max-w-md w-full rounded-xl bg-surface-container-lowest p-6 space-y-4"
 			onsubmit={handlePasswordSubmit}
 		>
-			<h1 class="text-xl font-semibold text-slate-900">{projectName || m.share_default_title()}</h1>
-			<p class="text-sm text-slate-600">{m.share_password_prompt()}</p>
+			<h1 class="text-xl font-semibold text-on-surface">
+				{projectName || m.share_default_title()}
+			</h1>
+			<p class="text-sm text-on-surface-variant">{m.share_password_prompt()}</p>
 			<div class="space-y-2">
-				<label class="text-sm font-medium text-slate-700" for="share-password"
+				<label class="text-sm font-medium text-on-surface" for="share-password"
 					>{m.share_password_label()}</label
 				>
 				<Input
@@ -320,7 +322,7 @@
 				/>
 			</div>
 			{#if passwordError}
-				<p class="text-sm text-red-600">{passwordError}</p>
+				<p class="text-sm text-destructive">{passwordError}</p>
 			{/if}
 			<Button class="w-full" type="submit" disabled={!password || isVerifyingPassword}>
 				{isVerifyingPassword ? m.share_password_verifying() : m.common_continue()}
@@ -330,15 +332,15 @@
 {:else}
 	<div class="h-full min-h-0 flex flex-col overflow-hidden">
 		<header
-			class="flex items-center justify-between px-3 py-2 md:px-6 md:py-3 bg-white border-b border-slate-200 gap-3"
+			class="flex items-center justify-between px-3 py-2 md:px-6 md:py-3 bg-surface-container-lowest gap-3"
 		>
 			<div class="min-w-0 flex items-center gap-2">
 				<a href="/" class="flex items-center gap-2">
 					<img src="/icon.svg" alt="Floorplanner" class="h-6 w-6" />
-					<span class="text-sm md:text-base font-semibold text-slate-900">Floorplanner</span>
+					<span class="text-sm md:text-base font-semibold text-on-surface">Floorplanner</span>
 				</a>
-				<span class="hidden md:inline text-slate-300">|</span>
-				<span class="truncate text-sm md:text-base text-slate-700"
+				<span class="hidden md:inline text-outline">|</span>
+				<span class="truncate text-sm md:text-base text-on-surface"
 					>{projectName || m.share_default_title()}</span
 				>
 			</div>
@@ -346,7 +348,7 @@
 			<div class="flex items-center gap-2 flex-shrink-0">
 				{#if branches.length > 0}
 					<select
-						class="h-9 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700"
+						class="h-9 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-2 text-sm text-on-surface"
 						onchange={handleBranchSelect}
 						value={activeBranchId ?? ''}
 						disabled={isBranchSwitching}
@@ -368,14 +370,16 @@
 			<div
 				class="flex-1 min-w-0 min-h-0 {activeTab === 'plan' ? 'flex' : 'hidden'} md:flex flex-col"
 			>
-				<div class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden bg-white">
+				<div
+					class="flex-1 min-h-0 m-2 md:m-4 rounded-lg overflow-hidden bg-surface-container-lowest"
+				>
 					{#if isLoading}
-						<div class="h-full flex items-center justify-center text-sm text-slate-500">
+						<div class="h-full flex items-center justify-center text-sm text-on-surface-variant">
 							{m.share_loading()}
 						</div>
 					{:else if loadError}
 						<div class="h-full flex flex-col items-center justify-center gap-3 text-center px-6">
-							<p class="text-sm text-red-600">{loadError}</p>
+							<p class="text-sm text-destructive">{loadError}</p>
 							<Button variant="outline" onclick={() => loadShareData(activeBranchId ?? undefined)}>
 								{m.common_retry()}
 							</Button>
@@ -395,7 +399,7 @@
 							onItemUnplace={noopItemUnplace}
 						/>
 					{:else}
-						<div class="h-full flex items-center justify-center text-sm text-slate-500">
+						<div class="h-full flex items-center justify-center text-sm text-on-surface-variant">
 							{m.share_no_floorplan()}
 						</div>
 					{/if}
@@ -405,7 +409,7 @@
 			<aside
 				class="w-full md:w-80 min-h-0 {activeTab === 'items'
 					? 'flex'
-					: 'hidden'} md:flex flex-col bg-white border-l border-slate-200"
+					: 'hidden'} md:flex flex-col bg-surface-container-lowest"
 			>
 				<ItemList
 					{items}
@@ -429,9 +433,7 @@
 				<div
 					class="absolute inset-0 z-40 bg-white/70 backdrop-blur-[1px] flex items-center justify-center"
 				>
-					<div
-						class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm"
-					>
+					<div class="rounded-md bg-surface-container-lowest px-3 py-2 text-sm text-on-surface">
 						{m.branch_switching()}
 					</div>
 				</div>

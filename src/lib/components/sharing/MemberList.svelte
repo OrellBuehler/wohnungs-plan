@@ -38,23 +38,23 @@
 <div class="space-y-4">
 	{#if members.length === 0}
 		<div class="flex flex-col items-center justify-center py-8 text-center">
-			<Users class="size-8 text-slate-300 mb-2" />
+			<Users class="size-8 text-outline mb-2" />
 			<p class="text-sm text-muted-foreground">{m.sharing_members_empty()}</p>
 		</div>
 	{:else}
 		{#each members as member (member.userId)}
 			<div
-				class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-slate-200 p-3"
+				class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg p-3"
 			>
 				<div class="flex items-center gap-3 min-w-0 flex-1">
 					<div
-						class="h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-xs font-medium"
+						class="h-8 w-8 flex-shrink-0 rounded-xl bg-muted flex items-center justify-center text-xs font-medium"
 					>
 						{#if member.avatarUrl && !failedAvatars.has(member.userId)}
 							<img
 								src={member.avatarUrl}
 								alt={member.name ?? 'Member'}
-								class="h-full w-full rounded-full object-cover"
+								class="h-full w-full rounded-xl object-cover"
 								onerror={() => (failedAvatars = new Set([...failedAvatars, member.userId]))}
 							/>
 						{:else}
@@ -100,7 +100,7 @@
 						<Button
 							variant="ghost"
 							size="icon-sm"
-							class="text-red-600 hover:text-red-700 flex-shrink-0"
+							class="text-destructive hover:text-destructive/80 flex-shrink-0"
 							onclick={() => onRemove(member.userId)}
 						>
 							<UserMinus class="h-4 w-4" />

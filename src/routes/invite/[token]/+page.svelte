@@ -113,7 +113,7 @@
 	}
 </script>
 
-<div class="h-full overflow-y-auto bg-slate-50 flex items-center justify-center p-4">
+<div class="h-full overflow-y-auto bg-surface flex items-center justify-center p-4">
 	<div class="w-full max-w-md">
 		<Card.Root>
 			<Card.Header>
@@ -129,38 +129,38 @@
 			<Card.Content>
 				{#if isLoading}
 					<div class="space-y-3">
-						<div class="h-5 bg-slate-100 rounded animate-pulse w-2/3"></div>
-						<div class="h-4 bg-slate-100 rounded animate-pulse w-full"></div>
-						<div class="h-4 bg-slate-100 rounded animate-pulse w-5/6"></div>
+						<div class="h-5 bg-surface-container-low rounded animate-pulse w-2/3"></div>
+						<div class="h-4 bg-surface-container-low rounded animate-pulse w-full"></div>
+						<div class="h-4 bg-surface-container-low rounded animate-pulse w-5/6"></div>
 					</div>
 				{:else if errorTitle}
 					<div class="space-y-3">
-						<p class="text-sm font-medium text-red-700">{errorTitle}</p>
-						<p class="text-sm text-slate-600">{errorMessage}</p>
+						<p class="text-sm font-medium text-destructive">{errorTitle}</p>
+						<p class="text-sm text-on-surface-variant">{errorMessage}</p>
 					</div>
 				{:else if invite}
 					<div class="space-y-4">
 						<div class="space-y-2 text-sm">
 							<div class="flex justify-between gap-4">
-								<span class="text-slate-500">{m.invite_details_project()}</span>
-								<span class="text-slate-800 font-medium text-right">
+								<span class="text-on-surface-variant">{m.invite_details_project()}</span>
+								<span class="text-on-surface font-medium text-right">
 									{invite.projectName ?? m.invite_details_untitled()}
 								</span>
 							</div>
 							<div class="flex justify-between gap-4">
-								<span class="text-slate-500">{m.invite_details_role()}</span>
-								<span class="text-slate-800 font-medium capitalize">{invite.role}</span>
+								<span class="text-on-surface-variant">{m.invite_details_role()}</span>
+								<span class="text-on-surface font-medium capitalize">{invite.role}</span>
 							</div>
 							<div class="flex justify-between gap-4">
-								<span class="text-slate-500">{m.invite_details_email()}</span>
-								<span class="text-slate-800 font-medium text-right"
+								<span class="text-on-surface-variant">{m.invite_details_email()}</span>
+								<span class="text-on-surface font-medium text-right"
 									>{invite.email ?? m.invite_details_any_account()}</span
 								>
 							</div>
 						</div>
 
 						{#if isAuthed && currentUserEmail}
-							<p class="text-xs text-slate-500">
+							<p class="text-xs text-on-surface-variant">
 								{m.invite_signed_in_as()} <strong>{currentUserEmail}</strong>
 							</p>
 						{/if}

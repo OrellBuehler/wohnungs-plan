@@ -55,13 +55,11 @@
 
 		<div class="max-h-96 overflow-y-auto">
 			{#if projects.length === 0}
-				<p class="text-center text-slate-500 py-8">{m.project_list_empty()}</p>
+				<p class="text-center text-on-surface-variant py-8">{m.project_list_empty()}</p>
 			{:else}
 				<div class="space-y-2">
 					{#each projects as project (project.id)}
-						<div
-							class="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors"
-						>
+						<div class="flex items-center justify-between p-3 rounded-lg transition-colors">
 							<Button
 								variant="ghost"
 								class="flex-1 text-left justify-start h-auto py-0"
@@ -71,8 +69,8 @@
 								}}
 							>
 								<div class="flex flex-col items-start">
-									<h3 class="font-medium text-slate-800">{project.name}</h3>
-									<p class="text-sm text-slate-500">
+									<h3 class="font-medium text-on-surface">{project.name}</h3>
+									<p class="text-sm text-on-surface-variant">
 										{m.project_list_updated({ date: formatDate(project.updatedAt) })}
 									</p>
 								</div>
@@ -80,7 +78,7 @@
 							<Button
 								size="sm"
 								variant="ghost"
-								class="text-red-600 hover:text-red-700 hover:bg-red-50"
+								class="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
 								onclick={() => requestDelete(project)}
 							>
 								{m.common_delete()}

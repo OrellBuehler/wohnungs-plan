@@ -305,7 +305,7 @@
 
 <div class="flex flex-col h-full min-h-0">
 	<!-- Header -->
-	<div class="flex-shrink-0 border-b px-4 py-3">
+	<div class="flex-shrink-0 bg-surface-container-low px-4 py-3">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-3">
 				<Button variant="ghost" size="icon" onclick={() => goto(`/projects/${projectId}`)}>
@@ -421,7 +421,7 @@
 			</Table.Root>
 		{:else if filteredData.length === 0}
 			<div class="flex flex-col items-center justify-center py-16 text-center">
-				<ClockIcon class="size-10 text-slate-300 mb-3" />
+				<ClockIcon class="size-10 text-outline mb-3" />
 				<p class="text-muted-foreground">
 					{changes.length === 0 ? m.history_empty() : m.history_empty_filtered()}
 				</p>
@@ -461,7 +461,7 @@
 	</div>
 
 	<!-- Pagination -->
-	<div class="flex-shrink-0 border-t px-4 py-3 flex items-center justify-between">
+	<div class="flex-shrink-0 bg-surface-container-low px-4 py-3 flex items-center justify-between">
 		<p class="text-sm text-muted-foreground">
 			{m.history_selection_count({
 				selected: selectedCount,

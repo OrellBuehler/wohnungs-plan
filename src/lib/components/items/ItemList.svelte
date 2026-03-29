@@ -3,7 +3,6 @@
 	import type { CurrencyCode } from '$lib/utils/currency';
 	import { CURRENCIES, formatPrice } from '$lib/utils/currency';
 	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
 	import * as Select from '$lib/components/ui/select';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Package from '@lucide/svelte/icons/package';
@@ -93,9 +92,10 @@
 </script>
 
 <div class="flex flex-col h-full min-h-0">
-	<div class="flex-shrink-0 p-4">
-		<div class="flex items-center justify-between mb-4">
-			<h2 class="text-base font-semibold text-slate-800">
+	<!-- Header: title + add -->
+	<div class="flex-shrink-0 px-4 pt-4 pb-3">
+		<div class="flex items-center justify-between">
+			<h2 class="font-display text-base font-semibold text-on-surface">
 				{m.item_list_title({ count: items.length.toString() })}
 			</h2>
 			{#if !readonly}
@@ -104,47 +104,43 @@
 				>
 			{/if}
 		</div>
-
-		<div class="flex gap-2 text-sm">
-			<Select.Root
-				type="single"
-				value={filterBy}
-				onValueChange={(v) => (filterBy = v as typeof filterBy)}
-			>
-				<Select.Trigger class="w-[100px]">
-					{filterLabel}
-				</Select.Trigger>
-				<Select.Content>
-					{#each filterOptions as option (option.value)}
-						<Select.Item value={option.value}>{option.label}</Select.Item>
-					{/each}
-				</Select.Content>
-			</Select.Root>
-
-			<Select.Root
-				type="single"
-				value={sortBy}
-				onValueChange={(v) => (sortBy = v as typeof sortBy)}
-			>
-				<Select.Trigger class="w-[90px]">
-					{sortLabel}
-				</Select.Trigger>
-				<Select.Content>
-					{#each sortOptions as option (option.value)}
-						<Select.Item value={option.value}>{option.label}</Select.Item>
-					{/each}
-				</Select.Content>
-			</Select.Root>
-		</div>
 	</div>
 
-	<Separator />
+	<!-- Filters -->
+	<div class="flex-shrink-0 flex gap-2 px-4 pb-3 text-sm">
+		<Select.Root
+			type="single"
+			value={filterBy}
+			onValueChange={(v) => (filterBy = v as typeof filterBy)}
+		>
+			<Select.Trigger class="w-[100px]">
+				{filterLabel}
+			</Select.Trigger>
+			<Select.Content>
+				{#each filterOptions as option (option.value)}
+					<Select.Item value={option.value}>{option.label}</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
 
-	<div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
+		<Select.Root type="single" value={sortBy} onValueChange={(v) => (sortBy = v as typeof sortBy)}>
+			<Select.Trigger class="w-[90px]">
+				{sortLabel}
+			</Select.Trigger>
+			<Select.Content>
+				{#each sortOptions as option (option.value)}
+					<Select.Item value={option.value}>{option.label}</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
+	</div>
+
+	<!-- Item list -->
+	<div class="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-2">
 		{#if filteredItems.length === 0}
 			<div class="flex flex-col items-center justify-center py-12 text-center">
-				<Package class="size-10 text-slate-300 mb-3" />
-				<p class="text-slate-500 text-sm">
+				<Package class="size-10 text-outline mb-3" />
+				<p class="text-on-surface-variant text-sm">
 					{items.length === 0 ? m.item_list_empty_new() : m.item_list_empty_filtered()}
 				</p>
 				{#if items.length === 0 && !readonly}
@@ -171,12 +167,11 @@
 		{/if}
 	</div>
 
-	<Separator />
-
-	<div class="flex-shrink-0 p-4 bg-slate-50">
+	<!-- Total cost footer -->
+	<div class="flex-shrink-0 px-4 py-3 bg-surface-container">
 		<div class="flex justify-between items-center">
 			<div class="flex items-center gap-2">
-				<span class="text-sm text-slate-600">{m.item_list_total()}</span>
+				<span class="text-sm text-on-surface-variant">{m.item_list_total()}</span>
 				<Select.Root
 					type="single"
 					value={displayCurrency}
@@ -194,9 +189,9 @@
 			</div>
 			<div class="flex items-center gap-2">
 				{#if isLoadingRates}
-					<span class="text-xs text-slate-400">{m.item_list_updating()}</span>
+					<span class="text-xs text-outline">{m.item_list_updating()}</span>
 				{/if}
-				<span class="text-lg font-semibold text-slate-800">{formattedTotal}</span>
+				<span class="font-technical text-xl font-semibold text-on-surface">{formattedTotal}</span>
 			</div>
 		</div>
 	</div>

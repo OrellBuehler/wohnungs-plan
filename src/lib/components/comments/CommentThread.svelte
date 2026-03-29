@@ -60,14 +60,14 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		{#if isPinned}
-			<span class="text-xs text-slate-400 uppercase tracking-wide">
+			<span class="text-xs text-outline uppercase tracking-wide">
 				{comment.type === 'canvas' ? m.comments_thread_pinned() : m.comments_thread_item_comment()}
 			</span>
 		{:else if canEdit && onPinToMap}
 			<Button
 				variant="outline"
 				size="sm"
-				class="h-6 text-xs text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+				class="h-6 text-xs text-secondary border-secondary/30 hover:bg-secondary-fixed"
 				onclick={() => onPinToMap?.(comment.id)}
 			>
 				<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,16 +87,14 @@
 				{m.comments_thread_pin()}
 			</Button>
 		{:else}
-			<span class="text-xs text-slate-400 uppercase tracking-wide"
-				>{m.comments_thread_header()}</span
-			>
+			<span class="text-xs text-outline uppercase tracking-wide">{m.comments_thread_header()}</span>
 		{/if}
 		{#if canEdit}
 			<div class="flex items-center gap-1">
 				<Button
 					variant="ghost"
 					size="sm"
-					class="h-6 text-xs {comment.resolved ? 'text-green-600' : 'text-slate-500'}"
+					class="h-6 text-xs {comment.resolved ? 'text-secondary' : 'text-on-surface-variant'}"
 					onclick={() => toggleResolve(projectId, comment.id)}
 				>
 					{comment.resolved ? m.comments_thread_resolved() : m.comments_thread_resolve()}
@@ -104,7 +102,7 @@
 				<Button
 					variant="ghost"
 					size="sm"
-					class="h-6 text-xs text-red-500 hover:text-red-700"
+					class="h-6 text-xs text-destructive hover:text-destructive/80"
 					onclick={() => removeComment(projectId, comment.id)}
 				>
 					{m.common_delete()}
@@ -118,18 +116,20 @@
 		{#each comment.replies as reply (reply.id)}
 			<div class="flex gap-2">
 				<div
-					class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-medium flex-shrink-0"
+					class="w-6 h-6 rounded-xl bg-secondary-fixed text-secondary flex items-center justify-center text-xs font-medium flex-shrink-0"
 				>
 					{getInitial(reply.authorName)}
 				</div>
 				<div class="flex-1 min-w-0">
 					<div class="flex items-baseline gap-2">
-						<span class="text-sm font-medium text-slate-700 truncate">
+						<span class="text-sm font-medium text-on-surface truncate">
 							{reply.authorName ?? m.comments_thread_unknown()}
 						</span>
-						<span class="text-xs text-slate-400">{formatTime(reply.createdAt)}</span>
+						<span class="text-xs text-outline">{formatTime(reply.createdAt)}</span>
 					</div>
-					<p class="text-sm text-slate-600 whitespace-pre-wrap break-words">{reply.body}</p>
+					<p class="text-sm text-on-surface-variant whitespace-pre-wrap break-words">
+						{reply.body}
+					</p>
 				</div>
 			</div>
 		{/each}
@@ -141,7 +141,7 @@
 			<textarea
 				bind:value={replyText}
 				placeholder={m.comments_thread_reply_placeholder()}
-				class="min-h-[48px] max-h-32 resize-y rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-0"
+				class="min-h-[48px] max-h-32 resize-y rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-2 text-sm placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-outline focus:ring-offset-0"
 				onkeydown={handleKeydown}
 			></textarea>
 			<Button
