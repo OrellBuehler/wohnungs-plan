@@ -39,3 +39,9 @@ kirchhaldenstrasse-*.json
 /mobile-*.png
 /desktop-*.png
 /page-*.png
+
+# Playwright e2e
+e2e/screenshots/
+e2e/results/
+/test-results/
+/playwright-report/
