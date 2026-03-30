@@ -7,7 +7,6 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Upload from '@lucide/svelte/icons/upload';
-	import House from '@lucide/svelte/icons/house';
 	import ProjectCard from '$lib/components/projects/ProjectCard.svelte';
 	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
 	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
@@ -236,14 +235,138 @@
 
 				<!-- Empty state -->
 			{:else if projects.length === 0}
-				<div class="flex flex-col items-center justify-center py-16 text-center">
-					<House class="size-16 text-outline mb-4" />
-					<h3 class="text-lg font-medium text-on-surface mb-2">{m.home_empty_title()}</h3>
-					<p class="text-on-surface-variant mb-6">{m.home_empty_description()}</p>
+				<div class="flex flex-col items-center justify-center py-16 text-center max-w-md mx-auto">
+					<svg
+						viewBox="0 0 200 140"
+						class="w-48 mb-6"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<rect
+							x="20"
+							y="10"
+							width="160"
+							height="120"
+							rx="4"
+							class="stroke-outline"
+							stroke-width="1.5"
+							stroke-dasharray="4 3"
+						/>
+						<line
+							x1="60"
+							y1="10"
+							x2="60"
+							y2="130"
+							class="stroke-surface-container-highest"
+							stroke-width="0.5"
+						/>
+						<line
+							x1="100"
+							y1="10"
+							x2="100"
+							y2="130"
+							class="stroke-surface-container-highest"
+							stroke-width="0.5"
+						/>
+						<line
+							x1="140"
+							y1="10"
+							x2="140"
+							y2="130"
+							class="stroke-surface-container-highest"
+							stroke-width="0.5"
+						/>
+						<line
+							x1="20"
+							y1="42"
+							x2="180"
+							y2="42"
+							class="stroke-surface-container-highest"
+							stroke-width="0.5"
+						/>
+						<line
+							x1="20"
+							y1="74"
+							x2="180"
+							y2="74"
+							class="stroke-surface-container-highest"
+							stroke-width="0.5"
+						/>
+						<line
+							x1="20"
+							y1="106"
+							x2="180"
+							y2="106"
+							class="stroke-surface-container-highest"
+							stroke-width="0.5"
+						/>
+						<rect
+							x="32"
+							y="22"
+							width="56"
+							height="28"
+							rx="3"
+							class="fill-surface-container-high stroke-on-surface-variant"
+							stroke-width="1"
+						/>
+						<rect
+							x="112"
+							y="56"
+							width="44"
+							height="32"
+							rx="2"
+							class="fill-surface-container-high stroke-on-surface-variant"
+							stroke-width="1"
+						/>
+						<rect
+							x="36"
+							y="80"
+							width="48"
+							height="40"
+							rx="3"
+							class="fill-secondary/15 stroke-secondary"
+							stroke-width="1.5"
+						/>
+						<rect
+							x="124"
+							y="22"
+							width="16"
+							height="16"
+							rx="2"
+							class="fill-surface-container stroke-on-surface-variant"
+							stroke-width="0.75"
+						/>
+						<circle
+							cx="158"
+							cy="104"
+							r="10"
+							class="fill-surface-container stroke-on-surface-variant"
+							stroke-width="0.75"
+						/>
+						<line x1="160" y1="130" x2="180" y2="130" class="stroke-surface" stroke-width="3" />
+						<path
+							d="M160 130 Q160 112, 178 130"
+							class="stroke-outline"
+							stroke-width="1"
+							fill="none"
+							stroke-dasharray="3 2"
+						/>
+					</svg>
+					<h3 class="font-display text-lg font-semibold text-on-surface mb-2">
+						{m.home_empty_title()}
+					</h3>
+					<p class="text-on-surface-variant text-sm mb-6">{m.home_empty_description()}</p>
 					<Button onclick={handleNew}>
 						<Plus class="size-4 mr-2" />
 						{m.home_empty_cta()}
 					</Button>
+					<button
+						type="button"
+						class="mt-3 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+						onclick={handleImport}
+					>
+						{m.home_empty_import()}
+					</button>
 				</div>
 
 				<!-- Projects grid -->

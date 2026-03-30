@@ -138,16 +138,54 @@
 	<!-- Item list -->
 	<div class="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-2">
 		{#if filteredItems.length === 0}
-			<div class="flex flex-col items-center justify-center py-12 text-center">
-				<Package class="size-10 text-outline mb-3" />
-				<p class="text-on-surface-variant text-sm">
-					{items.length === 0 ? m.item_list_empty_new() : m.item_list_empty_filtered()}
-				</p>
-				{#if items.length === 0 && !readonly}
-					<Button variant="outline" size="sm" class="mt-4" onclick={onAddItem}>
-						<Plus size={16} class="mr-1" />
-						{m.item_list_add()}
-					</Button>
+			<div class="flex flex-col items-center justify-center py-12 text-center px-2">
+				{#if items.length === 0}
+					<svg viewBox="0 0 80 60" class="w-20 mb-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<rect
+							x="8"
+							y="24"
+							width="28"
+							height="14"
+							rx="2"
+							class="fill-surface-container-high stroke-outline"
+							stroke-width="1"
+						/>
+						<rect
+							x="44"
+							y="28"
+							width="20"
+							height="14"
+							rx="1.5"
+							class="fill-surface-container-high stroke-outline"
+							stroke-width="1"
+						/>
+						<circle
+							cx="64"
+							cy="14"
+							r="10"
+							class="fill-secondary/15 stroke-secondary"
+							stroke-width="1.5"
+						/>
+						<path
+							d="M64 9 L64 19 M59 14 L69 14"
+							class="stroke-secondary"
+							stroke-width="1.5"
+							stroke-linecap="round"
+						/>
+					</svg>
+					<p class="text-on-surface-variant text-sm mb-1">{m.item_list_empty_title()}</p>
+					<p class="text-outline text-xs mb-4">{m.item_list_empty_hint()}</p>
+					{#if !readonly}
+						<Button variant="outline" size="sm" onclick={onAddItem}>
+							<Plus size={16} class="mr-1" />
+							{m.item_list_add()}
+						</Button>
+					{/if}
+				{:else}
+					<Package class="size-10 text-outline mb-3" />
+					<p class="text-on-surface-variant text-sm">
+						{m.item_list_empty_filtered()}
+					</p>
 				{/if}
 			</div>
 		{:else}

@@ -53,21 +53,26 @@
 >
 	<div class="bg-primary-container rounded-lg p-8 max-w-md">
 		<svg
-			class="w-16 h-16 mx-auto mb-4 text-outline"
+			viewBox="0 0 64 64"
+			class="w-14 h-14 mx-auto mb-4 text-on-primary-container"
 			fill="none"
 			stroke="currentColor"
-			viewBox="0 0 24 24"
 		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-			/>
+			<rect x="8" y="8" width="48" height="48" rx="4" stroke-width="1.5" />
+			<line x1="8" y1="28" x2="56" y2="28" stroke-width="1" opacity="0.4" />
+			<line x1="8" y1="48" x2="56" y2="48" stroke-width="1" opacity="0.4" />
+			<line x1="28" y1="8" x2="28" y2="56" stroke-width="1" opacity="0.4" />
+			<line x1="48" y1="8" x2="48" y2="56" stroke-width="1" opacity="0.4" />
+			<path d="M32 20 L32 44 M20 32 L44 32" stroke-width="2" stroke-linecap="round" />
 		</svg>
-		<h2 class="text-xl font-semibold text-primary-foreground mb-2">{m.canvas_upload_title()}</h2>
-		<p class="text-outline mb-6">
+		<h2 class="text-xl font-display font-semibold text-primary-foreground mb-2">
+			{m.canvas_upload_title()}
+		</h2>
+		<p class="text-on-primary-container mb-2">
 			{m.canvas_upload_description()}
+		</p>
+		<p class="text-on-primary-container/60 text-sm mb-6">
+			{m.canvas_upload_hint()}
 		</p>
 		<input
 			bind:this={fileInput}
