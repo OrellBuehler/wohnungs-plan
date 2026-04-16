@@ -152,10 +152,10 @@
 			</Card.Content>
 
 			<div class="flex gap-3 px-6">
-				<a href="/settings/mcp" class="flex-1">
+				<a href="/app/settings/mcp" class="flex-1">
 					<Button variant="outline" class="w-full">{m.oauth_error_settings_link()}</Button>
 				</a>
-				<a href="/" class="flex-1">
+				<a href="/app" class="flex-1">
 					<Button class="w-full">{m.oauth_error_home_link()}</Button>
 				</a>
 			</div>

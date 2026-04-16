@@ -19,14 +19,14 @@
 
 ## Routing
 
-| Route | Purpose | Auth |
-|---|---|---|
-| `/` | Landing page; server-side redirect to `/app` if authenticated | Public |
-| `/app` | Project list (current `/+page.svelte`) | Public (local projects for guests, cloud for signed-in) |
-| `/app/projects/[id]` | Project editor | Public; share tokens still work via existing routes |
-| `/app/settings` | Settings | Auth required (existing behaviour) |
-| `/privacy` | Privacy policy | Public |
-| `/share/[token]`, `/invite/[token]`, `/oauth/*`, `/api/*`, `/.well-known/*`, `/authorize`, `/token` | Unchanged | — |
+| Route                                                                                               | Purpose                                                       | Auth                                                    |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------- |
+| `/`                                                                                                 | Landing page; server-side redirect to `/app` if authenticated | Public                                                  |
+| `/app`                                                                                              | Project list (current `/+page.svelte`)                        | Public (local projects for guests, cloud for signed-in) |
+| `/app/projects/[id]`                                                                                | Project editor                                                | Public; share tokens still work via existing routes     |
+| `/app/settings`                                                                                     | Settings                                                      | Auth required (existing behaviour)                      |
+| `/privacy`                                                                                          | Privacy policy                                                | Public                                                  |
+| `/share/[token]`, `/invite/[token]`, `/oauth/*`, `/api/*`, `/.well-known/*`, `/authorize`, `/token` | Unchanged                                                     | —                                                       |
 
 ### Layout restructure
 
@@ -39,6 +39,7 @@
 ### Internal link updates
 
 Grep the codebase for:
+
 - `href="/"`, `href="/projects`, `href="/settings`, `goto('/')`, `goto('/projects`, `goto('/settings`
 - Update to `/app`, `/app/projects`, `/app/settings` respectively where they refer to the app.
 - The root `/` link (e.g., logo in app header) should point to `/app` when inside the app shell.
@@ -75,11 +76,13 @@ Uses existing design tokens (Manrope / Inter / Space Grotesk, surface tiers, no 
 ### 2. Feature strip (`A-02 · FEATURES`)
 
 Four cards in a grid, 2x2 on tablet, 4x1 on desktop, 1x4 on mobile. Each card:
+
 - Line-art icon (Lucide, 1.5px stroke)
 - Short heading (Manrope semibold)
 - 1-2 sentence description (Inter)
 
 Features:
+
 1. **Real-time collaboration** — "See others' cursors. Edit together. No merge conflicts."
 2. **Branches & variants** — "Compare layouts side by side. Iterate without losing work."
 3. **AI floorplan analysis** — "Let AI agents read your floorplan and place furniture for you."
@@ -96,6 +99,7 @@ Three horizontal steps on desktop, stacked on mobile. Each has a mini-illustrati
 ### 4. Secondary features row (`A-04 · MORE`)
 
 Compact horizontal list — icon + label + one-line description for:
+
 - Offline / PWA
 - Comments & discussion
 - Import / export JSON
