@@ -1,46 +1,46 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: 'weekly'
+      day: 'monday'
     open-pull-requests-limit: 10
     labels:
-      - "dependencies"
+      - 'dependencies'
     groups:
       svelte:
         patterns:
-          - "svelte*"
-          - "@sveltejs/*"
-          - "svelte-*"
+          - 'svelte*'
+          - '@sveltejs/*'
+          - 'svelte-*'
       vite:
         patterns:
-          - "vite"
-          - "@vitejs/*"
-          - "vite-*"
-          - "@vite-pwa/*"
+          - 'vite'
+          - '@vitejs/*'
+          - 'vite-*'
+          - '@vite-pwa/*'
       tailwind:
         patterns:
-          - "tailwindcss"
-          - "@tailwindcss/*"
+          - 'tailwindcss'
+          - '@tailwindcss/*'
       drizzle:
         patterns:
-          - "drizzle-orm"
-          - "drizzle-kit"
+          - 'drizzle-orm'
+          - 'drizzle-kit'
       dev-dependencies:
-        dependency-type: "development"
+        dependency-type: 'development'
       production-dependencies:
-        dependency-type: "production"
+        dependency-type: 'production'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: 'weekly'
+      day: 'monday'
     labels:
-      - "dependencies"
-      - "ci"
+      - 'dependencies'
+      - 'ci'
