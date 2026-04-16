@@ -1,6 +1,10 @@
 node_modules
 screenshot-*.png
 
+# Superpowers brainstorm artifacts
+.superpowers/
+docs/superpowers/
+
 # Output
 .output
 .vercel

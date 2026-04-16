@@ -64,12 +64,15 @@
 	let avatarError = $state(false);
 
 	const navItems = $derived([
-		{ href: '/', label: m.nav_projects(), icon: Home },
-		{ href: '/settings', label: m.nav_settings(), icon: Settings }
+		{ href: '/app', label: m.nav_projects(), icon: Home },
+		{ href: '/app/settings', label: m.nav_settings(), icon: Settings }
 	]);
 
 	function isNavActive(href: string): boolean {
-		if (href === '/') return $page.url.pathname === '/';
+		if (href === '/app') {
+			const path = $page.url.pathname;
+			return path === '/app' || path.startsWith('/app/projects');
+		}
 		return $page.url.pathname.startsWith(href);
 	}
 </script>

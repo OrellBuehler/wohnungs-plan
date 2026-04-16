@@ -11,8 +11,8 @@
 	let { children }: { children: Snippet } = $props();
 
 	const navItems = [
-		{ href: '/settings/general', label: m.settings_nav_general(), icon: Settings },
-		{ href: '/settings/mcp', label: m.settings_nav_mcp(), icon: Plug }
+		{ href: '/app/settings/general', label: m.settings_nav_general(), icon: Settings },
+		{ href: '/app/settings/mcp', label: m.settings_nav_mcp(), icon: Plug }
 	];
 
 	function isActive(href: string): boolean {
@@ -26,7 +26,7 @@
 		class="min-h-14 bg-surface-container-lowest/80 backdrop-blur-[12px] flex items-center justify-between px-4 py-3 flex-shrink-0"
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
-		<a href="/" class="flex items-center gap-2 md:hidden">
+		<a href="/app" class="flex items-center gap-2 md:hidden">
 			<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			<h1 class="font-display text-xl font-semibold text-on-surface">{m.settings_title()}</h1>
 		</a>
