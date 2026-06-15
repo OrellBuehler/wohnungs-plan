@@ -103,7 +103,7 @@
 			}
 
 			const data = await response.json();
-			await goto(`/projects/${data.projectId}`);
+			await goto(`/app/projects/${data.projectId}`);
 		} catch {
 			errorTitle = m.invite_error_accept_title();
 			errorMessage = m.invite_error_accept_message();

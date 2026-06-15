@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			title: `${project.name} - Floorplanner`,
 			description: 'View this floor plan on Floorplanner',
 			image: `${BASE_URL}/api/images/thumbnails/${project.id}`,
-			url: `${BASE_URL}/projects/${project.id}`
+			url: `${BASE_URL}/app/projects/${project.id}`
 		}
 	};
 };
