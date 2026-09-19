@@ -164,8 +164,7 @@
 				placeholder={m.comments_panel_placeholder()}
 				class="flex-1 min-h-[60px] max-h-32 resize-y rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-2 text-sm placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-outline focus:ring-offset-0"
 				onkeydown={handlePendingKeydown}
-				autofocus
-			></textarea>
+				autofocus></textarea>
 			<Button
 				size="sm"
 				class="h-8 self-end"
@@ -187,8 +186,7 @@
 					bind:value={newCommentText}
 					placeholder={m.comments_panel_new_placeholder()}
 					class="min-h-[60px] max-h-32 resize-y rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-2 text-sm placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-outline focus:ring-offset-0"
-					onkeydown={handleNewCommentKeydown}
-				></textarea>
+					onkeydown={handleNewCommentKeydown}></textarea>
 				<div class="flex gap-2">
 					<Button
 						variant="outline"

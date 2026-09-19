@@ -142,8 +142,7 @@
 				bind:value={replyText}
 				placeholder={m.comments_thread_reply_placeholder()}
 				class="min-h-[48px] max-h-32 resize-y rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-2 text-sm placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-outline focus:ring-offset-0"
-				onkeydown={handleKeydown}
-			></textarea>
+				onkeydown={handleKeydown}></textarea>
 			<Button
 				size="sm"
 				class="h-8 self-end"
