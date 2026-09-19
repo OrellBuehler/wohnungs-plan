@@ -28,7 +28,8 @@ async function readThumbnailImage(projectId: string): Promise<ImageResponseData 
 			buffer,
 			contentType: 'image/png',
 			contentLength: fileStat.size,
-			cacheControl: 'public, max-age=3600'
+			cacheControl: 'private, max-age=3600',
+			vary: 'Cookie'
 		};
 	} catch {
 		return null;
@@ -46,7 +47,8 @@ async function readFloorplanFallback(projectId: string): Promise<ImageResponseDa
 			buffer,
 			contentType: floorplan.mimeType,
 			contentLength: fileStat.size,
-			cacheControl: 'public, max-age=60'
+			cacheControl: 'private, max-age=60',
+			vary: 'Cookie'
 		};
 	} catch {
 		return null;
@@ -68,6 +70,27 @@ async function readDefaultOgImage(): Promise<ImageResponseData | null> {
 	}
 }
 
+async function isAuthorized(
+	projectId: string,
+	userId: string | undefined,
+	token: string | null
+): Promise<boolean> {
+	if (userId) {
+		const role = await getProjectRole(projectId, userId);
+		if (role) return true;
+	}
+
+	// Fall back to share token authorization
+	if (token) {
+		const link = await getShareLinkByToken(token);
+		if (link && isShareLinkValid(link) && link.projectId === projectId && !link.passwordHash) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 export const GET: RequestHandler = async ({ params, request, locals, url }) => {
 	// Validate projectId format (UUID)
 	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -75,35 +98,19 @@ export const GET: RequestHandler = async ({ params, request, locals, url }) => {
 		throw error(400, 'Invalid projectId format');
 	}
 
-	let imageData = await readThumbnailImage(params.projectId);
+	let imageData: ImageResponseData | null = null;
 
-	if (!imageData) {
-		// Try authenticated user first
-		let authorized = false;
-		if (locals.user) {
-			const role = await getProjectRole(params.projectId, locals.user.id);
-			if (role) authorized = true;
-		}
+	// Authorize before serving anything project-specific
+	const authorized = await isAuthorized(
+		params.projectId,
+		locals.user?.id,
+		url.searchParams.get('token')
+	);
 
-		// Fall back to share token authorization
-		if (!authorized) {
-			const token = url.searchParams.get('token');
-			if (token) {
-				const link = await getShareLinkByToken(token);
-				if (
-					link &&
-					isShareLinkValid(link) &&
-					link.projectId === params.projectId &&
-					!link.passwordHash
-				) {
-					authorized = true;
-				}
-			}
-		}
-
-		if (authorized) {
-			imageData = await readFloorplanFallback(params.projectId);
-		}
+	if (authorized) {
+		imageData =
+			(await readThumbnailImage(params.projectId)) ??
+			(await readFloorplanFallback(params.projectId));
 	}
 
 	if (!imageData) {
