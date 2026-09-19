@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import sharp, { type Sharp } from 'sharp';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { config } from '$lib/server/env';
@@ -27,7 +27,7 @@ export function getThumbnailPath(projectId: string): string {
 export async function generateProjectThumbnail(projectId: string): Promise<Buffer> {
 	// Try to get floorplan as base
 	const floorplan = await getProjectFloorplan(projectId);
-	let baseImage: sharp.Sharp | null = null;
+	let baseImage: Sharp | null = null;
 
 	if (floorplan) {
 		try {
