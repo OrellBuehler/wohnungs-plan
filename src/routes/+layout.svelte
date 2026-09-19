@@ -1,8 +1,14 @@
 <script lang="ts">
 	import '../app.css';
+	import { onMount } from 'svelte';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 
 	let { children } = $props();
+
+	onMount(async () => {
+		const { registerSW } = await import('virtual:pwa-register');
+		registerSW({ immediate: true });
+	});
 </script>
 
 <svelte:head>
