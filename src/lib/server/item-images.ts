@@ -45,6 +45,25 @@ export async function generateThumbnail(
 		.toFile(thumbPath);
 }
 
+export async function getItemImageByFilename(
+	projectId: string,
+	itemId: string,
+	filename: string
+) {
+	const db = getDB();
+	const [image] = await db
+		.select()
+		.from(itemImages)
+		.where(
+			and(
+				eq(itemImages.projectId, projectId),
+				eq(itemImages.itemId, itemId),
+				eq(itemImages.filename, filename)
+			)
+		);
+	return image ?? null;
+}
+
 export async function getItemImages(itemId: string) {
 	const db = getDB();
 	return db

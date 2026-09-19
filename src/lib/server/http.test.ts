@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isSecureRequest } from './http';
+import { isInsideDir, isSecureRequest } from './http';
 
 function makeHeaders(entries: Record<string, string>): Headers {
 	return new Headers(entries);
@@ -57,5 +57,27 @@ describe('isSecureRequest', () => {
 			forwarded: 'proto=http'
 		});
 		expect(isSecureRequest(url, headers)).toBe(true);
+	});
+});
+
+describe('isInsideDir', () => {
+	it('accepts a path inside the directory', () => {
+		expect(isInsideDir('/uploads/item-images/a/b/c.png', '/uploads')).toBe(true);
+	});
+
+	it('rejects a traversal outside the directory', () => {
+		expect(isInsideDir('/uploads/item-images/../../etc/passwd', '/uploads')).toBe(false);
+	});
+
+	it('rejects the directory itself', () => {
+		expect(isInsideDir('/uploads', '/uploads')).toBe(false);
+	});
+
+	it('rejects a sibling directory with the same prefix', () => {
+		expect(isInsideDir('/uploads-other/file.png', '/uploads')).toBe(false);
+	});
+
+	it('resolves relative directories', () => {
+		expect(isInsideDir('./uploads/a.png', './uploads')).toBe(true);
 	});
 });
