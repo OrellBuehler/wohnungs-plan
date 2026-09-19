@@ -13,6 +13,7 @@ build
 # Git
 .git
 .gitignore
+.github
 
 # IDE
 .vscode
@@ -33,9 +34,18 @@ docs
 *.test.*
 *.spec.*
 coverage
+e2e
 
 # Uploads (mounted at runtime)
 uploads
+
+# Agent / tooling workspaces
+.worktrees
+.claude
+.playwright-mcp
+
+# Root-level screenshots
+/*.png
 
 # Misc
 *.log
