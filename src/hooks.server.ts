@@ -20,32 +20,20 @@ function isCrossOriginEndpoint(pathname: string): boolean {
 	);
 }
 
-function isCsrfCheckableContentType(contentType: string): boolean {
-	return (
-		contentType === 'application/x-www-form-urlencoded' ||
-		contentType === 'multipart/form-data' ||
-		contentType === 'text/plain' ||
-		contentType === 'application/json' ||
-		contentType === 'text/json' ||
-		(contentType.startsWith('application/') && contentType.endsWith('+json'))
-	);
-}
-
-function isOriginMismatch(request: Request, url: URL): boolean {
+function isCsrfViolation(request: Request, url: URL): boolean {
 	const method = request.method;
 	if (method !== 'POST' && method !== 'PUT' && method !== 'PATCH' && method !== 'DELETE') {
 		return false;
 	}
 
-	const contentType = request.headers.get('content-type')?.split(';')[0]?.trim() ?? '';
-	if (!isCsrfCheckableContentType(contentType)) {
-		return false;
-	}
-
 	const origin = request.headers.get('origin');
-	if (!origin) return false;
+	if (origin) return origin !== url.origin;
 
-	return origin !== url.origin;
+	// No Origin header: fall back to the fetch metadata the browser sends
+	const fetchSite = request.headers.get('sec-fetch-site');
+	if (fetchSite) return fetchSite !== 'same-origin' && fetchSite !== 'none';
+
+	return true;
 }
 
 const CORS_HEADERS = {
@@ -63,7 +51,7 @@ const paraglideHandle: Handle = ({ event, resolve }) =>
 		});
 	});
 
-const appHandle: Handle = async ({ event, resolve }) => {
+export const appHandle: Handle = async ({ event, resolve }) => {
 	const pathname = event.url.pathname;
 	const isCrossOrigin = isCrossOriginEndpoint(pathname);
 
@@ -73,8 +61,8 @@ const appHandle: Handle = async ({ event, resolve }) => {
 	}
 
 	// Manual CSRF check for non-exempt routes (replaces SvelteKit's built-in check)
-	if (!isCrossOrigin && isOriginMismatch(event.request, event.url)) {
-		return new Response('Cross-site POST form submissions are forbidden', { status: 403 });
+	if (!isCrossOrigin && isCsrfViolation(event.request, event.url)) {
+		return new Response('Cross-site form submissions are forbidden', { status: 403 });
 	}
 
 	// Parse session from cookie
