@@ -31,7 +31,8 @@ import {
 	isValidCodeChallengeS256,
 	validateAccessToken,
 	createAuthorizationCode,
-	consumeAuthorizationCode
+	consumeAuthorizationCode,
+	refreshAccessToken
 } from './oauth';
 
 describe('generateToken', () => {
@@ -398,6 +399,50 @@ describe('consumeAuthorizationCode', () => {
 			'https://example.com/cb',
 			verifier
 		);
+		expect(second).toBeUndefined();
+	});
+});
+
+describe('refreshAccessToken', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockDb.insert.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) });
+	});
+
+	function makeDeleteChain(returning: unknown[]) {
+		const returningFn = vi.fn().mockResolvedValueOnce(returning);
+		const whereFn = vi.fn().mockReturnValue({ returning: returningFn });
+		mockDb.delete.mockReturnValue({ where: whereFn });
+		return { whereFn, returningFn };
+	}
+
+	it('rotates the token and returns the user from the deleted row', async () => {
+		makeDeleteChain([{ id: 'token-1', userId: 'user-1' }]);
+
+		const result = await refreshAccessToken('refresh-token', 'client-1');
+
+		expect(result?.userId).toBe('user-1');
+		expect(result?.accessToken).toBeTruthy();
+		expect(result?.refreshToken).toBeTruthy();
+		expect(mockDb.query.oauthTokens.findFirst).not.toHaveBeenCalled();
+	});
+
+	it('returns undefined when no matching row is deleted', async () => {
+		makeDeleteChain([]);
+
+		const result = await refreshAccessToken('refresh-token', 'client-1');
+
+		expect(result).toBeUndefined();
+		expect(mockDb.insert).not.toHaveBeenCalled();
+	});
+
+	it('one-time use: a concurrent reuse loses the conditional delete', async () => {
+		makeDeleteChain([{ id: 'token-1', userId: 'user-1' }]);
+		const first = await refreshAccessToken('refresh-token', 'client-1');
+		expect(first?.userId).toBe('user-1');
+
+		makeDeleteChain([]);
+		const second = await refreshAccessToken('refresh-token', 'client-1');
 		expect(second).toBeUndefined();
 	});
 });

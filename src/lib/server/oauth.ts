@@ -494,20 +494,21 @@ export async function refreshAccessToken(
 ): Promise<{ accessToken: string; refreshToken: string; userId: string } | undefined> {
 	const db = getDB();
 	const tokenHash = hashAccessToken(refreshToken);
-	const now = new Date();
 
-	const tokenRecord = await db.query.oauthTokens.findFirst({
-		where: and(
-			eq(oauthTokens.refreshTokenHash, tokenHash),
-			eq(oauthTokens.clientId, clientId),
-			gt(oauthTokens.refreshTokenExpiresAt, now)
+	// Conditional delete (rotation) — a concurrent reuse of the same token
+	// finds no row to delete and gets nothing back
+	const [tokenRecord] = await db
+		.delete(oauthTokens)
+		.where(
+			and(
+				eq(oauthTokens.refreshTokenHash, tokenHash),
+				eq(oauthTokens.clientId, clientId),
+				gt(oauthTokens.refreshTokenExpiresAt, new Date())
+			)
 		)
-	});
+		.returning();
 
 	if (!tokenRecord) return undefined;
-
-	// Delete old token (rotation — prevents reuse)
-	await db.delete(oauthTokens).where(eq(oauthTokens.id, tokenRecord.id));
 
 	// Issue new pair
 	const result = await createAccessToken(tokenRecord.userId, clientId);
