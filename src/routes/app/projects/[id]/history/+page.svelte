@@ -27,8 +27,11 @@
 		getProject,
 		getItems,
 		getItemHistory,
-		revertHistoryChanges
+		revertHistoryChanges,
+		loadProjectById,
+		setProject
 	} from '$lib/stores/project.svelte';
+	import { waitForAuth } from '$lib/stores/auth.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { formatRelativeTime } from '$lib/utils/format';
@@ -248,9 +251,18 @@
 	}
 
 	onMount(async () => {
-		if (!project) {
-			goto(`/projects/${projectId}`);
+		if (!projectId) {
+			goto('/');
 			return;
+		}
+		if (!project) {
+			await waitForAuth();
+			const loaded = await loadProjectById(projectId);
+			if (!loaded) {
+				goto(`/app/projects/${projectId}`);
+				return;
+			}
+			setProject(loaded);
 		}
 		changes = await getItemHistory(200, 0);
 		loading = false;
@@ -262,7 +274,7 @@
 	<div class="flex-shrink-0 bg-surface-container-low px-4 py-3">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-3">
-				<Button variant="ghost" size="icon" onclick={() => goto(`/projects/${projectId}`)}>
+				<Button variant="ghost" size="icon" onclick={() => goto(`/app/projects/${projectId}`)}>
 					<ArrowLeft size={20} />
 				</Button>
 				<div>

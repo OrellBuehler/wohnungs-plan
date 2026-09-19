@@ -73,7 +73,7 @@ function createEvent(
 	} as any;
 }
 
-function expectStatus(promise: Promise<unknown>, status: number) {
+function expectStatus(promise: unknown, status: number) {
 	return expect(promise).rejects.toMatchObject({ status });
 }
 

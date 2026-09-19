@@ -49,7 +49,7 @@ export async function getItemImageByFilename(
 	projectId: string,
 	itemId: string,
 	filename: string
-) {
+): Promise<typeof itemImages.$inferSelect | null> {
 	const db = getDB();
 	const [image] = await db
 		.select()

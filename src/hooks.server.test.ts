@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('$lib/paraglide/server', () => ({
-	paraglideMiddleware: (request: Request, cb: (args: { request: Request; locale: string }) => any) =>
-		cb({ request, locale: 'en' })
+	paraglideMiddleware: (
+		request: Request,
+		cb: (args: { request: Request; locale: string }) => any
+	) => cb({ request, locale: 'en' })
 }));
 
 vi.mock('$lib/server/db', () => ({
@@ -59,9 +61,7 @@ describe('CSRF protection in appHandle', () => {
 	});
 
 	it('rejects a cross-origin request without a Content-Type header', async () => {
-		const { resolve, response } = run(
-			createEvent({ headers: { origin: 'https://evil.example' } })
-		);
+		const { resolve, response } = run(createEvent({ headers: { origin: 'https://evil.example' } }));
 		expect((await response).status).toBe(403);
 		expect(resolve).not.toHaveBeenCalled();
 	});
@@ -111,9 +111,7 @@ describe('CSRF protection in appHandle', () => {
 
 	it('allows cross-origin requests on exempt OAuth and MCP routes', async () => {
 		for (const pathname of ['/api/oauth/token', '/api/mcp', '/token']) {
-			const { response } = run(
-				createEvent({ pathname, headers: { origin: 'https://claude.ai' } })
-			);
+			const { response } = run(createEvent({ pathname, headers: { origin: 'https://claude.ai' } }));
 			expect((await response).status).toBe(200);
 		}
 	});

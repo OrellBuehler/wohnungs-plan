@@ -39,8 +39,7 @@ import { getItemImages } from '$lib/server/item-images';
 
 function createEvent(options: { user?: { id: string } | null } = {}) {
 	const { user = { id: 'user-1' } } = options;
-	const href =
-		'http://localhost:5173/api/projects/proj-1/branches/branch-1/items/item-1/images';
+	const href = 'http://localhost:5173/api/projects/proj-1/branches/branch-1/items/item-1/images';
 
 	return {
 		request: new Request(href),
