@@ -99,6 +99,6 @@ The app ships as a Docker container using `svelte-adapter-bun`:
 docker build -t wohnungs-plan .
 ```
 
-Required environment variables: `DATABASE_URL`, `SESSION_SECRET`, `INFOMANIAK_CLIENT_ID`, `INFOMANIAK_CLIENT_SECRET`, `PUBLIC_APP_URL`. See `.env.example` for the full list.
+Required environment variables: `DATABASE_URL`, `SESSION_SECRET`, `INFOMANIAK_CLIENT_ID`, `INFOMANIAK_CLIENT_SECRET`. See `.env.example` for the full list.
 
 The container runs on port 3000 with a health check at `/api/auth/me`.

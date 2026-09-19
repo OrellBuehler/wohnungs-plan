@@ -78,9 +78,11 @@ bun db:studio    # Open Drizzle Studio
 
 ## Version Tracking
 
-- Git hash + build timestamp embedded via `GIT_HASH` and `BUILD_TIMESTAMP` Docker build args
-- Check in container: `docker exec <container> cat /app/version.txt`
-- Dev mode shows "dev" for both values
+- Single `APP_VERSION` Docker build arg, set by `.github/workflows/docker.yml` to the pushed tag (`github.ref_name`)
+- The Dockerfile passes it to the build as `VITE_APP_VERSION`, so it is inlined into the client bundle, and also sets it as a runtime `APP_VERSION` env var
+- Read in the app via `import.meta.env.VITE_APP_VERSION` (falls back to `'dev'`) — shown in `+layout.svelte`, the landing page and `app/settings/general`
+- Check in container: `docker exec <container> cat /app/version.txt` (contains `APP_VERSION=<tag>`)
+- Dev mode and local `docker build` without `--build-arg APP_VERSION=…` show `dev`
 
 ## SvelteKit Navigation
 
