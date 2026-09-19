@@ -1,9 +1,8 @@
-import type { Component } from 'svelte';
-import type { IconProps } from '@lucide/svelte';
+import type { LucideIcon } from '@lucide/svelte';
 
 export interface ProjectAction {
 	label: string;
-	icon?: Component<IconProps>;
+	icon?: LucideIcon;
 	onclick: () => void;
 	disabled?: boolean;
 	indicator?: string;

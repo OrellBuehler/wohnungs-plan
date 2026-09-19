@@ -103,6 +103,6 @@ export function clearSessionCookie(options?: {
 
 export function parseSessionCookie(cookieHeader: string | null): string | null {
 	if (!cookieHeader) return null;
-	const match = cookieHeader.match(/session=([^;]+)/);
+	const match = cookieHeader.match(/(?:^|;\s*)session=([^;]*)/);
 	return match ? match[1] : null;
 }

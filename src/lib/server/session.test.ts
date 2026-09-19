@@ -33,6 +33,14 @@ describe('parseSessionCookie', () => {
 	it('handles session as only cookie', () => {
 		expect(parseSessionCookie('session=my-session-id')).toBe('my-session-id');
 	});
+
+	it('ignores cookies whose name merely ends with session', () => {
+		expect(parseSessionCookie('mysession=evil; session=real')).toBe('real');
+	});
+
+	it('ignores a lookalike cookie when no real session cookie is present', () => {
+		expect(parseSessionCookie('mysession=evil')).toBeNull();
+	});
 });
 
 describe('createSessionCookie', () => {

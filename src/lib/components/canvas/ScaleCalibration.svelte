@@ -7,6 +7,7 @@
 	import Minus from '@lucide/svelte/icons/minus';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 	import * as m from '$lib/paraglide/messages';
+	import { formatDecimal } from '$lib/utils/format';
 	import type Konva from 'konva';
 
 	interface Props {
@@ -483,7 +484,7 @@
 			</div>
 			<div class="text-sm text-on-surface-variant pb-2">
 				{#if scale > 0}
-					{m.canvas_calibrate_scale({ scale: scale.toFixed(2) })}
+					{m.canvas_calibrate_scale({ scale: formatDecimal(scale, 2) })}
 				{:else}
 					{m.canvas_calibrate_no_line()}
 				{/if}

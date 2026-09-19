@@ -35,6 +35,9 @@ kirchhaldenstrasse-*.json
 # Local git worktrees
 .worktrees/
 
+# Claude Code workspace
+.claude/
+
 # Paraglide generated
 /src/lib/paraglide/
 

@@ -1,4 +1,10 @@
 import { createHash } from 'node:crypto';
+import { resolve, sep } from 'node:path';
+
+export function isInsideDir(filePath: string, dir: string): boolean {
+	const root = resolve(dir);
+	return resolve(filePath).startsWith(root + sep);
+}
 
 export function isSafeRedirectPath(value: string): boolean {
 	if (!value.startsWith('/')) return false;

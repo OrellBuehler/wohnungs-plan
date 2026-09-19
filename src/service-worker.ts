@@ -13,9 +13,10 @@ declare let self: ServiceWorkerGlobalScope;
 // Precache app shell (HTML, CSS, JS, fonts, icons)
 precacheAndRoute(self.__WB_MANIFEST);
 
-// Network-first for API calls (prefer fresh data, fallback to cache)
+// Network-first for API calls (prefer fresh data, fallback to cache).
+// Image endpoints are excluded so they are handled by the image cache below.
 registerRoute(
-	({ url }) => url.pathname.startsWith('/api/'),
+	({ url }) => url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/images/'),
 	new NetworkFirst({
 		cacheName: 'api-cache',
 		plugins: [
@@ -40,6 +41,13 @@ registerRoute(
 		]
 	})
 );
+
+// Activate a new worker immediately and take over open pages
+self.skipWaiting();
+
+self.addEventListener('activate', (event) => {
+	event.waitUntil(self.clients.claim());
+});
 
 // Listen for skip waiting
 self.addEventListener('message', (event) => {

@@ -6,4 +6,6 @@ src/lib/paraglide
 src/paraglide
 project.inlang/.meta.json
 project.inlang/README.md
+project.inlang/.lix
+project.inlang/cache
 .superpowers

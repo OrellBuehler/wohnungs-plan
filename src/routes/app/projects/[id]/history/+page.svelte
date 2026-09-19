@@ -3,20 +3,16 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import type { ItemChange } from '$lib/types';
-	import {
-		FlexRender,
-		createSvelteTable,
-		renderComponent,
-		renderSnippet
-	} from '$lib/components/ui/data-table';
+	import { FlexRender, createTable, renderComponent } from '$lib/components/ui/data-table';
 	import {
 		type ColumnDef,
 		type PaginationState,
 		type RowSelectionState,
-		getCoreRowModel,
-		getPaginationRowModel
+		createPaginatedRowModel,
+		rowPaginationFeature,
+		rowSelectionFeature,
+		tableFeatures
 	} from '@tanstack/table-core';
-	import { createRawSnippet } from 'svelte';
 	import * as Table from '$lib/components/ui/table';
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
@@ -25,12 +21,17 @@
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import ClockIcon from '@lucide/svelte/icons/clock';
 	import HistoryActionBadge from '$lib/components/projects/HistoryActionBadge.svelte';
+	import HistoryTextCell from '$lib/components/projects/HistoryTextCell.svelte';
+	import HistoryChangeCell from '$lib/components/projects/HistoryChangeCell.svelte';
 	import {
 		getProject,
 		getItems,
 		getItemHistory,
-		revertHistoryChanges
+		revertHistoryChanges,
+		loadProjectById,
+		setProject
 	} from '$lib/stores/project.svelte';
+	import { waitForAuth } from '$lib/stores/auth.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { formatRelativeTime } from '$lib/utils/format';
@@ -129,8 +130,14 @@
 
 	const selectedCount = $derived(Object.keys(rowSelection).length);
 
+	const features = tableFeatures({
+		rowSelectionFeature,
+		rowPaginationFeature,
+		paginatedRowModel: createPaginatedRowModel()
+	});
+
 	// Column definitions
-	const columns: ColumnDef<ItemChange>[] = [
+	const columns: ColumnDef<typeof features, ItemChange>[] = [
 		{
 			id: 'select',
 			header: ({ table }) =>
@@ -145,52 +152,37 @@
 					checked: row.getIsSelected(),
 					onCheckedChange: (value: boolean) => row.toggleSelected(!!value),
 					'aria-label': m.history_select_row()
-				}),
-			enableSorting: false,
-			enableHiding: false
+				})
 		},
 		{
 			accessorKey: 'createdAt',
 			header: m.history_column_time(),
 			cell: ({ row }) => {
 				const value = row.original.createdAt;
-				const isStart = groupStarts.has(row.original.id);
-				return renderSnippet(
-					createRawSnippet(() => ({
-						render: () =>
-							`<span class="${isStart ? '' : 'text-muted-foreground'}" title="${new Date(value).toLocaleString(getLocale())}">${formatRelativeTime(value)}</span>`
-					})),
-					undefined as never
-				);
+				return renderComponent(HistoryTextCell, {
+					text: formatRelativeTime(value),
+					title: new Date(value).toLocaleString(getLocale()),
+					muted: !groupStarts.has(row.original.id)
+				});
 			}
 		},
 		{
 			accessorKey: 'userName',
 			header: m.history_column_user(),
-			cell: ({ row }) => {
-				const value = row.original.userName ?? 'Unknown';
-				const isStart = groupStarts.has(row.original.id);
-				return renderSnippet(
-					createRawSnippet(() => ({
-						render: () => `<span class="${isStart ? '' : 'text-muted-foreground'}">${value}</span>`
-					})),
-					undefined as never
-				);
-			}
+			cell: ({ row }) =>
+				renderComponent(HistoryTextCell, {
+					text: row.original.userName ?? 'Unknown',
+					muted: !groupStarts.has(row.original.id)
+				})
 		},
 		{
 			id: 'item',
 			header: m.history_column_item(),
-			cell: ({ row }) => {
-				const name = resolveItemName(row.original.itemId);
-				const isStart = groupStarts.has(row.original.id);
-				return renderSnippet(
-					createRawSnippet(() => ({
-						render: () => `<span class="${isStart ? '' : 'text-muted-foreground'}">${name}</span>`
-					})),
-					undefined as never
-				);
-			}
+			cell: ({ row }) =>
+				renderComponent(HistoryTextCell, {
+					text: resolveItemName(row.original.itemId),
+					muted: !groupStarts.has(row.original.id)
+				})
 		},
 		{
 			accessorKey: 'action',
@@ -204,59 +196,24 @@
 		{
 			accessorKey: 'field',
 			header: m.history_column_field(),
-			cell: ({ row }) => {
-				const value = row.original.field;
-				return renderSnippet(
-					createRawSnippet(() => ({
-						render: () => `<span>${value ?? '\u2014'}</span>`
-					})),
-					undefined as never
-				);
-			}
+			cell: ({ row }) => renderComponent(HistoryTextCell, { text: row.original.field ?? '\u2014' })
 		},
 		{
 			id: 'change',
 			header: m.history_column_change(),
 			cell: ({ row }) => {
 				const { action, field, oldValue, newValue } = row.original;
-				if (action !== 'update') {
-					return renderSnippet(
-						createRawSnippet(() => ({
-							render: () => `<span class="text-muted-foreground">\u2014</span>`
-						})),
-						undefined as never
-					);
-				}
-				if (field === 'image') {
-					const added = oldValue === null && newValue !== null;
-					return renderSnippet(
-						createRawSnippet(() => ({
-							render: () =>
-								added
-									? `<span class="font-medium">+ ${newValue}</span>`
-									: `<span class="line-through text-muted-foreground">\u2212 ${oldValue}</span>`
-						})),
-						undefined as never
-					);
-				}
-				return renderSnippet(
-					createRawSnippet(() => ({
-						render: () =>
-							`<span><span class="line-through text-muted-foreground">${oldValue ?? ''}</span> → <span class="font-medium">${newValue ?? ''}</span></span>`
-					})),
-					undefined as never
-				);
+				return renderComponent(HistoryChangeCell, { action, field, oldValue, newValue });
 			}
 		}
 	];
 
-	const table = createSvelteTable({
+	const table = createTable({
+		features,
 		get data() {
 			return filteredData;
 		},
 		columns,
-		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		onRowSelectionChange(updater) {
 			if (typeof updater === 'function') {
 				rowSelection = updater(rowSelection);
@@ -294,9 +251,18 @@
 	}
 
 	onMount(async () => {
-		if (!project) {
-			goto(`/projects/${projectId}`);
+		if (!projectId) {
+			goto('/');
 			return;
+		}
+		if (!project) {
+			await waitForAuth();
+			const loaded = await loadProjectById(projectId);
+			if (!loaded) {
+				goto(`/app/projects/${projectId}`);
+				return;
+			}
+			setProject(loaded);
 		}
 		changes = await getItemHistory(200, 0);
 		loading = false;
@@ -308,7 +274,7 @@
 	<div class="flex-shrink-0 bg-surface-container-low px-4 py-3">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-3">
-				<Button variant="ghost" size="icon" onclick={() => goto(`/projects/${projectId}`)}>
+				<Button variant="ghost" size="icon" onclick={() => goto(`/app/projects/${projectId}`)}>
 					<ArrowLeft size={20} />
 				</Button>
 				<div>
@@ -434,10 +400,7 @@
 							{#each headerGroup.headers as header (header.id)}
 								<Table.Head>
 									{#if !header.isPlaceholder}
-										<FlexRender
-											content={header.column.columnDef.header}
-											context={header.getContext()}
-										/>
+										<FlexRender {header} />
 									{/if}
 								</Table.Head>
 							{/each}
@@ -448,9 +411,9 @@
 					{#each table.getRowModel().rows as row (row.id)}
 						{@const isStart = groupStarts.has(row.original.id)}
 						<Table.Row class={isStart ? '' : 'border-t-0'}>
-							{#each row.getVisibleCells() as cell (cell.id)}
+							{#each row.getAllCells() as cell (cell.id)}
 								<Table.Cell>
-									<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+									<FlexRender {cell} />
 								</Table.Cell>
 							{/each}
 						</Table.Row>

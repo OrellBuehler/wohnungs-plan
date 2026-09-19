@@ -59,9 +59,10 @@ bun db:studio    # Open Drizzle Studio
 
 ### Service Worker
 
-- Built with @vite-pwa/sveltekit and Workbox
+- Built with @vite-pwa/sveltekit and Workbox; the plugin is registered in `vite.config.ts` (not `svelte.config.js`)
+- `kit.serviceWorker.register` is `false`; the worker is registered from `src/routes/+layout.svelte` via `virtual:pwa-register`
 - Cache-first for app shell (HTML, CSS, JS, fonts, icons)
-- Network-first for API routes
+- Network-first for API routes, except `/api/images/` which uses the image cache
 - Cache-first for images with 30-day expiration
 
 ## Testing
@@ -78,9 +79,11 @@ bun db:studio    # Open Drizzle Studio
 
 ## Version Tracking
 
-- Git hash + build timestamp embedded via `GIT_HASH` and `BUILD_TIMESTAMP` Docker build args
-- Check in container: `docker exec <container> cat /app/version.txt`
-- Dev mode shows "dev" for both values
+- Single `APP_VERSION` Docker build arg, set by `.github/workflows/docker.yml` to the pushed tag (`github.ref_name`)
+- The Dockerfile passes it to the build as `VITE_APP_VERSION`, so it is inlined into the client bundle, and also sets it as a runtime `APP_VERSION` env var
+- Read in the app via `import.meta.env.VITE_APP_VERSION` (falls back to `'dev'`) — shown in `+layout.svelte`, the landing page and `app/settings/general`
+- Check in container: `docker exec <container> cat /app/version.txt` (contains `APP_VERSION=<tag>`)
+- Dev mode and local `docker build` without `--build-arg APP_VERSION=…` show `dev`
 
 ## SvelteKit Navigation
 
@@ -93,7 +96,7 @@ bun db:studio    # Open Drizzle Studio
 - MCP endpoint: `/api/mcp` (JSON-RPC 2.0 with Bearer token)
 - PKCE: S256 only, no plain method
 - **CSRF Protection**: SvelteKit's built-in check disabled (`csrf.trustedOrigins: ['*']`)
-  - Manual origin checking in `hooks.server.ts` protects non-exempt routes
+  - Manual check in `hooks.server.ts` for POST/PUT/PATCH/DELETE on non-exempt routes: `Origin` must match, else `Sec-Fetch-Site` must be `same-origin`/`none`, else 403 (independent of Content-Type)
   - OAuth/MCP endpoints are exempt (use PKCE/Bearer tokens, not cookies)
 
 ## Git Commits

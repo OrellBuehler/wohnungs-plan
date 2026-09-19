@@ -242,7 +242,7 @@
 				didSyncUrl = true;
 			}
 			// Reload comments for the new branch
-			if (projectId) loadComments(projectId, branchId);
+			if (projectId && authed && !isLocalProject) loadComments(projectId, branchId);
 			return true;
 		} finally {
 			if (pendingBranchUrlSyncId === branchId) {
@@ -354,7 +354,7 @@
 	}
 
 	function handleOpenHistory() {
-		goto(`/projects/${projectId}/history`);
+		goto(`/app/projects/${projectId}/history`);
 	}
 
 	function handleGridSizeChange(newSize: number) {
@@ -416,13 +416,9 @@
 					}
 				}
 			}
-			// If user is authenticated and project was loaded, check if it's a cloud project
-			// by checking if the floorplan URL is a remote URL (not a data URL)
-			if (authed && loaded.floorplan?.imageData?.startsWith('/api/')) {
-				isLocalProject = false;
-			}
-			// Load comments for this project
-			if (loaded.activeBranchId) {
+			isLocalProject = loaded.isLocal !== false;
+			// Load comments for this project (the comments API requires authentication)
+			if (authed && !isLocalProject && loaded.activeBranchId) {
 				loadComments(loaded.id, loaded.activeBranchId);
 			}
 		} else {

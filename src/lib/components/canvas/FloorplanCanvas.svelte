@@ -150,6 +150,9 @@
 			if (interactionIdleTimeout) {
 				clearTimeout(interactionIdleTimeout);
 			}
+			if (thumbnailTimeout) {
+				clearTimeout(thumbnailTimeout);
+			}
 		};
 	});
 
