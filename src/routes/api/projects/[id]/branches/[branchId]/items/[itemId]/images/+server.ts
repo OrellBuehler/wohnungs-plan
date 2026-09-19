@@ -28,6 +28,16 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 		throw error(403, 'Access denied');
 	}
 
+	const branch = await getBranchById(params.id, params.branchId);
+	if (!branch) {
+		throw error(404, 'Branch not found');
+	}
+
+	const item = await getItemById(params.id, params.branchId, params.itemId);
+	if (!item) {
+		throw error(404, 'Item not found');
+	}
+
 	const images = await getItemImages(params.itemId);
 	return json({ images });
 };

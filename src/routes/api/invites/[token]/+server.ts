@@ -54,8 +54,7 @@ export const POST: RequestHandler = async ({ locals, params }) => {
 
 	if (
 		invite.email &&
-		locals.user.email &&
-		invite.email.toLowerCase() !== locals.user.email.toLowerCase()
+		invite.email.toLowerCase() !== (locals.user.email?.toLowerCase() ?? null)
 	) {
 		throw error(403, 'Invite email does not match your account');
 	}
