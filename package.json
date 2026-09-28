@@ -87,7 +87,7 @@
 		"@tanstack/svelte-table": "^9.2.4",
 		"@tanstack/table-core": "^9.2.4",
 		"bcrypt": "^6.0.0",
-		"drizzle-orm": "^0.45.2",
+		"drizzle-orm": "^0.45.3",
 		"idb": "^8.0.3",
 		"konva": "^10.5.0",
 		"sharp": "^0.35.4",
