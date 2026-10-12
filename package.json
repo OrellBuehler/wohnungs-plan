@@ -83,14 +83,14 @@
 		"undici": "^7.29.0"
 	},
 	"dependencies": {
-		"@modelcontextprotocol/sdk": "^1.30.0",
-		"@tanstack/svelte-table": "^9.2.4",
-		"@tanstack/table-core": "^9.2.4",
+		"@modelcontextprotocol/sdk": "^1.32.1",
+		"@tanstack/svelte-table": "^9.2.8",
+		"@tanstack/table-core": "^9.2.8",
 		"bcrypt": "^6.0.0",
-		"drizzle-orm": "^0.45.2",
-		"idb": "^8.0.3",
-		"konva": "^10.5.0",
-		"sharp": "^0.35.4",
+		"drizzle-orm": "^0.45.4",
+		"idb": "^8.0.4",
+		"konva": "^10.7.1",
+		"sharp": "^0.35.5",
 		"svelte-konva": "^1.0.1",
 		"zod": "^4.6.5"
 	}
