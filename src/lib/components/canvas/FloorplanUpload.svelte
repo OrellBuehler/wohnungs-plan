@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as m from '$lib/paraglide/messages';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import * as m from '#lib/paraglide/messages.js';
 
 	interface Props {
 		onUpload: (imageData: string) => void;
@@ -92,9 +92,9 @@
 			<Dialog.Description>{m.canvas_upload_invalid_description()}</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
-			<Button class="w-full sm:w-auto" onclick={() => (invalidFileDialogOpen = false)}
-				>{m.common_ok()}</Button
-			>
+			<Button class="w-full sm:w-auto" onclick={() => (invalidFileDialogOpen = false)}>
+				{m.common_ok()}
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

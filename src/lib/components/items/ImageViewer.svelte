@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { ItemImage } from '$lib/types';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
+	import type { ItemImage } from '#lib/types/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import X from '@lucide/svelte/icons/x';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '#lib/paraglide/messages.js';
 
 	interface Props {
 		images: ItemImage[];

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Group, Line, Arc, Circle } from 'svelte-konva';
-	import { getFloorplanAnalysis } from '$lib/stores/project.svelte';
+	import { getFloorplanAnalysis } from '#lib/stores/project.svelte.ts';
 
 	const analysis = $derived(getFloorplanAnalysis());
 	const visible = $derived(analysis.visible && analysis.loaded);

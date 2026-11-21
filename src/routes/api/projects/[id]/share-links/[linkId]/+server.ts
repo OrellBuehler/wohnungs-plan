@@ -1,7 +1,7 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { revokeShareLink } from '$lib/server/share-links';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { revokeShareLink } from '#lib/server/share-links.ts';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -18,5 +18,5 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 		throw error(404, 'Share link not found');
 	}
 
-	return json({ success: true });
+	return Response.json({ success: true });
 };

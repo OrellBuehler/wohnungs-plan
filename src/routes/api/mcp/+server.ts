@@ -1,10 +1,10 @@
 import type { RequestHandler } from './$types';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { config } from '$lib/server/env';
-import { validateAccessToken } from '$lib/server/oauth';
-import { getProjectDisabledTools, getProjectRole } from '$lib/server/projects';
-import { getBranchById } from '$lib/server/branches';
+import { config } from '#lib/server/env.ts';
+import { validateAccessToken } from '#lib/server/oauth.ts';
+import { getProjectDisabledTools, getProjectRole } from '#lib/server/projects.ts';
+import { getBranchById } from '#lib/server/branches.ts';
 import { createSessionTransport, getSessionTransport } from './session';
 import { registerProjectTools } from './tools/projects';
 import { registerBranchTools } from './tools/branches';

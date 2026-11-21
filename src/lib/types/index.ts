@@ -12,7 +12,7 @@ export interface Floorplan {
 export type ItemShape = 'rectangle' | 'l-shape';
 export type CutoutCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
-import type { CurrencyCode } from '$lib/utils/currency';
+import type { CurrencyCode } from '#lib/utils/currency.ts';
 
 export interface ItemImage {
 	id: string;

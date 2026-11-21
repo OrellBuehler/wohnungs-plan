@@ -13,8 +13,8 @@ import {
 	blocksWindow,
 	hasArchitecturalCollision,
 	type BoundingBox
-} from '$lib/utils/geometry';
-import type { Item } from '$lib/types';
+} from '#lib/utils/geometry.ts';
+import type { Item } from '#lib/types/index.ts';
 
 function makeItem(
 	id: string,

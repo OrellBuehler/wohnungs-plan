@@ -1,16 +1,16 @@
 <script lang="ts">
-	import type { Item } from '$lib/types';
-	import { formatPrice } from '$lib/utils/currency';
-	import { Button } from '$lib/components/ui/button';
-	import * as Sheet from '$lib/components/ui/sheet';
+	import type { Item } from '#lib/types/index.ts';
+	import { formatPrice } from '#lib/utils/currency.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Sheet from '#lib/components/ui/sheet/index.ts';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import RotateCw from '@lucide/svelte/icons/rotate-cw';
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import MapPinOff from '@lucide/svelte/icons/map-pin-off';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import * as m from '$lib/paraglide/messages';
-	import { formatDimension } from '$lib/utils/format';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatDimension } from '#lib/utils/format.ts';
 	import ImageViewer from './ImageViewer.svelte';
 
 	interface Props {

@@ -1,7 +1,7 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { deleteBranch, getBranchById, renameBranch } from '$lib/server/branches';
-import { getProjectRole } from '$lib/server/projects';
+import { deleteBranch, getBranchById, renameBranch } from '#lib/server/branches.ts';
+import { getProjectRole } from '#lib/server/projects.ts';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -29,7 +29,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		if (!branch) {
 			throw error(404, 'Branch not found');
 		}
-		return json({ branch });
+		return Response.json({ branch });
 	} catch (err) {
 		if (err instanceof Error && err.message === 'Branch name is required') {
 			throw error(400, err.message);
@@ -56,7 +56,7 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 		if (!branch) {
 			throw error(404, 'Branch not found');
 		}
-		return json({ success: true, deletedBranchId: branch.id });
+		return Response.json({ success: true, deletedBranchId: branch.id });
 	} catch (err) {
 		if (err instanceof Error && err.message === 'Cannot delete the last remaining branch') {
 			throw error(409, err.message);

@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('$lib/paraglide/server', () => ({
+vi.mock('#lib/paraglide/server.js', () => ({
 	paraglideMiddleware: (
 		request: Request,
 		cb: (args: { request: Request; locale: string }) => any
 	) => cb({ request, locale: 'en' })
 }));
 
-vi.mock('$lib/server/db', () => ({
+vi.mock('#lib/server/db.ts', () => ({
 	runMigrations: vi.fn()
 }));
 
-vi.mock('$lib/server/session', () => ({
+vi.mock('#lib/server/session.ts', () => ({
 	parseSessionCookie: vi.fn(() => null),
 	getSessionWithUser: vi.fn()
 }));

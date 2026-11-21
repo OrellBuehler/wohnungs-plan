@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import type { PageData } from './$types';
-	import type { Item, Floorplan } from '$lib/types';
-	import type { CurrencyCode } from '$lib/utils/currency';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import SEO from '$lib/components/SEO.svelte';
-	import MobileNav from '$lib/components/layout/MobileNav.svelte';
-	import FloorplanCanvas from '$lib/components/canvas/FloorplanCanvas.svelte';
-	import ItemList from '$lib/components/items/ItemList.svelte';
-	import ItemBottomSheet from '$lib/components/items/ItemBottomSheet.svelte';
-	import * as m from '$lib/paraglide/messages';
+	import type { Item, Floorplan } from '#lib/types/index.ts';
+	import type { CurrencyCode } from '#lib/utils/currency.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import SEO from '#lib/components/SEO.svelte';
+	import MobileNav from '#lib/components/layout/MobileNav.svelte';
+	import FloorplanCanvas from '#lib/components/canvas/FloorplanCanvas.svelte';
+	import ItemList from '#lib/components/items/ItemList.svelte';
+	import ItemBottomSheet from '#lib/components/items/ItemBottomSheet.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 
 	type ShareProject = {
 		name: string;
@@ -59,7 +59,7 @@
 
 	let { data }: { data: PageData } = $props();
 
-	const token = $derived($page.params.token);
+	const token = $derived(page.params.token);
 
 	let activeTab = $state<'plan' | 'items' | 'comments'>('plan');
 	let isMobile = $state(false);
@@ -310,9 +310,9 @@
 			</h1>
 			<p class="text-sm text-on-surface-variant">{m.share_password_prompt()}</p>
 			<div class="space-y-2">
-				<label class="text-sm font-medium text-on-surface" for="share-password"
-					>{m.share_password_label()}</label
-				>
+				<label class="text-sm font-medium text-on-surface" for="share-password">
+					{m.share_password_label()}
+				</label>
 				<Input
 					id="share-password"
 					type="password"
@@ -340,9 +340,9 @@
 					<span class="text-sm md:text-base font-semibold text-on-surface">Floorplanner</span>
 				</a>
 				<span class="hidden md:inline text-outline">|</span>
-				<span class="truncate text-sm md:text-base text-on-surface"
-					>{projectName || m.share_default_title()}</span
-				>
+				<span class="truncate text-sm md:text-base text-on-surface">
+					{projectName || m.share_default_title()}
+				</span>
 			</div>
 
 			<div class="flex items-center gap-2 flex-shrink-0">

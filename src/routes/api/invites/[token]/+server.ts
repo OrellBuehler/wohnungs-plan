@@ -1,7 +1,7 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getInviteByToken, acceptInvite } from '$lib/server/members';
-import { getProjectById } from '$lib/server/projects';
+import { getInviteByToken, acceptInvite } from '#lib/server/members.ts';
+import { getProjectById } from '#lib/server/projects.ts';
 
 function isExpired(expiresAt: Date): boolean {
 	return new Date(expiresAt).getTime() < Date.now();
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
 	const project = await getProjectById(invite.projectId);
 
-	return json({
+	return Response.json({
 		invite: {
 			projectId: invite.projectId,
 			email: invite.email,
@@ -58,5 +58,5 @@ export const POST: RequestHandler = async ({ locals, params }) => {
 
 	await acceptInvite(invite, locals.user.id);
 
-	return json({ success: true, projectId: invite.projectId });
+	return Response.json({ success: true, projectId: invite.projectId });
 };

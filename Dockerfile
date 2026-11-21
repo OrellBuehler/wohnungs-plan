@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build stage - install dependencies
-FROM oven/bun:1.4.2-alpine@sha256:d888c0ae6c86d7866ff10c5aafdd9077b36aee6455b33dd270fb93c0dd5cef6f AS deps
+FROM oven/bun:1.4.5-alpine@sha256:da816670775f4c2b4e990b6b1847cf5540dcdc721a42033dd331ce7a88ba6a3b AS deps
 WORKDIR /app
 
 # Copy package files
@@ -11,7 +11,7 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # Build stage - build the app
-FROM oven/bun:1.4.2-alpine@sha256:d888c0ae6c86d7866ff10c5aafdd9077b36aee6455b33dd270fb93c0dd5cef6f AS builder
+FROM oven/bun:1.4.5-alpine@sha256:da816670775f4c2b4e990b6b1847cf5540dcdc721a42033dd331ce7a88ba6a3b AS builder
 WORKDIR /app
 
 # Accept build arguments for version tracking
@@ -33,13 +33,13 @@ RUN SESSION_SECRET=build-placeholder bun --bun run build
 RUN echo "APP_VERSION=${APP_VERSION}" > /app/version.txt
 
 # Production deps - install only production dependencies
-FROM oven/bun:1.4.2-alpine@sha256:d888c0ae6c86d7866ff10c5aafdd9077b36aee6455b33dd270fb93c0dd5cef6f AS prod-deps
+FROM oven/bun:1.4.5-alpine@sha256:da816670775f4c2b4e990b6b1847cf5540dcdc721a42033dd331ce7a88ba6a3b AS prod-deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
 # Production stage - minimal runtime
-FROM oven/bun:1.4.2-alpine@sha256:d888c0ae6c86d7866ff10c5aafdd9077b36aee6455b33dd270fb93c0dd5cef6f AS runner
+FROM oven/bun:1.4.5-alpine@sha256:da816670775f4c2b4e990b6b1847cf5540dcdc721a42033dd331ce7a88ba6a3b AS runner
 WORKDIR /app
 
 # Create non-root user

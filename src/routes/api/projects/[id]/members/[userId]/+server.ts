@@ -1,8 +1,8 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { getProjectMembers, updateMemberRole, removeMember } from '$lib/server/members';
-import type { ProjectRole } from '$lib/server/types';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getProjectMembers, updateMemberRole, removeMember } from '#lib/server/members.ts';
+import type { ProjectRole } from '#lib/server/types.ts';
 
 const ALLOWED_ROLES: ProjectRole[] = ['owner', 'editor', 'viewer'];
 
@@ -33,7 +33,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	await updateMemberRole(params.id, params.userId, nextRole);
-	return json({ success: true });
+	return Response.json({ success: true });
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
@@ -57,5 +57,5 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	}
 
 	await removeMember(params.id, params.userId);
-	return json({ success: true });
+	return Response.json({ success: true });
 };

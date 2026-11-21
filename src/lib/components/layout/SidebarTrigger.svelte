@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import LogIn from '@lucide/svelte/icons/log-in';
-	import { getUser, isAuthenticated, isLoading, login } from '$lib/stores/auth.svelte';
-	import { setSidebarOpen } from '$lib/stores/sidebar.svelte';
-	import { getInitials } from '$lib/utils/format';
+	import { getUser, isAuthenticated, isLoading, login } from '#lib/stores/auth.svelte.ts';
+	import { setSidebarOpen } from '#lib/stores/sidebar.svelte.ts';
+	import { getInitials } from '#lib/utils/format.ts';
 
 	const user = $derived(getUser());
 	const authed = $derived(isAuthenticated());

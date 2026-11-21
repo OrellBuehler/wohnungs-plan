@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { getBranchItems } from '$lib/server/items';
-import { getFloorplanAnalysis } from '$lib/server/floorplan-analyses';
-import { getItemsInRoom } from '$lib/server/spatial-queries';
+import { getBranchItems } from '#lib/server/items.ts';
+import { getFloorplanAnalysis } from '#lib/server/floorplan-analyses.ts';
+import { getItemsInRoom } from '#lib/server/spatial-queries.ts';
 import type { McpServer, ToolHelpers } from './types';
 
 export function registerPrompts(server: McpServer, helpers: ToolHelpers): void {

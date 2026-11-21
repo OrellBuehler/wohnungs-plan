@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as m from '$lib/paraglide/messages';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as m from '#lib/paraglide/messages.js';
 
 	interface Props {
 		activeTab: 'plan' | 'items' | 'comments';

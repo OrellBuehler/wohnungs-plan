@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fetchUser } from '$lib/stores/auth.svelte';
-	import * as Tooltip from '$lib/components/ui/tooltip';
-	import SEO from '$lib/components/SEO.svelte';
-	import AppSidebar from '$lib/components/layout/AppSidebar.svelte';
-	import * as m from '$lib/paraglide/messages';
+	import { fetchUser } from '#lib/stores/auth.svelte.ts';
+	import * as Tooltip from '#lib/components/ui/tooltip/index.ts';
+	import SEO from '#lib/components/SEO.svelte';
+	import AppSidebar from '#lib/components/layout/AppSidebar.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 
 	let { children } = $props();
 

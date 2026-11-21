@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from './+server';
 
-vi.mock('$lib/server/members', () => ({
+vi.mock('#lib/server/members.ts', () => ({
 	getInviteByToken: vi.fn(),
 	acceptInvite: vi.fn()
 }));
 
-vi.mock('$lib/server/projects', () => ({
+vi.mock('#lib/server/projects.ts', () => ({
 	getProjectById: vi.fn()
 }));
 
-import { getInviteByToken, acceptInvite } from '$lib/server/members';
+import { getInviteByToken, acceptInvite } from '#lib/server/members.ts';
 
 function createEvent(user: { id: string; email?: string | null } | null) {
 	const href = 'http://localhost:5173/api/invites/invite-token';

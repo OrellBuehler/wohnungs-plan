@@ -1,7 +1,7 @@
-import { dev } from '$app/environment';
-import { error, json } from '@sveltejs/kit';
+import { dev } from '$app/env';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { checkRateLimit } from '$lib/server/rate-limit';
+import { checkRateLimit } from '#lib/server/rate-limit.ts';
 import {
 	createShareAuthCookie,
 	getShareAuthCookieExpires,
@@ -9,11 +9,11 @@ import {
 	getShareLinkByToken,
 	isShareLinkValid,
 	verifySharePassword
-} from '$lib/server/share-links';
+} from '#lib/server/share-links.ts';
 
 export const POST: RequestHandler = async ({ params, request, cookies }) => {
 	if (!checkRateLimit(params.token)) {
-		return json({ error: 'Too many attempts' }, { status: 429 });
+		return Response.json({ error: 'Too many attempts' }, { status: 429 });
 	}
 
 	const link = await getShareLinkByToken(params.token);
@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 	}
 
 	if (!link.passwordHash) {
-		return json({ success: true });
+		return Response.json({ success: true });
 	}
 
 	let body: unknown;
@@ -31,6 +31,7 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 	} catch {
 		throw error(400, 'Invalid request body');
 	}
+
 	const password =
 		typeof (body as Record<string, unknown>).password === 'string'
 			? ((body as Record<string, unknown>).password as string)
@@ -41,7 +42,7 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 
 	const isValid = await verifySharePassword(link, password);
 	if (!isValid) {
-		return json({ error: 'Invalid password' }, { status: 401 });
+		return Response.json({ error: 'Invalid password' }, { status: 401 });
 	}
 
 	const cookieName = getShareAuthCookieName(link.token);
@@ -54,5 +55,5 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 		expires: getShareAuthCookieExpires(link.expiresAt)
 	});
 
-	return json({ success: true });
+	return Response.json({ success: true });
 };

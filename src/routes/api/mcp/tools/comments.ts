@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getCommentsByBranch, addReply, getCommentById } from '$lib/server/comments';
+import { getCommentsByBranch, addReply, getCommentById } from '#lib/server/comments.ts';
 import type { McpServer, ToolHelpers } from '../types';
 
 export function registerCommentTools(server: McpServer, helpers: ToolHelpers): void {

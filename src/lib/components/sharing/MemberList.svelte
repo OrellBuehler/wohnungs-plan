@@ -1,10 +1,10 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages';
-	import { Button } from '$lib/components/ui/button';
-	import * as Select from '$lib/components/ui/select';
+	import * as m from '#lib/paraglide/messages.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Select from '#lib/components/ui/select/index.ts';
 	import UserMinus from '@lucide/svelte/icons/user-minus';
 	import Users from '@lucide/svelte/icons/users';
-	import { getInitials } from '$lib/utils/format';
+	import { getInitials } from '#lib/utils/format.ts';
 
 	export type ProjectRole = 'owner' | 'editor' | 'viewer';
 
@@ -91,9 +91,9 @@
 							</Select.Content>
 						</Select.Root>
 					{:else}
-						<span class="text-xs text-muted-foreground"
-							>{roleOptions.find((o) => o.value === member.role)?.label() ?? member.role}</span
-						>
+						<span class="text-xs text-muted-foreground">
+							{roleOptions.find((o) => o.value === member.role)?.label() ?? member.role}
+						</span>
 					{/if}
 
 					{#if canManage && member.role !== 'owner'}

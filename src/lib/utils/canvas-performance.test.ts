@@ -10,7 +10,7 @@ import {
 	shouldShowDistanceIndicators,
 	shouldRenderGrid,
 	shouldRenderItemLabels
-} from '$lib/utils/canvas-performance';
+} from '#lib/utils/canvas-performance.ts';
 
 describe('shouldRenderGrid', () => {
 	it('renders grid only when enabled and not in active interaction mode', () => {

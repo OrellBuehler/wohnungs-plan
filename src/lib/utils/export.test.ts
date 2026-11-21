@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { exportProjectToJSON, importProjectFromJSON } from './export';
-import type { Project } from '$lib/types';
+import type { Project } from '#lib/types/index.ts';
 
 function makeProject(overrides: Partial<Project> = {}): Project {
 	return {

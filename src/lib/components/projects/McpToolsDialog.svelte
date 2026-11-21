@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Switch } from '$lib/components/ui/switch';
-	import { Separator } from '$lib/components/ui/separator';
+	import * as m from '#lib/paraglide/messages.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Switch } from '#lib/components/ui/switch/index.ts';
+	import { Separator } from '#lib/components/ui/separator/index.ts';
 
 	interface Props {
 		open: boolean;
@@ -263,9 +263,9 @@
 		{/if}
 
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={handleCancel}
-				>{m.common_cancel()}</Button
-			>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={handleCancel}>
+				{m.common_cancel()}
+			</Button>
 			<Button
 				class="w-full sm:w-auto"
 				onclick={handleSave}

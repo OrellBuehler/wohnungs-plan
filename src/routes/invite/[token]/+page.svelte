@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
-	import { fetchUser, getUser, isAuthenticated } from '$lib/stores/auth.svelte';
-	import * as m from '$lib/paraglide/messages';
+	import { page } from '$app/state';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Card from '#lib/components/ui/card/index.ts';
+	import { fetchUser, getUser, isAuthenticated } from '#lib/stores/auth.svelte.ts';
+	import * as m from '#lib/paraglide/messages.js';
 
 	type InviteData = {
 		projectId: string;
@@ -22,7 +22,7 @@
 	let errorTitle = $state<string | null>(null);
 	let errorMessage = $state<string | null>(null);
 
-	const token = $derived($page.params.token);
+	const token = $derived(page.params.token);
 	const currentUserEmail = $derived(getUser()?.email ?? null);
 
 	onMount(async () => {
@@ -153,9 +153,9 @@
 							</div>
 							<div class="flex justify-between gap-4">
 								<span class="text-on-surface-variant">{m.invite_details_email()}</span>
-								<span class="text-on-surface font-medium text-right"
-									>{invite.email ?? m.invite_details_any_account()}</span
-								>
+								<span class="text-on-surface font-medium text-right">
+									{invite.email ?? m.invite_details_any_account()}
+								</span>
 							</div>
 						</div>
 

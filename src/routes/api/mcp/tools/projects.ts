@@ -1,4 +1,4 @@
-import { getUserProjects } from '$lib/server/projects';
+import { getUserProjects } from '#lib/server/projects.ts';
 import type { McpServer, ToolHelpers } from '../types';
 
 export function registerProjectTools(server: McpServer, helpers: ToolHelpers): void {

@@ -1,9 +1,9 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { getProjectMembers, createInvite, addMember } from '$lib/server/members';
-import { findUserByEmail } from '$lib/server/users';
-import type { ProjectRole } from '$lib/server/types';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getProjectMembers, createInvite, addMember } from '#lib/server/members.ts';
+import { findUserByEmail } from '#lib/server/users.ts';
+import type { ProjectRole } from '#lib/server/types.ts';
 
 const ALLOWED_ROLES: ProjectRole[] = ['editor', 'viewer'];
 
@@ -18,7 +18,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const members = await getProjectMembers(params.id);
-	return json({ members });
+	return Response.json({ members });
 };
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -46,9 +46,9 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	const existingUser = await findUserByEmail(email);
 	if (existingUser) {
 		const member = await addMember(params.id, existingUser.id, inviteRole);
-		return json({ member, invite: null });
+		return Response.json({ member, invite: null });
 	}
 
 	const invite = await createInvite(params.id, email, inviteRole);
-	return json({ invite });
+	return Response.json({ invite });
 };

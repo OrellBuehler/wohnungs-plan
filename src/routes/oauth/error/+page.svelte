@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
-	import { page } from '$app/stores';
-	import * as m from '$lib/paraglide/messages';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Card from '#lib/components/ui/card/index.ts';
+	import { page } from '$app/state';
+	import * as m from '#lib/paraglide/messages.js';
 
 	const errorCodes: Record<string, { title: string; description: string; suggestions: string[] }> =
 		{
@@ -83,8 +83,8 @@
 			}
 		};
 
-	const code = $derived($page.url.searchParams.get('code') ?? 'unknown');
-	const detail = $derived($page.url.searchParams.get('detail'));
+	const code = $derived(page.url.searchParams.get('code') ?? 'unknown');
+	const detail = $derived(page.url.searchParams.get('detail'));
 	const error = $derived(errorCodes[code] ?? errorCodes['unknown']);
 </script>
 
@@ -102,7 +102,7 @@
 								stroke-linejoin="round"
 								stroke-width="2"
 								d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-							/>
+							></path>
 						</svg>
 					</div>
 					<div>
@@ -141,7 +141,7 @@
 											stroke-linejoin="round"
 											stroke-width="2"
 											d="M9 5l7 7-7 7"
-										/>
+										></path>
 									</svg>
 									<span class="text-on-surface-variant">{suggestion}</span>
 								</li>

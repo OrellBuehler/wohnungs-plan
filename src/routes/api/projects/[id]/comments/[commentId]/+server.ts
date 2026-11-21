@@ -1,12 +1,12 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
+import { getProjectRole } from '#lib/server/projects.ts';
 import {
 	getCommentById,
 	resolveComment,
 	updateCommentPosition,
 	deleteComment
-} from '$lib/server/comments';
+} from '#lib/server/comments.ts';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -33,7 +33,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		await updateCommentPosition(params.commentId, body.x, body.y);
 	}
 
-	return json({ success: true });
+	return Response.json({ success: true });
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
@@ -53,5 +53,5 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 
 	await deleteComment(params.commentId);
 
-	return json({ success: true });
+	return Response.json({ success: true });
 };

@@ -1,13 +1,13 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { getAllProjects, getProject } from '$lib/db';
-	import type { Project, ProjectMeta } from '$lib/types';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
+	import { getAllProjects, getProject } from '#lib/db/index.ts';
+	import type { Project, ProjectMeta } from '#lib/types/index.ts';
 	import Upload from '@lucide/svelte/icons/upload';
 	import FolderOpen from '@lucide/svelte/icons/folder-open';
-	import * as m from '$lib/paraglide/messages';
-	import { getLocale } from '$lib/paraglide/runtime';
+	import * as m from '#lib/paraglide/messages.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { toast } from 'svelte-sonner';
 
 	interface Props {

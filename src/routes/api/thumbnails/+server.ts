@@ -1,10 +1,10 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { logger } from '$lib/server/logger';
-import { config } from '$lib/server/env';
-import { getProjectById, getProjectRole } from '$lib/server/projects';
-import { ensureMainBranch, getDefaultBranch } from '$lib/server/branches';
-import { checkRateLimit } from '$lib/server/rate-limit';
+import { logger } from '#lib/server/logger.ts';
+import { config } from '#lib/server/env.ts';
+import { getProjectById, getProjectRole } from '#lib/server/projects.ts';
+import { ensureMainBranch, getDefaultBranch } from '#lib/server/branches.ts';
+import { checkRateLimit } from '#lib/server/rate-limit.ts';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -84,7 +84,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		const base64Data = imageData.replace(/^data:image\/png;base64,/, '');
 		await writeFile(getThumbnailPath(projectId), Buffer.from(base64Data, 'base64'));
 
-		return json({ success: true });
+		return Response.json({ success: true });
 	} catch (err) {
 		// Re-throw SvelteKit errors as-is
 		if (err && typeof err === 'object' && 'status' in err) {

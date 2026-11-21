@@ -1,6 +1,6 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getUserProjectsWithDetails, createProject } from '$lib/server/projects';
+import { getUserProjectsWithDetails, createProject } from '#lib/server/projects.ts';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	if (!locals.user) {
@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 	}
 
 	const projects = await getUserProjectsWithDetails(locals.user.id);
-	return json({ projects });
+	return Response.json({ projects });
 };
 
 export const POST: RequestHandler = async ({ locals, request }) => {
@@ -24,5 +24,5 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	const project = await createProject(locals.user.id, name, currency, gridSize, id);
-	return json({ project }, { status: 201 });
+	return Response.json({ project }, { status: 201 });
 };

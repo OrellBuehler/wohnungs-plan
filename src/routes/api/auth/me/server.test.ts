@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from './+server';
 
 // Mock server-side dependencies
-vi.mock('$lib/server/session', () => ({
+vi.mock('#lib/server/session.ts', () => ({
 	parseSessionCookie: vi.fn(),
 	getSessionWithUser: vi.fn()
 }));
 
-vi.mock('$lib/server/users', () => ({
+vi.mock('#lib/server/users.ts', () => ({
 	toUserProfile: vi.fn((user: any) => ({
 		id: user.id,
 		email: user.email,
@@ -16,8 +16,8 @@ vi.mock('$lib/server/users', () => ({
 	}))
 }));
 
-import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
-import { toUserProfile } from '$lib/server/users';
+import { parseSessionCookie, getSessionWithUser } from '#lib/server/session.ts';
+import { toUserProfile } from '#lib/server/users.ts';
 
 function createRequestEvent(cookieHeader?: string) {
 	const headers = new Headers();

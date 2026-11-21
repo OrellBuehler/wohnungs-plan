@@ -1,4 +1,4 @@
-import { getLocale } from '$lib/paraglide/runtime';
+import { getLocale } from '#lib/paraglide/runtime.js';
 
 export type CurrencyCode = 'EUR' | 'USD' | 'GBP' | 'CHF' | 'PLN' | 'SEK' | 'NOK' | 'DKK';
 

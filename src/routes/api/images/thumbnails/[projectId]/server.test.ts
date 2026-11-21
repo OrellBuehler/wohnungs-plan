@@ -1,21 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from './+server';
 
-vi.mock('$lib/server/projects', () => ({
+vi.mock('#lib/server/projects.ts', () => ({
 	getProjectRole: vi.fn(),
 	getProjectFloorplan: vi.fn()
 }));
 
-vi.mock('$lib/server/share-links', () => ({
+vi.mock('#lib/server/share-links.ts', () => ({
 	getShareLinkByToken: vi.fn(),
 	isShareLinkValid: vi.fn(() => true)
 }));
 
-vi.mock('$lib/server/thumbnails', () => ({
+vi.mock('#lib/server/thumbnails.ts', () => ({
 	getThumbnailPath: (projectId: string) => `/uploads/thumbnails/${projectId}.png`
 }));
 
-vi.mock('$lib/server/floorplans', () => ({
+vi.mock('#lib/server/floorplans.ts', () => ({
 	getFloorplanPath: (projectId: string, filename: string) =>
 		`/uploads/floorplans/${projectId}/${filename}`
 }));
@@ -26,8 +26,8 @@ vi.mock('node:fs/promises', () => {
 	return { readFile, stat, default: { readFile, stat } };
 });
 
-import { getProjectRole, getProjectFloorplan } from '$lib/server/projects';
-import { getShareLinkByToken } from '$lib/server/share-links';
+import { getProjectRole, getProjectFloorplan } from '#lib/server/projects.ts';
+import { getShareLinkByToken } from '#lib/server/share-links.ts';
 import { readFile, stat } from 'node:fs/promises';
 
 const PROJECT_ID = '11111111-1111-4111-8111-111111111111';

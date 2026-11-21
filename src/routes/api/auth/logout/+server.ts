@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { deleteSession, parseSessionCookie, clearSessionCookie } from '$lib/server/session';
-import { isSecureRequest } from '$lib/server/http';
+import { deleteSession, parseSessionCookie, clearSessionCookie } from '#lib/server/session.ts';
+import { isSecureRequest } from '#lib/server/http.ts';
 
 export const POST: RequestHandler = async ({ request, url }) => {
 	const sessionId = parseSessionCookie(request.headers.get('cookie'));

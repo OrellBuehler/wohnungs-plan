@@ -1,5 +1,5 @@
 import { isAuthenticated, authFetch } from './auth.svelte';
-import { parseDataUrl } from '$lib/utils/data';
+import { parseDataUrl } from '#lib/utils/data.ts';
 
 interface SyncState {
 	isOnline: boolean;

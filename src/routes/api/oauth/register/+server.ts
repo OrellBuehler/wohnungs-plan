@@ -1,18 +1,17 @@
-import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getDB, oauthClients } from '$lib/server/db';
+import { getDB, oauthClients } from '#lib/server/db.ts';
 import {
 	generateClientId,
 	generateClientSecret,
 	hashToken,
 	isValidRedirectUriFormat
-} from '$lib/server/oauth';
-import { checkRateLimit } from '$lib/server/rate-limit';
+} from '#lib/server/oauth.ts';
+import { checkRateLimit } from '#lib/server/rate-limit.ts';
 
 export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	const ip = request.headers.get('x-forwarded-for') || getClientAddress();
 	if (!checkRateLimit(`oauth-register:${ip}`, 10, 60 * 60 * 1000)) {
-		return json(
+		return Response.json(
 			{
 				error: 'too_many_requests',
 				error_description: 'Too many registration attempts. Try again later.'
@@ -24,14 +23,14 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return json(
+		return Response.json(
 			{ error: 'invalid_client_metadata', error_description: 'Invalid JSON body' },
 			{ status: 400 }
 		);
 	}
 
 	if (!body || typeof body !== 'object') {
-		return json(
+		return Response.json(
 			{ error: 'invalid_client_metadata', error_description: 'Request body must be a JSON object' },
 			{ status: 400 }
 		);
@@ -42,7 +41,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	// Validate redirect_uris (required)
 	const redirectUris = metadata.redirect_uris;
 	if (!Array.isArray(redirectUris) || redirectUris.length === 0) {
-		return json(
+		return Response.json(
 			{
 				error: 'invalid_redirect_uri',
 				error_description: 'redirect_uris must be a non-empty array'
@@ -53,7 +52,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 
 	for (const uri of redirectUris) {
 		if (typeof uri !== 'string' || !isValidRedirectUriFormat(uri)) {
-			return json(
+			return Response.json(
 				{
 					error: 'invalid_redirect_uri',
 					error_description: `Invalid redirect URI: ${uri}. Must be HTTPS or localhost.`
@@ -69,7 +68,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	// Validate grant_types (default to authorization_code per spec)
 	const grantTypes = (metadata.grant_types as string[] | undefined) ?? ['authorization_code'];
 	if (!Array.isArray(grantTypes) || !grantTypes.includes('authorization_code')) {
-		return json(
+		return Response.json(
 			{
 				error: 'invalid_client_metadata',
 				error_description: 'grant_types must include "authorization_code"'
@@ -81,7 +80,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	// Validate response_types (default to code per spec)
 	const responseTypes = (metadata.response_types as string[] | undefined) ?? ['code'];
 	if (!Array.isArray(responseTypes) || !responseTypes.includes('code')) {
-		return json(
+		return Response.json(
 			{ error: 'invalid_client_metadata', error_description: 'response_types must include "code"' },
 			{ status: 400 }
 		);
@@ -91,7 +90,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	const authMethod =
 		(metadata.token_endpoint_auth_method as string | undefined) ?? 'client_secret_post';
 	if (authMethod !== 'client_secret_post' && authMethod !== 'none') {
-		return json(
+		return Response.json(
 			{
 				error: 'invalid_client_metadata',
 				error_description: 'token_endpoint_auth_method must be "client_secret_post" or "none"'
@@ -138,5 +137,5 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 		response.client_secret_expires_at = 0;
 	}
 
-	return json(response, { status: 201 });
+	return Response.json(response, { status: 201 });
 };

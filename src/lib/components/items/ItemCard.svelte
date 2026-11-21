@@ -1,17 +1,17 @@
 <script lang="ts">
-	import type { Item } from '$lib/types';
-	import { formatPrice } from '$lib/utils/currency';
-	import { getLShapePoints, getRectPoints } from '$lib/utils/geometry';
-	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
+	import type { Item } from '#lib/types/index.ts';
+	import { formatPrice } from '#lib/utils/currency.ts';
+	import { getLShapePoints, getRectPoints } from '#lib/utils/geometry.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Separator } from '#lib/components/ui/separator/index.ts';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import MapPinOff from '@lucide/svelte/icons/map-pin-off';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
-	import * as m from '$lib/paraglide/messages';
-	import { formatDimension } from '$lib/utils/format';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatDimension } from '#lib/utils/format.ts';
 	import ImageViewer from './ImageViewer.svelte';
 
 	interface Props {
@@ -131,12 +131,13 @@
 				{#if item.position}
 					<span
 						class="text-xs bg-secondary-fixed text-on-secondary-fixed-variant px-2 py-0.5 rounded"
-						>{m.item_card_placed()}</span
 					>
+						{m.item_card_placed()}
+					</span>
 				{:else}
-					<span class="text-xs bg-surface-container text-on-surface-variant px-2 py-0.5 rounded"
-						>{m.item_card_unplaced()}</span
-					>
+					<span class="text-xs bg-surface-container text-on-surface-variant px-2 py-0.5 rounded">
+						{m.item_card_unplaced()}
+					</span>
 				{/if}
 				{#if item.productUrl}
 					<a

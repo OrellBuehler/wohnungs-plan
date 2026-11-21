@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge';
-	import { getPendingChanges, isOnline } from '$lib/stores/sync.svelte';
-	import * as m from '$lib/paraglide/messages';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { getPendingChanges, isOnline } from '#lib/stores/sync.svelte.ts';
+	import * as m from '#lib/paraglide/messages.js';
 
 	const pending = $derived(getPendingChanges());
 	const online = $derived(isOnline());

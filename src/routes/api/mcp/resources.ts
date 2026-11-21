@@ -1,8 +1,8 @@
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { getBranchItems } from '$lib/server/items';
-import { getProjectById } from '$lib/server/projects';
-import { getDefaultBranch, listProjectBranches } from '$lib/server/branches';
-import { getFloorplanAnalysis } from '$lib/server/floorplan-analyses';
+import { getBranchItems } from '#lib/server/items.ts';
+import { getProjectById } from '#lib/server/projects.ts';
+import { getDefaultBranch, listProjectBranches } from '#lib/server/branches.ts';
+import { getFloorplanAnalysis } from '#lib/server/floorplan-analyses.ts';
 import type { McpServer, ToolHelpers } from './types';
 
 export function registerResources(server: McpServer, helpers: ToolHelpers): void {

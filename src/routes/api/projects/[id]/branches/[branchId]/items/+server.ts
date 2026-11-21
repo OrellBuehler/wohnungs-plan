@@ -1,9 +1,9 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getBranchById } from '$lib/server/branches';
-import { createItem, getBranchItems, parseItemCreateBody } from '$lib/server/items';
-import { getProjectRole } from '$lib/server/projects';
-import { getImagesByItems } from '$lib/server/item-images';
+import { getBranchById } from '#lib/server/branches.ts';
+import { createItem, getBranchItems, parseItemCreateBody } from '#lib/server/items.ts';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getImagesByItems } from '#lib/server/item-images.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 		images: imagesMap.get(item.id) ?? []
 	}));
 
-	return json({ items: itemsWithImages });
+	return Response.json({ items: itemsWithImages });
 };
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -56,5 +56,5 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		parseItemCreateBody(body)
 	);
 
-	return json({ item }, { status: 201 });
+	return Response.json({ item }, { status: 201 });
 };

@@ -1,21 +1,21 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 
-	import * as m from '$lib/paraglide/messages';
-	import { formatDecimal } from '$lib/utils/format';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatDecimal } from '#lib/utils/format.ts';
 	import {
 		getFloorplanAnalysis,
 		toggleWallsDoors,
 		hasFloorplanAnalysis
-	} from '$lib/stores/project.svelte';
+	} from '#lib/stores/project.svelte.ts';
 	import {
 		isCommentsVisible,
 		toggleCommentsVisibility,
 		getComments
-	} from '$lib/stores/comments.svelte';
+	} from '#lib/stores/comments.svelte.ts';
 
 	interface Props {
 		showGrid: boolean;

@@ -1,7 +1,7 @@
-import { sveltekit } from '@sveltejs/kit/vite';
+import adapter from '@sveltejs/adapter-bun';
 import tailwindcss from '@tailwindcss/vite';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
-import { SvelteKitPWA } from '@vite-pwa/sveltekit';
+import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 
 function stubBunForTests() {
@@ -25,24 +25,11 @@ export default defineConfig({
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	plugins: [
 		tailwindcss(),
-		sveltekit(),
-		SvelteKitPWA({
-			strategies: 'injectManifest',
-			// SvelteKit builds with a relative base; the worker must be registered
-			// from the site root so it can control every route
-			buildBase: '/',
-			scope: '/',
-			srcDir: 'src',
-			filename: 'service-worker.ts',
-			registerType: 'autoUpdate',
-			manifest: false, // Use existing static/manifest.json
-			injectManifest: {
-				globPatterns: ['**/*.{js,css,html,svg,png,woff2}']
-			},
-			devOptions: {
-				enabled: true,
-				type: 'module'
-			}
+		sveltekit({
+			adapter: adapter({ precompress: true }),
+			// Disable SvelteKit's built-in CSRF to allow cross-origin OAuth token exchange.
+			// Manual CSRF origin checking is applied in hooks.server.ts for non-exempt routes.
+			csrf: { trustedOrigins: ['*'] }
 		}),
 		paraglideVitePlugin({
 			project: './project.inlang',
@@ -57,7 +44,7 @@ export default defineConfig({
 		globals: true,
 		environment: 'jsdom',
 		alias: {
-			'$env/dynamic/private': new URL('./src/lib/test-utils/mocks/env.ts', import.meta.url).pathname
+			'$app/env/private': new URL('./src/lib/test-utils/mocks/env.ts', import.meta.url).pathname
 		},
 		server: {
 			deps: {

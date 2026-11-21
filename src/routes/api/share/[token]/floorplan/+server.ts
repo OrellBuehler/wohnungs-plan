@@ -5,11 +5,11 @@ import {
 	getShareLinkByToken,
 	isShareLinkValid,
 	verifyShareAuthCookie
-} from '$lib/server/share-links';
-import { getProjectFloorplan } from '$lib/server/projects';
-import { getFloorplanPath } from '$lib/server/floorplans';
+} from '#lib/server/share-links.ts';
+import { getProjectFloorplan } from '#lib/server/projects.ts';
+import { getFloorplanPath } from '#lib/server/floorplans.ts';
 import { readFile, stat } from 'node:fs/promises';
-import { serveFileWithEtag } from '$lib/server/http';
+import { serveFileWithEtag } from '#lib/server/http.ts';
 
 export const GET: RequestHandler = async ({ params, cookies, request }) => {
 	const link = await getShareLinkByToken(params.token);

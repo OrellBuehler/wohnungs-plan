@@ -1,10 +1,10 @@
 import { redirect, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { logger } from '$lib/server/logger';
-import { exchangeCodeForTokens, getUserInfo } from '$lib/server/oidc';
-import { upsertUser } from '$lib/server/users';
-import { createSession, createSessionCookie } from '$lib/server/session';
-import { isSecureRequest, isSafeRedirectPath } from '$lib/server/http';
+import { logger } from '#lib/server/logger.ts';
+import { exchangeCodeForTokens, getUserInfo } from '#lib/server/oidc.ts';
+import { upsertUser } from '#lib/server/users.ts';
+import { createSession, createSessionCookie } from '#lib/server/session.ts';
+import { isSecureRequest, isSafeRedirectPath } from '#lib/server/http.ts';
 
 export const GET: RequestHandler = async ({ url, cookies, request }) => {
 	const code = url.searchParams.get('code');

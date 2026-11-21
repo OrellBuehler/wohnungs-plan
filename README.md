@@ -5,7 +5,7 @@ A collaborative apartment and room planning app. Upload floorplans, place furnit
 ## Tech Stack
 
 - **Frontend**: SvelteKit + Svelte 5 (runes), Tailwind CSS 4, Konva.js (canvas)
-- **Backend**: SvelteKit with `svelte-adapter-bun`, WebSockets for real-time collaboration
+- **Backend**: SvelteKit with `@sveltejs/adapter-bun`, WebSockets for real-time collaboration
 - **Database**: PostgreSQL with Drizzle ORM
 - **Auth**: Infomaniak OIDC
 - **i18n**: Paraglide JS (English + German)
@@ -93,7 +93,7 @@ src/
 
 ## Deployment
 
-The app ships as a Docker container using `svelte-adapter-bun`:
+The app ships as a Docker container using `@sveltejs/adapter-bun`:
 
 ```bash
 docker build -t wohnungs-plan .

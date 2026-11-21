@@ -1,8 +1,8 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { getBranchById } from '$lib/server/branches';
-import { getItemById } from '$lib/server/items';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getBranchById } from '#lib/server/branches.ts';
+import { getItemById } from '#lib/server/items.ts';
 import {
 	getItemImages,
 	createItemImage,
@@ -10,10 +10,10 @@ import {
 	generateThumbnail,
 	getItemImagePath,
 	getItemImageThumbPath
-} from '$lib/server/item-images';
-import { insertHistoryEntries } from '$lib/server/items';
-import { config } from '$lib/server/env';
-import { detectImageMime, EXT_BY_MIME } from '$lib/server/image-utils';
+} from '#lib/server/item-images.ts';
+import { insertHistoryEntries } from '#lib/server/items.ts';
+import { config } from '#lib/server/env.ts';
+import { detectImageMime, EXT_BY_MIME } from '#lib/server/image-utils.ts';
 import { unlink } from 'node:fs/promises';
 
 const MAX_IMAGES_PER_ITEM = 20;
@@ -39,7 +39,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const images = await getItemImages(params.itemId);
-	return json({ images });
+	return Response.json({ images });
 };
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -124,7 +124,7 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 			}
 		]);
 
-		return json({ image }, { status: 201 });
+		return Response.json({ image }, { status: 201 });
 	} catch (e) {
 		// Clean up files on DB insert failure
 		try {

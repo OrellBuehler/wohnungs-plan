@@ -1,5 +1,5 @@
-import type { Project } from '$lib/types';
-import { DEFAULT_CURRENCY } from '$lib/utils/currency';
+import type { Project } from '#lib/types/index.ts';
+import { DEFAULT_CURRENCY } from '#lib/utils/currency.ts';
 
 export function exportProjectToJSON(project: Project, thumbnail?: string | null): string {
 	const exportData = {

@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import {
 	getShareAuthCookieName,
@@ -6,14 +6,14 @@ import {
 	isShareLinkValid,
 	sanitizeItemsForShare,
 	verifyShareAuthCookie
-} from '$lib/server/share-links';
-import { getProjectById, getProjectFloorplan, getProjectItems } from '$lib/server/projects';
+} from '#lib/server/share-links.ts';
+import { getProjectById, getProjectFloorplan, getProjectItems } from '#lib/server/projects.ts';
 import {
 	ensureMainBranch,
 	getBranchById,
 	getDefaultBranch,
 	listProjectBranches
-} from '$lib/server/branches';
+} from '#lib/server/branches.ts';
 
 export const GET: RequestHandler = async ({ params, cookies, url }) => {
 	const link = await getShareLinkByToken(params.token);
@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ params, cookies, url }) => {
 		const cookieName = getShareAuthCookieName(link.token);
 		const cookieValue = cookies.get(cookieName) ?? '';
 		if (!verifyShareAuthCookie(cookieValue, link.id)) {
-			return json({
+			return Response.json({
 				requiresPassword: true,
 				projectName: project.name
 			});
@@ -56,7 +56,7 @@ export const GET: RequestHandler = async ({ params, cookies, url }) => {
 		listProjectBranches(project.id)
 	]);
 
-	return json({
+	return Response.json({
 		project: {
 			name: project.name,
 			currency: project.currency,

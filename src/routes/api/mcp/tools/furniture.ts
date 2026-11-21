@@ -1,9 +1,15 @@
 import { z } from 'zod';
 import { readFile, access } from 'node:fs/promises';
-import { createItem, deleteItem, getBranchItems, getItemById, updateItem } from '$lib/server/items';
-import { getImagesByItems } from '$lib/server/item-images';
-import { getThumbnailPath, generateAndSaveThumbnail } from '$lib/server/thumbnails';
-import { logger } from '$lib/server/logger';
+import {
+	createItem,
+	deleteItem,
+	getBranchItems,
+	getItemById,
+	updateItem
+} from '#lib/server/items.ts';
+import { getImagesByItems } from '#lib/server/item-images.ts';
+import { getThumbnailPath, generateAndSaveThumbnail } from '#lib/server/thumbnails.ts';
+import { logger } from '#lib/server/logger.ts';
 import type { McpServer, ToolHelpers } from '../types';
 
 export function registerFurnitureTools(server: McpServer, helpers: ToolHelpers): void {

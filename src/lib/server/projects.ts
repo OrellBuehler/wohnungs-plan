@@ -10,7 +10,7 @@ import {
 	type Floorplan
 } from './db';
 import type { ProjectWithRole, ProjectRole } from './types';
-import type { ProjectMeta } from '$lib/types';
+import type { ProjectMeta } from '#lib/types/index.ts';
 import { copyFloorplan } from './floorplans';
 import { ensureMainBranch } from './branches';
 import { config } from './env';

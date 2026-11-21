@@ -10,7 +10,7 @@
 		Group,
 		Circle
 	} from 'svelte-konva';
-	import type { Item, Floorplan } from '$lib/types';
+	import type { Item, Floorplan } from '#lib/types/index.ts';
 	import type Konva from 'konva';
 	import type { Context } from 'konva/lib/Context';
 	import type { Shape as KonvaShape } from 'konva/lib/Shape';
@@ -20,7 +20,7 @@
 		isPlacementMode,
 		getItemCommentCount,
 		isCommentsVisible
-	} from '$lib/stores/comments.svelte';
+	} from '#lib/stores/comments.svelte.ts';
 	import {
 		getMinEdgeDistance,
 		getOverlappingItems,
@@ -29,8 +29,8 @@
 		selectNearestByDistance,
 		hasArchitecturalCollision,
 		type BoundingBox
-	} from '$lib/utils/geometry';
-	import { getFloorplanAnalysis, isWallsDoorsVisible } from '$lib/stores/project.svelte';
+	} from '#lib/utils/geometry.ts';
+	import { getFloorplanAnalysis, isWallsDoorsVisible } from '#lib/stores/project.svelte.ts';
 	import {
 		buildDimensionMap,
 		buildIdMap,
@@ -42,15 +42,15 @@
 		shouldShowDistanceIndicators,
 		shouldRenderGrid,
 		shouldRenderItemLabels
-	} from '$lib/utils/canvas-performance';
+	} from '#lib/utils/canvas-performance.ts';
 	import {
 		applyCoalescedPanAndZoom,
 		clampZoom,
 		clientToContainer,
 		getViewportCenterWorld,
 		zoomTowardPoint
-	} from '$lib/utils/canvas-math';
-	import { Button } from '$lib/components/ui/button';
+	} from '#lib/utils/canvas-math.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Minus from '@lucide/svelte/icons/minus';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
@@ -59,8 +59,8 @@
 	import Unlock from '@lucide/svelte/icons/unlock';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 	import MapPinOff from '@lucide/svelte/icons/map-pin-off';
-	import * as m from '$lib/paraglide/messages';
-	import { formatDimension, formatDecimal } from '$lib/utils/format';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatDimension, formatDecimal } from '#lib/utils/format.ts';
 
 	interface Props {
 		floorplan: Floorplan | null;

@@ -2,11 +2,11 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { getFloorplanPath } from '$lib/server/floorplans';
-import { getProjectFloorplan, getProjectRole } from '$lib/server/projects';
-import { getShareLinkByToken, isShareLinkValid } from '$lib/server/share-links';
-import { serveFileWithEtag } from '$lib/server/http';
-import { getThumbnailPath } from '$lib/server/thumbnails';
+import { getFloorplanPath } from '#lib/server/floorplans.ts';
+import { getProjectFloorplan, getProjectRole } from '#lib/server/projects.ts';
+import { getShareLinkByToken, isShareLinkValid } from '#lib/server/share-links.ts';
+import { serveFileWithEtag } from '#lib/server/http.ts';
+import { getThumbnailPath } from '#lib/server/thumbnails.ts';
 
 function getDefaultOgImagePath(): string {
 	return join(process.cwd(), 'static', 'og-image.png');

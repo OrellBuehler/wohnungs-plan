@@ -1,7 +1,7 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { getCommentById, addReply } from '$lib/server/comments';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getCommentById, addReply } from '#lib/server/comments.ts';
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -34,5 +34,5 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		body: body.body.trim()
 	});
 
-	return json({ reply }, { status: 201 });
+	return Response.json({ reply }, { status: 201 });
 };

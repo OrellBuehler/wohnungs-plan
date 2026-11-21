@@ -6,7 +6,7 @@ import {
 } from './collaboration.svelte';
 import { authFetch } from './auth.svelte';
 import { toast } from 'svelte-sonner';
-import * as m from '$lib/paraglide/messages';
+import * as m from '#lib/paraglide/messages.js';
 
 // Client-side types (no server imports)
 export interface ClientComment {

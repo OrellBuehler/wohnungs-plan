@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
+import { parseSessionCookie, getSessionWithUser } from '#lib/server/session.ts';
 import {
 	getOAuthClient,
 	hasAuthorization,
@@ -8,7 +8,7 @@ import {
 	validateRedirectUri,
 	isValidCodeChallengeS256,
 	isValidRedirectUriFormat
-} from '$lib/server/oauth';
+} from '#lib/server/oauth.ts';
 
 /**
  * Redirect to OAuth error page with error code and optional detail
@@ -120,5 +120,5 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 	callbackUrl.searchParams.set('code', code);
 	callbackUrl.searchParams.set('state', state);
 
-	throw redirect(302, callbackUrl.toString());
+	throw redirect(302, callbackUrl.toString(), { external: true });
 };

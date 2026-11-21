@@ -1,8 +1,8 @@
 <script lang="ts">
-	import SEO from '$lib/components/SEO.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { getLocale, setLocale, locales, type Locale } from '$lib/paraglide/runtime';
-	import * as m from '$lib/paraglide/messages';
+	import SEO from '#lib/components/SEO.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { getLocale, setLocale, locales, type Locale } from '#lib/paraglide/runtime.js';
+	import * as m from '#lib/paraglide/messages.js';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Users from '@lucide/svelte/icons/users';
 	import GitBranch from '@lucide/svelte/icons/git-branch';
@@ -201,12 +201,12 @@
 									font-size="10"
 									letter-spacing="1.5"
 								>
-									<text x="170" y="62" text-anchor="middle"
-										>{m.landing_hero_mockup_room_living().toUpperCase()}</text
-									>
-									<text x="380" y="62" text-anchor="middle"
-										>{m.landing_hero_mockup_room_bed().toUpperCase()}</text
-									>
+									<text x="170" y="62" text-anchor="middle">
+										{m.landing_hero_mockup_room_living().toUpperCase()}
+									</text>
+									<text x="380" y="62" text-anchor="middle">
+										{m.landing_hero_mockup_room_bed().toUpperCase()}
+									</text>
 								</g>
 
 								<!-- Furniture: sofa -->
@@ -328,9 +328,9 @@
 									<line x1="40" y1="374" x2="40" y2="382" stroke="#76777d" stroke-width="0.5" />
 									<line x1="460" y1="374" x2="460" y2="382" stroke="#76777d" stroke-width="0.5" />
 									<rect x="225" y="369" width="50" height="18" fill="#f7f9fb" />
-									<text x="250" y="382" text-anchor="middle"
-										>{m.landing_hero_mockup_dim_width()}</text
-									>
+									<text x="250" y="382" text-anchor="middle">
+										{m.landing_hero_mockup_dim_width()}
+									</text>
 								</g>
 								<g
 									class="hero-dims"
@@ -342,9 +342,9 @@
 									<line x1="474" y1="40" x2="482" y2="40" stroke="#76777d" stroke-width="0.5" />
 									<line x1="474" y1="360" x2="482" y2="360" stroke="#76777d" stroke-width="0.5" />
 									<rect x="466" y="191" width="24" height="18" fill="#f7f9fb" />
-									<text x="478" y="204" text-anchor="middle" transform="rotate(-90 478 200)"
-										>{m.landing_hero_mockup_dim_height()}</text
-									>
+									<text x="478" y="204" text-anchor="middle" transform="rotate(-90 478 200)">
+										{m.landing_hero_mockup_dim_height()}
+									</text>
 								</g>
 							</svg>
 
@@ -372,9 +372,9 @@
 							class="absolute -bottom-4 -right-3 sm:-right-4 bg-surface-container-lowest shadow-lg rounded-lg px-3 py-2 flex items-center gap-2 reveal-float"
 						>
 							<span class="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
-							<span class="font-technical text-[11px] uppercase tracking-wider text-on-surface"
-								>3 online</span
-							>
+							<span class="font-technical text-[11px] uppercase tracking-wider text-on-surface">
+								3 online
+							</span>
 						</div>
 					</div>
 				</div>
@@ -439,13 +439,14 @@
 				<div class="reveal" style="--reveal-delay: 0ms">
 					<div class="bg-surface-container-low rounded-xl p-6 h-full flex flex-col">
 						<div class="flex items-baseline justify-between mb-5">
-							<span class="font-technical text-2xl font-bold tracking-tight text-on-surface"
-								>01</span
-							>
+							<span class="font-technical text-2xl font-bold tracking-tight text-on-surface">
+								01
+							</span>
 							<span
 								class="font-technical text-[10px] uppercase tracking-wider text-on-surface-variant"
-								>Upload</span
 							>
+								Upload
+							</span>
 						</div>
 						<div
 							class="aspect-[4/3] rounded-lg bg-surface-container-lowest p-4 mb-5 relative overflow-hidden"
@@ -503,13 +504,14 @@
 				<div class="reveal" style="--reveal-delay: 90ms">
 					<div class="bg-surface-container-low rounded-xl p-6 h-full flex flex-col">
 						<div class="flex items-baseline justify-between mb-5">
-							<span class="font-technical text-2xl font-bold tracking-tight text-on-surface"
-								>02</span
-							>
+							<span class="font-technical text-2xl font-bold tracking-tight text-on-surface">
+								02
+							</span>
 							<span
 								class="font-technical text-[10px] uppercase tracking-wider text-on-surface-variant"
-								>Calibrate</span
 							>
+								Calibrate
+							</span>
 						</div>
 						<div
 							class="aspect-[4/3] rounded-lg bg-surface-container-lowest p-4 mb-5 relative overflow-hidden"
@@ -564,13 +566,14 @@
 				<div class="reveal" style="--reveal-delay: 180ms">
 					<div class="bg-surface-container-low rounded-xl p-6 h-full flex flex-col">
 						<div class="flex items-baseline justify-between mb-5">
-							<span class="font-technical text-2xl font-bold tracking-tight text-on-surface"
-								>03</span
-							>
+							<span class="font-technical text-2xl font-bold tracking-tight text-on-surface">
+								03
+							</span>
 							<span
 								class="font-technical text-[10px] uppercase tracking-wider text-on-surface-variant"
-								>Arrange</span
 							>
+								Arrange
+							</span>
 						</div>
 						<div
 							class="aspect-[4/3] rounded-lg bg-surface-container-lowest p-4 mb-5 relative overflow-hidden"
@@ -688,12 +691,14 @@
 					<div class="relative h-full flex flex-col justify-between">
 						<span
 							class="font-technical text-[10px] uppercase tracking-wider text-on-surface-variant"
-							>&amp; more</span
 						>
+							&amp; more
+						</span>
 						<span
 							class="font-display text-4xl font-bold tracking-[-0.03em] text-on-surface leading-none"
-							>∞</span
 						>
+							∞
+						</span>
 					</div>
 				</div>
 			</div>
@@ -752,9 +757,9 @@
 					</h3>
 					<ul class="space-y-2.5">
 						<li>
-							<a href="/app" class="text-sm text-on-surface hover:text-secondary transition-colors"
-								>{m.landing_footer_link_app()}</a
-							>
+							<a href="/app" class="text-sm text-on-surface hover:text-secondary transition-colors">
+								{m.landing_footer_link_app()}
+							</a>
 						</li>
 						<li>
 							<a
@@ -781,8 +786,9 @@
 							<a
 								href="/privacy"
 								class="text-sm text-on-surface hover:text-secondary transition-colors"
-								>{m.landing_footer_link_privacy()}</a
 							>
+								{m.landing_footer_link_privacy()}
+							</a>
 						</li>
 					</ul>
 				</div>

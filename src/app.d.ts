@@ -1,5 +1,4 @@
-/// <reference types="vite-plugin-pwa/client" />
-import type { DBUser } from '$lib/server/types';
+import type { DBUser } from '#lib/server/types.ts';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
