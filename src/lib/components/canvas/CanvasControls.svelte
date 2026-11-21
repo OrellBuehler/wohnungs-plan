@@ -55,9 +55,9 @@
 </script>
 
 <div
-	class="bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg px-3 py-2 flex items-center gap-3 text-sm"
+	class="bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg px-3 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm whitespace-nowrap"
 >
-	<div class="flex items-center gap-3">
+	<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
 		<Label class="flex items-center gap-2 text-on-surface-variant cursor-pointer">
 			<Checkbox bind:checked={showGrid} />
 			{m.canvas_control_grid()}
@@ -92,7 +92,7 @@
 				min={1}
 				max={200}
 				step={1}
-				class="w-14 h-7 font-technical text-sm"
+				class="w-14 h-7 shrink-0 font-technical text-sm"
 			/>
 			{m.canvas_control_px()}
 		</Label>

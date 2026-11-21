@@ -397,7 +397,7 @@
 	onMount(async () => {
 		const id = page.params.id;
 		if (!id) {
-			goto('/');
+			goto('/app');
 			return;
 		}
 		await waitForAuth();
@@ -422,7 +422,7 @@
 			}
 		} else {
 			toast.error(m.error_load_project());
-			goto('/');
+			goto('/app');
 		}
 	});
 
@@ -496,13 +496,13 @@
 								onclick: () => handleChangeFloorplan()
 							},
 							{
-								label: showGrid ? m.project_hide_grid() : m.project_show_grid(),
+								label: m.canvas_control_grid(),
 								icon: Grid3x3,
 								onclick: () => (showGrid = !showGrid),
 								indicator: showGrid ? m.project_sidebar_toggle_on() : m.project_sidebar_toggle_off()
 							},
 							{
-								label: snapToGrid ? m.project_disable_snap() : m.project_enable_snap(),
+								label: m.canvas_control_snap(),
 								icon: Magnet,
 								onclick: () => (snapToGrid = !snapToGrid),
 								indicator: snapToGrid
@@ -888,7 +888,11 @@
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
 		<div class="flex items-center gap-2 min-w-0 flex-1">
-			<a href="/" class="flex items-center flex-shrink-0 md:hidden">
+			<a
+				href="/app"
+				class="flex items-center flex-shrink-0 md:hidden"
+				aria-label={m.nav_projects()}
+			>
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			</a>
 			{#if isEditingName}

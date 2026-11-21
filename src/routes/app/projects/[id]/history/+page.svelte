@@ -253,7 +253,7 @@
 
 	onMount(async () => {
 		if (!projectId) {
-			goto('/');
+			goto('/app');
 			return;
 		}
 		if (!project) {

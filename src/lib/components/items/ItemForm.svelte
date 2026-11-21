@@ -428,7 +428,7 @@
 				/>
 			</div>
 
-			<Dialog.Footer>
+			<Dialog.Footer class="sticky bottom-0 bg-background pt-3 pb-0.5">
 				<Button type="button" variant="outline" onclick={handleClose}>{m.common_cancel()}</Button>
 				<Button type="submit">{m.common_save()}</Button>
 			</Dialog.Footer>

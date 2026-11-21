@@ -31,5 +31,6 @@ export function formatPrice(amount: number, currencyCode: CurrencyCode): string 
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2
 	}).format(amount);
-	return `${symbol}${formatted}`;
+	// Letter codes such as CHF or kr need a (non-breaking) space, glyphs such as € do not
+	return /^\p{L}/u.test(symbol) ? `${symbol}\u00a0${formatted}` : `${symbol}${formatted}`;
 }

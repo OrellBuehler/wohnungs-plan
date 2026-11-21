@@ -1213,6 +1213,8 @@
 								fill="#1e293b"
 								align="center"
 								width={itemWidthPx}
+								wrap="none"
+								ellipsis={true}
 								listening={false}
 							/>
 						{/if}
@@ -1441,7 +1443,7 @@
 	{#if floorplan?.scale}
 		{@const scaleBarWidth = 100 * effectiveScale * zoom}
 		<div
-			class="absolute bottom-2 right-2 flex flex-col items-end gap-0.5 bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg px-2 py-1"
+			class="absolute top-2 left-2 flex flex-col items-start gap-0.5 bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg px-2 py-1"
 		>
 			<div
 				class="h-1.5 bg-on-surface-variant/40 rounded-sm"

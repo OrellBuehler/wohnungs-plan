@@ -63,10 +63,10 @@ describe('formatPrice', () => {
 	});
 
 	it('handles zero', () => {
-		expect(formatPrice(0, 'CHF')).toBe('CHF0.00');
+		expect(formatPrice(0, 'CHF')).toBe('CHF\u00a00.00');
 	});
 
 	it('handles negative amounts', () => {
-		expect(formatPrice(-15.5, 'PLN')).toBe('zł-15.50');
+		expect(formatPrice(-15.5, 'PLN')).toBe('zł\u00a0-15.50');
 	});
 });

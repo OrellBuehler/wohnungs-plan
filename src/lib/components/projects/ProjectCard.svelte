@@ -81,7 +81,7 @@
 		style="background-image: radial-gradient(circle, var(--color-surface-container-highest) 1px, transparent 1px); background-size: 24px 24px;"
 	>
 		{#if thumbnailUrl}
-			<img src={thumbnailUrl} alt="{project.name} preview" class="w-full h-full object-cover" />
+			<img src={thumbnailUrl} alt="{project.name} preview" class="w-full h-full object-contain" />
 		{:else}
 			<div class="w-full h-full flex items-center justify-center">
 				<House class="size-12 text-outline" />
@@ -110,9 +110,9 @@
 					{#snippet child({ props })}
 						<Button
 							{...props}
-							variant="secondary"
+							variant="ghost"
 							size="icon"
-							class="bg-surface-container-lowest/90 backdrop-blur-sm hover:bg-surface-container-lowest"
+							class="bg-surface-container-high/80 backdrop-blur-[12px] text-on-surface hover:bg-surface-container-highest"
 						>
 							<MoreVertical class="size-4" />
 							<span class="sr-only">{m.project_card_actions()}</span>
