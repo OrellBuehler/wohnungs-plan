@@ -4,14 +4,26 @@ import { readFileSync } from 'fs';
 const sizes = [192, 512];
 const svgPath = 'static/icon.svg';
 const svg = readFileSync(svgPath);
+const brand = '#0058be';
 
 for (const size of sizes) {
 	await sharp(svg).resize(size, size).png().toFile(`static/icon-${size}.png`);
 	console.log(`Generated icon-${size}.png`);
+
+	await sharp(svg)
+		.resize(size, size)
+		.flatten({ background: brand })
+		.png()
+		.toFile(`static/icon-maskable-${size}.png`);
+	console.log(`Generated icon-maskable-${size}.png`);
 }
 
-// Also generate apple-touch-icon (180x180)
-await sharp(svg).resize(180, 180).png().toFile('static/apple-touch-icon.png');
+// Also generate apple-touch-icon (180x180), full bleed because iOS fills transparency with black
+await sharp(svg)
+	.resize(180, 180)
+	.flatten({ background: brand })
+	.png()
+	.toFile('static/apple-touch-icon.png');
 console.log('Generated apple-touch-icon.png');
 
 // Generate og-image (1200x630) with the icon centered
@@ -26,7 +38,7 @@ await sharp({
 		width: ogWidth,
 		height: ogHeight,
 		channels: 4,
-		background: { r: 241, g: 245, b: 249, alpha: 1 } // slate-100
+		background: { r: 247, g: 249, b: 251, alpha: 1 }
 	}
 })
 	.composite([
