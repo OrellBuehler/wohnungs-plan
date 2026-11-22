@@ -87,6 +87,11 @@ bun db:studio    # Open Drizzle Studio
 - Check in container: `docker exec <container> cat /app/version.txt` (contains `APP_VERSION=<tag>`)
 - Dev mode and local `docker build` without `--build-arg APP_VERSION=…` show `dev`
 
+## Deployment
+
+- Pull-based (GitOps): pushing a `v*` tag makes `.github/workflows/docker.yml` build and publish the image to GHCR as `:latest` plus version tags — there is no deploy job and no SSH access to the server
+- The `docker-server` repo runs `ghcr.io/orellbuehler/wohnungs-plan:latest`; its reconcile job pulls the new image on the next run (daily, or whenever `docker-server` `main` changes)
+
 ## SvelteKit Navigation
 
 - Avoid `history.pushState()` and `history.replaceState()` as they conflict with SvelteKit's router
