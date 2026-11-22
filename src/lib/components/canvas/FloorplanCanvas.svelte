@@ -10,7 +10,7 @@
 		Group,
 		Circle
 	} from 'svelte-konva';
-	import type { Item, Floorplan } from '$lib/types';
+	import type { Item, Floorplan } from '#lib/types/index.ts';
 	import type Konva from 'konva';
 	import type { Context } from 'konva/lib/Context';
 	import type { Shape as KonvaShape } from 'konva/lib/Shape';
@@ -20,7 +20,7 @@
 		isPlacementMode,
 		getItemCommentCount,
 		isCommentsVisible
-	} from '$lib/stores/comments.svelte';
+	} from '#lib/stores/comments.svelte.ts';
 	import {
 		getMinEdgeDistance,
 		getOverlappingItems,
@@ -29,8 +29,8 @@
 		selectNearestByDistance,
 		hasArchitecturalCollision,
 		type BoundingBox
-	} from '$lib/utils/geometry';
-	import { getFloorplanAnalysis, isWallsDoorsVisible } from '$lib/stores/project.svelte';
+	} from '#lib/utils/geometry.ts';
+	import { getFloorplanAnalysis, isWallsDoorsVisible } from '#lib/stores/project.svelte.ts';
 	import {
 		buildDimensionMap,
 		buildIdMap,
@@ -42,15 +42,15 @@
 		shouldShowDistanceIndicators,
 		shouldRenderGrid,
 		shouldRenderItemLabels
-	} from '$lib/utils/canvas-performance';
+	} from '#lib/utils/canvas-performance.ts';
 	import {
 		applyCoalescedPanAndZoom,
 		clampZoom,
 		clientToContainer,
 		getViewportCenterWorld,
 		zoomTowardPoint
-	} from '$lib/utils/canvas-math';
-	import { Button } from '$lib/components/ui/button';
+	} from '#lib/utils/canvas-math.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Minus from '@lucide/svelte/icons/minus';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
@@ -59,8 +59,8 @@
 	import Unlock from '@lucide/svelte/icons/unlock';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 	import MapPinOff from '@lucide/svelte/icons/map-pin-off';
-	import * as m from '$lib/paraglide/messages';
-	import { formatDimension, formatDecimal } from '$lib/utils/format';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatDimension, formatDecimal } from '#lib/utils/format.ts';
 
 	interface Props {
 		floorplan: Floorplan | null;
@@ -1213,6 +1213,8 @@
 								fill="#1e293b"
 								align="center"
 								width={itemWidthPx}
+								wrap="none"
+								ellipsis={true}
 								listening={false}
 							/>
 						{/if}
@@ -1441,7 +1443,7 @@
 	{#if floorplan?.scale}
 		{@const scaleBarWidth = 100 * effectiveScale * zoom}
 		<div
-			class="absolute bottom-2 right-2 flex flex-col items-end gap-0.5 bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg px-2 py-1"
+			class="absolute top-2 left-2 flex flex-col items-start gap-0.5 bg-surface-container-lowest/80 backdrop-blur-[12px] rounded-lg px-2 py-1"
 		>
 			<div
 				class="h-1.5 bg-on-surface-variant/40 rounded-sm"

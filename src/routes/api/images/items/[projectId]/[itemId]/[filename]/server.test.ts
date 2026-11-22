@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { join } from 'node:path';
 import { GET } from './+server';
 
-vi.mock('$lib/server/projects', () => ({
+vi.mock('#lib/server/projects.ts', () => ({
 	getProjectRole: vi.fn()
 }));
 
-vi.mock('$lib/server/item-images', () => ({
+vi.mock('#lib/server/item-images.ts', () => ({
 	getItemImageByFilename: vi.fn(),
 	getItemImagePath: (projectId: string, itemId: string, filename: string) =>
 		join('/uploads', 'item-images', projectId, itemId, filename),
@@ -14,7 +14,7 @@ vi.mock('$lib/server/item-images', () => ({
 		join('/uploads', 'item-images', projectId, itemId, `thumb_${filename}`)
 }));
 
-vi.mock('$lib/server/env', () => ({
+vi.mock('#lib/server/env.ts', () => ({
 	config: { uploads: { dir: '/uploads' } }
 }));
 
@@ -24,8 +24,8 @@ vi.mock('node:fs/promises', () => {
 	return { readFile, stat, default: { readFile, stat } };
 });
 
-import { getProjectRole } from '$lib/server/projects';
-import { getItemImageByFilename } from '$lib/server/item-images';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getItemImageByFilename } from '#lib/server/item-images.ts';
 import { readFile, stat } from 'node:fs/promises';
 
 const PROJECT_ID = '11111111-1111-4111-8111-111111111111';

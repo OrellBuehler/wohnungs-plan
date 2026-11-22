@@ -1,4 +1,4 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import {
 	getProjectById,
@@ -7,14 +7,14 @@ import {
 	getProjectFloorplan,
 	updateProject,
 	deleteProject
-} from '$lib/server/projects';
+} from '#lib/server/projects.ts';
 import {
 	ensureMainBranch,
 	getBranchById,
 	getDefaultBranch,
 	listProjectBranches
-} from '$lib/server/branches';
-import { getImagesByItems } from '$lib/server/item-images';
+} from '#lib/server/branches.ts';
+import { getImagesByItems } from '#lib/server/item-images.ts';
 
 export const GET: RequestHandler = async ({ locals, params, url }) => {
 	if (!locals.user) {
@@ -59,7 +59,7 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
 		images: imagesMap.get(item.id) ?? []
 	}));
 
-	return json({
+	return Response.json({
 		project,
 		items: itemsWithImages,
 		floorplan,
@@ -87,7 +87,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 
 	const project = await updateProject(params.id, body);
 
-	return json({ project });
+	return Response.json({ project });
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
@@ -101,5 +101,5 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	}
 
 	await deleteProject(params.id);
-	return json({ success: true });
+	return Response.json({ success: true });
 };

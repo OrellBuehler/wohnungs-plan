@@ -30,14 +30,14 @@ bun db:studio    # Open Drizzle Studio
 
 - Locales: `en` (base), `de` — message files in `messages/{locale}.json`
 - Config: `project.inlang/settings.json`; generated runtime in `src/lib/paraglide/` (do not edit)
-- Import messages: `import * as m from '$lib/paraglide/messages'`, then `m.key_name()`
-- Import locale: `import { getLocale } from '$lib/paraglide/runtime'`
-- Locale-aware formatting: use `formatDecimal`, `formatDimension`, `formatRelativeTime` from `$lib/utils/format.ts` and `formatPrice` from `$lib/utils/currency.ts` — never use `.toFixed()` or `toLocaleDateString()` without passing `getLocale()`
+- Import messages: `import * as m from '#lib/paraglide/messages'`, then `m.key_name()`
+- Import locale: `import { getLocale } from '#lib/paraglide/runtime'`
+- Locale-aware formatting: use `formatDecimal`, `formatDimension`, `formatRelativeTime` from `#lib/utils/format.ts` and `formatPrice` from `#lib/utils/currency.ts` — never use `.toFixed()` or `toLocaleDateString()` without passing `getLocale()`
 - Locale detection: cookie → browser preference → `en`
 
 ## UI Components
 
-- Always use shadcn-svelte components from `$lib/components/ui/`
+- Always use shadcn-svelte components from `#lib/components/ui/`
 - Available: Badge, Button, Card, Checkbox, Context Menu, Data Table, Dialog, Dropdown Menu, Input, Label, Select, Separator, Sheet, Slider, Sonner (toast), Switch, Table, Tabs, Tooltip
 - Add new components via: `bunx shadcn-svelte@latest add <component>`
 
@@ -59,9 +59,10 @@ bun db:studio    # Open Drizzle Studio
 
 ### Service Worker
 
-- Built with @vite-pwa/sveltekit and Workbox; the plugin is registered in `vite.config.ts` (not `svelte.config.js`)
-- `kit.serviceWorker.register` is `false`; the worker is registered from `src/routes/+layout.svelte` via `virtual:pwa-register`
-- Cache-first for app shell (HTML, CSS, JS, fonts, icons)
+- `src/service-worker/index.ts`, built and registered by SvelteKit itself (no PWA plugin — `@vite-pwa/sveltekit` 2 does not load under Bun); Workbox handles caching
+- Precache list comes from `$app/manifest`; the worker has its own `src/service-worker/tsconfig.json`, type-checked by `bun check`
+- `src/routes/+layout.svelte` reloads the page when an updated worker takes control
+- Cache-first for app shell (CSS, JS, fonts, icons)
 - Network-first for API routes, except `/api/images/` which uses the image cache
 - Cache-first for images with 30-day expiration
 
@@ -75,7 +76,8 @@ bun db:studio    # Open Drizzle Studio
 
 - **Stores**: Svelte 5 rune stores in `src/lib/stores/*.svelte.ts` (e.g., `project.svelte.ts`, `collaboration.svelte.ts`)
 - **Server**: `src/lib/server/` — DB schema, sessions, OAuth, rate limiting, WebSocket handlers
-- **Adapter**: `svelte-adapter-bun` (not Node)
+- **Adapter**: `@sveltejs/adapter-bun` (not Node)
+- **SvelteKit 3**: config lives in `vite.config.ts` (no `svelte.config.js`); import from `#lib/...` with file extensions (not `$lib`); env vars are declared in `src/env.ts` and imported from `$app/env/private`
 
 ## Version Tracking
 
@@ -88,7 +90,7 @@ bun db:studio    # Open Drizzle Studio
 ## SvelteKit Navigation
 
 - Avoid `history.pushState()` and `history.replaceState()` as they conflict with SvelteKit's router
-- Use `pushState` and `replaceState` from `$app/navigation` instead
+- Use `goto(url, { shallow: true })` from `$app/navigation` instead (add `replace: true` to replace the history entry)
 
 ## OAuth/MCP Integration
 

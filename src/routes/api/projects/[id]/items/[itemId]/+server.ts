@@ -1,8 +1,8 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { getItemById, updateItem, deleteItem } from '$lib/server/items';
-import { resolveDefaultBranch } from '$lib/server/branches';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getItemById, updateItem, deleteItem } from '#lib/server/items.ts';
+import { resolveDefaultBranch } from '#lib/server/branches.ts';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -38,7 +38,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		cutoutCorner: body.cutoutCorner
 	});
 
-	return json({ item });
+	return Response.json({ item });
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
@@ -58,5 +58,5 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	}
 
 	await deleteItem(params.id, branch.id, params.itemId, locals.user.id);
-	return json({ success: true });
+	return Response.json({ success: true });
 };

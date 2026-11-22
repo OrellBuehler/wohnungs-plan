@@ -4,9 +4,9 @@ import {
 	getShareLinkByToken,
 	isShareLinkValid,
 	verifyShareAuthCookie
-} from '$lib/server/share-links';
-import { getProjectById } from '$lib/server/projects';
-import { config } from '$lib/server/env';
+} from '#lib/server/share-links.ts';
+import { getProjectById } from '#lib/server/projects.ts';
+import { config } from '#lib/server/env.ts';
 
 export const load: PageServerLoad = async ({ params, cookies, url }) => {
 	const link = await getShareLinkByToken(params.token);

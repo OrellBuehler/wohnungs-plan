@@ -1,13 +1,20 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
-	import { Toaster } from '$lib/components/ui/sonner/index.js';
+	import { Toaster } from '#lib/components/ui/sonner/index.js';
 
 	let { children } = $props();
 
-	onMount(async () => {
-		const { registerSW } = await import('virtual:pwa-register');
-		registerSW({ immediate: true });
+	// Reload once an updated service worker takes over, so the page never runs stale code
+	onMount(() => {
+		if (!('serviceWorker' in navigator)) return;
+		const hadController = !!navigator.serviceWorker.controller;
+		const onControllerChange = () => {
+			if (hadController) location.reload();
+		};
+		navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+		return () =>
+			navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
 	});
 </script>
 

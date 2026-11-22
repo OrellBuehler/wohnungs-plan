@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as m from '$lib/paraglide/messages';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as m from '#lib/paraglide/messages.js';
 
 	interface Props {
 		activeTab: 'plan' | 'items' | 'comments';
@@ -17,9 +17,11 @@
 >
 	<Button
 		variant="ghost"
-		class="flex-1 flex items-center justify-center gap-2 rounded-none h-14 {activeTab === 'plan'
+		class="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 rounded-none h-14 {activeTab ===
+		'plan'
 			? 'text-on-surface bg-surface-container-high'
 			: 'text-on-surface-variant'}"
+		aria-current={activeTab === 'plan' ? 'page' : undefined}
 		onclick={() => onTabChange('plan')}
 	>
 		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,9 +36,11 @@
 	</Button>
 	<Button
 		variant="ghost"
-		class="flex-1 flex items-center justify-center gap-2 rounded-none h-14 {activeTab === 'items'
+		class="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 rounded-none h-14 {activeTab ===
+		'items'
 			? 'text-on-surface bg-surface-container-high'
 			: 'text-on-surface-variant'}"
+		aria-current={activeTab === 'items' ? 'page' : undefined}
 		onclick={() => onTabChange('items')}
 	>
 		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,10 +55,11 @@
 	</Button>
 	<Button
 		variant="ghost"
-		class="flex-1 flex items-center justify-center gap-2 rounded-none h-14 relative {activeTab ===
+		class="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 rounded-none h-14 relative {activeTab ===
 		'comments'
 			? 'text-on-surface bg-surface-container-high'
 			: 'text-on-surface-variant'}"
+		aria-current={activeTab === 'comments' ? 'page' : undefined}
 		onclick={() => onTabChange('comments')}
 	>
 		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

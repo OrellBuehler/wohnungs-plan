@@ -1,4 +1,4 @@
-import type { UserProfile } from '$lib/server/types';
+import type { UserProfile } from '#lib/server/types.ts';
 
 interface AuthState {
 	user: UserProfile | null;

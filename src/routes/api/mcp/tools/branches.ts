@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createBranch, getDefaultBranch, listProjectBranches } from '$lib/server/branches';
+import { createBranch, getDefaultBranch, listProjectBranches } from '#lib/server/branches.ts';
 import type { McpServer, ToolHelpers } from '../types';
 
 export function registerBranchTools(server: McpServer, helpers: ToolHelpers): void {

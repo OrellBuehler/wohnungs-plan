@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { Separator } from '$lib/components/ui/separator';
-	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
-	import { cn } from '$lib/utils';
+	import { page } from '$app/state';
+	import { Separator } from '#lib/components/ui/separator/index.ts';
+	import SidebarTrigger from '#lib/components/layout/SidebarTrigger.svelte';
+	import { cn } from '#lib/utils.ts';
 	import Settings from '@lucide/svelte/icons/settings';
 	import Plug from '@lucide/svelte/icons/plug';
 	import type { Snippet } from 'svelte';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '#lib/paraglide/messages.js';
 
 	let { children }: { children: Snippet } = $props();
 
@@ -16,7 +16,7 @@
 	];
 
 	function isActive(href: string): boolean {
-		return $page.url.pathname.startsWith(href);
+		return page.url.pathname.startsWith(href);
 	}
 </script>
 

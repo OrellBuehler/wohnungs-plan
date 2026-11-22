@@ -1,9 +1,8 @@
-import type { Handle, HandleServerError } from '@sveltejs/kit';
-import { sequence } from '@sveltejs/kit/hooks';
-import { paraglideMiddleware } from '$lib/paraglide/server';
-import { getSessionWithUser, parseSessionCookie } from '$lib/server/session';
-import { runMigrations } from '$lib/server/db';
-import { logger } from '$lib/server/logger';
+import { sequence, type Handle, type HandleServerError } from '@sveltejs/kit/hooks';
+import { paraglideMiddleware } from '#lib/paraglide/server.js';
+import { getSessionWithUser, parseSessionCookie } from '#lib/server/session.ts';
+import { runMigrations } from '#lib/server/db.ts';
+import { logger } from '#lib/server/logger.ts';
 
 // Run migrations on server startup
 export async function init() {
@@ -44,12 +43,11 @@ const CORS_HEADERS = {
 } as const;
 
 const paraglideHandle: Handle = ({ event, resolve }) =>
-	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
-		event.request = localizedRequest;
-		return resolve(event, {
+	paraglideMiddleware(event.request, ({ locale }) =>
+		resolve(event, {
 			transformPageChunk: ({ html }) => html.replace('%lang%', locale)
-		});
-	});
+		})
+	);
 
 export const appHandle: Handle = async ({ event, resolve }) => {
 	const pathname = event.url.pathname;
@@ -148,13 +146,17 @@ const BOT_PATH_PREFIXES = [
 
 const BOT_PATH_CONTAINS = ['/.env', '/credentials', '/api-docs'];
 
-export const handleError: HandleServerError = ({ status, event }) => {
+export const handleError: HandleServerError = ({ kind, error, event }) => {
+	// Expected errors thrown with error(...) and validation failures are not logged
+	if (kind === 'app' || kind === 'validation') return;
+	const status = kind === 'framework' ? error.status : 500;
 	if (status === 404) {
 		const path = event.url.pathname;
 		const isBotProbe =
 			BOT_PATH_PREFIXES.some((p) => path.startsWith(p)) ||
 			BOT_PATH_CONTAINS.some((p) => path.includes(p)) ||
 			/\.(php|asp|aspx|jsp|cgi|sql|bak|old|orig|swp|log)(\?|$)/.test(path);
+
 		if (isBotProbe) return;
 	}
 	logger.error(`[${status}] ${event.request.method} ${event.url.pathname}`);

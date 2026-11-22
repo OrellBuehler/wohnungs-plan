@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { getRemoteUsers, getCollaborationState } from '$lib/stores/collaboration.svelte';
-	import * as Tooltip from '$lib/components/ui/tooltip';
-	import * as m from '$lib/paraglide/messages';
-	import { getInitials } from '$lib/utils/format';
+	import { getRemoteUsers, getCollaborationState } from '#lib/stores/collaboration.svelte.ts';
+	import * as Tooltip from '#lib/components/ui/tooltip/index.ts';
+	import * as m from '#lib/paraglide/messages.js';
+	import { getInitials } from '#lib/utils/format.ts';
 
 	const MAX_VISIBLE = 4;
 

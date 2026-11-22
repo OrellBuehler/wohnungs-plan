@@ -1,14 +1,14 @@
 import { redirect, fail, isRedirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { logger } from '$lib/server/logger';
-import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
+import { logger } from '#lib/server/logger.ts';
+import { parseSessionCookie, getSessionWithUser } from '#lib/server/session.ts';
 import {
 	getOAuthClient,
 	createAuthorization,
 	createAuthorizationCode,
 	validateRedirectUri,
 	isValidCodeChallengeS256
-} from '$lib/server/oauth';
+} from '#lib/server/oauth.ts';
 
 /**
  * Load consent screen - verify authentication and client
@@ -148,7 +148,7 @@ export const actions = {
 			callbackUrl.searchParams.set('state', state);
 
 			// Redirect back to client
-			throw redirect(302, callbackUrl.toString());
+			throw redirect(302, callbackUrl.toString(), { external: true });
 		} catch (error) {
 			if (isRedirect(error)) throw error;
 			logger.error('Failed to approve authorization:', error);
@@ -175,7 +175,7 @@ export const actions = {
 				callbackUrl.searchParams.set('error_description', 'User denied authorization');
 				callbackUrl.searchParams.set('state', state);
 
-				throw redirect(302, callbackUrl.toString());
+				throw redirect(302, callbackUrl.toString(), { external: true });
 			}
 		}
 

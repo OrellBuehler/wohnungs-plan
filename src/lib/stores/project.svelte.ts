@@ -7,14 +7,14 @@ import type {
 	ProjectMeta,
 	ProjectBranch,
 	ItemChange
-} from '$lib/types';
-import type { CurrencyCode } from '$lib/utils/currency';
-import { parseDataUrl } from '$lib/utils/data';
-import { DEFAULT_CURRENCY } from '$lib/utils/currency';
+} from '#lib/types/index.ts';
+import type { CurrencyCode } from '#lib/utils/currency.ts';
+import { parseDataUrl } from '#lib/utils/data.ts';
+import { DEFAULT_CURRENCY } from '#lib/utils/currency.ts';
 import { toast } from 'svelte-sonner';
-import * as m from '$lib/paraglide/messages';
-import { uploadWithProgress } from '$lib/utils/upload';
-import UploadProgress from '$lib/components/shared/UploadProgress.svelte';
+import * as m from '#lib/paraglide/messages.js';
+import { uploadWithProgress } from '#lib/utils/upload.ts';
+import UploadProgress from '#lib/components/shared/UploadProgress.svelte';
 import {
 	getAllProjects as getLocalProjects,
 	getProject as loadLocalProject,
@@ -23,9 +23,9 @@ import {
 	createNewProject,
 	getThumbnail,
 	saveThumbnail
-} from '$lib/db';
-import { isAuthenticated, authFetch } from '$lib/stores/auth.svelte';
-import { isOnline, queueChange } from '$lib/stores/sync.svelte';
+} from '#lib/db/index.ts';
+import { isAuthenticated, authFetch } from '#lib/stores/auth.svelte.ts';
+import { isOnline, queueChange } from '#lib/stores/sync.svelte.ts';
 
 interface ApiProject {
 	id: string;

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import * as Card from '#lib/components/ui/card/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import type { PageData } from './$types';
-	import * as m from '$lib/paraglide/messages';
-	import LanguageSwitcher from '$lib/components/layout/LanguageSwitcher.svelte';
+	import * as m from '#lib/paraglide/messages.js';
+	import LanguageSwitcher from '#lib/components/layout/LanguageSwitcher.svelte';
 
 	let { data }: { data: PageData } = $props();
 </script>

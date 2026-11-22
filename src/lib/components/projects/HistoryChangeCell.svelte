@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ItemChange } from '$lib/types';
+	import type { ItemChange } from '#lib/types/index.ts';
 
 	let {
 		action,

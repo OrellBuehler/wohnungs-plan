@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
-	import { getUser } from '$lib/stores/auth.svelte';
+	import * as m from '#lib/paraglide/messages.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Separator } from '#lib/components/ui/separator/index.ts';
+	import { getUser } from '#lib/stores/auth.svelte.ts';
 	import MemberList, { type Member, type ProjectRole } from './MemberList.svelte';
 	import InviteForm from './InviteForm.svelte';
 	import ShareLinkList from './ShareLinkList.svelte';
@@ -172,9 +172,9 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={closeRemoveConfirm}
-				>{m.common_cancel()}</Button
-			>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={closeRemoveConfirm}>
+				{m.common_cancel()}
+			</Button>
 			<Button
 				variant="destructive"
 				class="w-full sm:w-auto"

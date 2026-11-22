@@ -1,8 +1,8 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getProjectById, getProjectRole } from '$lib/server/projects';
-import { getBranchById, getDefaultBranch } from '$lib/server/branches';
-import { getBranchItems, listItemChanges } from '$lib/server/items';
+import { getProjectById, getProjectRole } from '#lib/server/projects.ts';
+import { getBranchById, getDefaultBranch } from '#lib/server/branches.ts';
+import { getBranchItems, listItemChanges } from '#lib/server/items.ts';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {

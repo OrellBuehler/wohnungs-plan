@@ -38,7 +38,7 @@ if (violations.length > 0) {
 	console.error(
 		'\nThis likely means a test env mock alias leaked into the production vite config.'
 	);
-	console.error('Check that resolve.alias for $env/dynamic/private is inside test config only.\n');
+	console.error('Check that the test alias for $app/env/private is inside test config only.\n');
 	process.exit(1);
 }
 

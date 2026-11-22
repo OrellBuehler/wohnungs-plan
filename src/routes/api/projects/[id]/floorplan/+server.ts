@@ -1,14 +1,14 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole, getProjectFloorplan } from '$lib/server/projects';
+import { getProjectRole, getProjectFloorplan } from '#lib/server/projects.ts';
 import {
 	createFloorplan,
 	saveFloorplanFile,
 	deleteFloorplan,
 	updateFloorplanScale
-} from '$lib/server/floorplans';
-import { config } from '$lib/server/env';
-import { detectImageMime, EXT_BY_MIME } from '$lib/server/image-utils';
+} from '#lib/server/floorplans.ts';
+import { config } from '#lib/server/env.ts';
+import { detectImageMime, EXT_BY_MIME } from '#lib/server/image-utils.ts';
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -51,7 +51,7 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		sizeBytes: file.size
 	});
 
-	return json({ floorplan }, { status: 201 });
+	return Response.json({ floorplan }, { status: 201 });
 };
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
@@ -77,7 +77,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const updated = await updateFloorplanScale(floorplan.id, scale, referenceLength);
-	return json({ floorplan: updated });
+	return Response.json({ floorplan: updated });
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
@@ -91,5 +91,5 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	}
 
 	await deleteFloorplan(params.id);
-	return json({ success: true });
+	return Response.json({ success: true });
 };

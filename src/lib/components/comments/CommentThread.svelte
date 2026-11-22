@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as m from '$lib/paraglide/messages';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as m from '#lib/paraglide/messages.js';
 	import {
 		addReplyToComment,
 		toggleResolve,
 		removeComment,
 		type ClientComment
-	} from '$lib/stores/comments.svelte';
+	} from '#lib/stores/comments.svelte.ts';
 
 	interface Props {
 		comment: ClientComment;

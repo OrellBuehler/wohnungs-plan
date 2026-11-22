@@ -1,7 +1,7 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { createShareLink, getProjectShareLinks } from '$lib/server/share-links';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { createShareLink, getProjectShareLinks } from '#lib/server/share-links.ts';
 
 function toPublicShareLink(link: {
 	id: string;
@@ -32,7 +32,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const links = await getProjectShareLinks(params.id);
-	return json({ links: links.map(toPublicShareLink) });
+	return Response.json({ links: links.map(toPublicShareLink) });
 };
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -57,5 +57,5 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	const expiresAt = (b.expiresAt as string) ?? undefined;
 
 	const link = await createShareLink(params.id, locals.user.id, { label, password, expiresAt });
-	return json({ link: toPublicShareLink(link) }, { status: 201 });
+	return Response.json({ link: toPublicShareLink(link) }, { status: 201 });
 };

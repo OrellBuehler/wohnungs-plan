@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getAuthorizationUrl } from '$lib/server/oidc';
-import { isSecureRequest, isSafeRedirectPath } from '$lib/server/http';
+import { getAuthorizationUrl } from '#lib/server/oidc.ts';
+import { isSecureRequest, isSafeRedirectPath } from '#lib/server/http.ts';
 
 export const GET: RequestHandler = async ({ cookies, url, request }) => {
 	// Generate and store state for CSRF protection
@@ -41,5 +41,5 @@ export const GET: RequestHandler = async ({ cookies, url, request }) => {
 	}
 
 	const authUrl = getAuthorizationUrl(state);
-	throw redirect(302, authUrl);
+	throw redirect(302, authUrl, { external: true });
 };

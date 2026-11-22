@@ -1,13 +1,13 @@
 import sharp, { type Sharp } from 'sharp';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { config } from '$lib/server/env';
-import { getProjectFloorplan } from '$lib/server/projects';
-import { getFloorplanPath } from '$lib/server/floorplans';
-import { getBranchItems } from '$lib/server/items';
-import { getDefaultBranch } from '$lib/server/branches';
-import type { Item } from '$lib/server/db';
-import { logger } from '$lib/server/logger';
+import { config } from '#lib/server/env.ts';
+import { getProjectFloorplan } from '#lib/server/projects.ts';
+import { getFloorplanPath } from '#lib/server/floorplans.ts';
+import { getBranchItems } from '#lib/server/items.ts';
+import { getDefaultBranch } from '#lib/server/branches.ts';
+import type { Item } from '#lib/server/db.ts';
+import { logger } from '#lib/server/logger.ts';
 
 const THUMBNAIL_WIDTH = 800;
 const THUMBNAIL_HEIGHT = 600;

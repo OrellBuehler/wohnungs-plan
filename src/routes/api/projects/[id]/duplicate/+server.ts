@@ -1,6 +1,6 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole, duplicateProject } from '$lib/server/projects';
+import { getProjectRole, duplicateProject } from '#lib/server/projects.ts';
 
 export const POST: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -14,5 +14,5 @@ export const POST: RequestHandler = async ({ locals, params }) => {
 
 	const project = await duplicateProject(params.id, locals.user.id);
 
-	return json({ project: { id: project.id, name: project.name } });
+	return Response.json({ project: { id: project.id, name: project.name } });
 };

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as Sheet from '$lib/components/ui/sheet';
-	import { Button } from '$lib/components/ui/button';
-	import * as Tooltip from '$lib/components/ui/tooltip';
+	import * as Sheet from '#lib/components/ui/sheet/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Tooltip from '#lib/components/ui/tooltip/index.ts';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import Home from '@lucide/svelte/icons/home';
@@ -9,8 +9,8 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
 	import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
-	import { page } from '$app/stores';
-	import { getUser, isAuthenticated, isLoading, login, logout } from '$lib/stores/auth.svelte';
+	import { page } from '$app/state';
+	import { getUser, isAuthenticated, isLoading, login, logout } from '#lib/stores/auth.svelte.ts';
 	import {
 		isSidebarOpen,
 		setSidebarOpen,
@@ -18,9 +18,9 @@
 		toggleSidebarCollapsed,
 		getProjectContext,
 		type ProjectAction
-	} from '$lib/stores/sidebar.svelte';
-	import { getInitials } from '$lib/utils/format';
-	import * as m from '$lib/paraglide/messages';
+	} from '#lib/stores/sidebar.svelte.ts';
+	import { getInitials } from '#lib/utils/format.ts';
+	import * as m from '#lib/paraglide/messages.js';
 	import LanguageSwitcher from './LanguageSwitcher.svelte';
 
 	const user = $derived(getUser());
@@ -36,7 +36,7 @@
 
 	let lastPath = $state('');
 	$effect(() => {
-		const currentPath = $page.url.pathname;
+		const currentPath = page.url.pathname;
 		if (lastPath && lastPath !== currentPath) {
 			setSidebarOpen(false);
 		}
@@ -70,10 +70,10 @@
 
 	function isNavActive(href: string): boolean {
 		if (href === '/app') {
-			const path = $page.url.pathname;
+			const path = page.url.pathname;
 			return path === '/app' || path.startsWith('/app/projects');
 		}
-		return $page.url.pathname.startsWith(href);
+		return page.url.pathname.startsWith(href);
 	}
 </script>
 
@@ -316,9 +316,9 @@
 			: 'justify-between px-5'}"
 	>
 		{#if !isCollapsed}
-			<span class="font-display text-lg font-extrabold text-on-surface tracking-tight"
-				>Wohnungs-Plan</span
-			>
+			<span class="font-display text-lg font-extrabold text-on-surface tracking-tight">
+				Wohnungs-Plan
+			</span>
 		{/if}
 		<button
 			type="button"

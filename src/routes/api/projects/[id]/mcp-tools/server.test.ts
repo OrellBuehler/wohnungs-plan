@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, PATCH } from './+server';
 
-vi.mock('$lib/server/projects', () => ({
+vi.mock('#lib/server/projects.ts', () => ({
 	getProjectRole: vi.fn(),
 	getProjectDisabledTools: vi.fn(),
 	updateProjectDisabledTools: vi.fn()
@@ -11,7 +11,7 @@ import {
 	getProjectRole,
 	getProjectDisabledTools,
 	updateProjectDisabledTools
-} from '$lib/server/projects';
+} from '#lib/server/projects.ts';
 
 function createEvent(
 	options: {

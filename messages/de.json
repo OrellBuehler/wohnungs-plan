@@ -205,10 +205,6 @@
 	"project_history": "Verlauf",
 	"project_recalibrate": "Massstab kalibrieren",
 	"project_change_floorplan": "Grundriss ändern",
-	"project_hide_grid": "Raster ausblenden",
-	"project_show_grid": "Raster anzeigen",
-	"project_disable_snap": "Einrasten deaktivieren",
-	"project_enable_snap": "Einrasten aktivieren",
 
 	"project_card_actions": "Aktionen",
 	"project_card_sync": "In Cloud synchronisieren",
@@ -617,5 +613,11 @@
 	"privacy_changes": "Wenn diese Erklärung geändert wird, wird die aktualisierte Fassung hier mit neuem Stand veröffentlicht. Da dies ein kleines Hobbyprojekt ist, sind Änderungen selten.",
 
 	"privacy_h_contact": "Kontakt",
-	"privacy_contact": "Bei Fragen zu dieser Erklärung oder zur Ausübung deiner Rechte nach Schweizer Datenschutzrecht öffne bitte ein Issue im GitHub-Repository."
+	"privacy_contact": "Bei Fragen zu dieser Erklärung oder zur Ausübung deiner Rechte nach Schweizer Datenschutzrecht öffne bitte ein Issue im GitHub-Repository.",
+
+	"error_not_found_title": "Seite nicht gefunden",
+	"error_not_found_description": "Diese Seite existiert nicht oder wurde verschoben.",
+	"error_generic_title": "Etwas ist schiefgelaufen",
+	"error_generic_description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
+	"error_back_to_projects": "Zurück zu den Projekten"
 }

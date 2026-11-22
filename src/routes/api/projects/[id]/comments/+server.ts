@@ -1,8 +1,8 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { resolveDefaultBranch } from '$lib/server/branches';
-import { getCommentsByBranch, createComment } from '$lib/server/comments';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { resolveDefaultBranch } from '#lib/server/branches.ts';
+import { getCommentsByBranch, createComment } from '#lib/server/comments.ts';
 
 export const GET: RequestHandler = async ({ locals, params, url }) => {
 	if (!locals.user) {
@@ -18,7 +18,7 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
 	const branchId = branchIdParam ?? (await resolveDefaultBranch(params.id)).id;
 
 	const comments = await getCommentsByBranch(params.id, branchId);
-	return json({ comments });
+	return Response.json({ comments });
 };
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -77,5 +77,5 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		body: body.body.trim()
 	});
 
-	return json({ comment }, { status: 201 });
+	return Response.json({ comment }, { status: 201 });
 };

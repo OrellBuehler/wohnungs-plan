@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto, replaceState } from '$app/navigation';
-	import { page } from '$app/stores';
-	import type { ProjectMeta } from '$lib/types';
-	import { Button } from '$lib/components/ui/button';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import type { ProjectMeta } from '#lib/types/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Upload from '@lucide/svelte/icons/upload';
-	import ProjectCard from '$lib/components/projects/ProjectCard.svelte';
-	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
-	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
+	import ProjectCard from '#lib/components/projects/ProjectCard.svelte';
+	import ShareDialog from '#lib/components/sharing/ShareDialog.svelte';
+	import SidebarTrigger from '#lib/components/layout/SidebarTrigger.svelte';
 	import {
 		listProjects,
 		createProject,
@@ -17,17 +17,17 @@
 		syncProjectToCloud,
 		loadProjectById,
 		duplicateProject
-	} from '$lib/stores/project.svelte';
-	import { isAuthenticated, fetchUser, login } from '$lib/stores/auth.svelte';
+	} from '#lib/stores/project.svelte.ts';
+	import { isAuthenticated, fetchUser, login } from '#lib/stores/auth.svelte.ts';
 	import {
 		downloadProject,
 		importProjectFromJSON,
 		readFileAsJSON,
 		fetchServerThumbnail,
 		fetchServerFloorplan
-	} from '$lib/utils/export';
-	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '$lib/db';
-	import * as m from '$lib/paraglide/messages';
+	} from '#lib/utils/export.ts';
+	import { saveProject as saveLocalProject, saveThumbnail, getThumbnail } from '#lib/db/index.ts';
+	import * as m from '#lib/paraglide/messages.js';
 	import { toast } from 'svelte-sonner';
 
 	// State
@@ -49,12 +49,12 @@
 	const showSignInBanner = $derived(!authenticated && projects.length > 0);
 
 	onMount(async () => {
-		const reason = $page.url.searchParams.get('reason');
+		const reason = page.url.searchParams.get('reason');
 		if (reason === 'auth_required') {
 			toast.info(m.auth_login_required());
-			const url = new URL($page.url);
+			const url = new URL(page.url.href);
 			url.searchParams.delete('reason');
-			replaceState(url, {});
+			goto(url, { shallow: true, replace: true });
 		}
 		await fetchUser();
 		await loadProjects();
@@ -251,7 +251,7 @@
 							class="stroke-outline"
 							stroke-width="1.5"
 							stroke-dasharray="4 3"
-						/>
+						></rect>
 						<line
 							x1="60"
 							y1="10"
@@ -259,7 +259,7 @@
 							y2="130"
 							class="stroke-surface-container-highest"
 							stroke-width="0.5"
-						/>
+						></line>
 						<line
 							x1="100"
 							y1="10"
@@ -267,7 +267,7 @@
 							y2="130"
 							class="stroke-surface-container-highest"
 							stroke-width="0.5"
-						/>
+						></line>
 						<line
 							x1="140"
 							y1="10"
@@ -275,7 +275,7 @@
 							y2="130"
 							class="stroke-surface-container-highest"
 							stroke-width="0.5"
-						/>
+						></line>
 						<line
 							x1="20"
 							y1="42"
@@ -283,7 +283,7 @@
 							y2="42"
 							class="stroke-surface-container-highest"
 							stroke-width="0.5"
-						/>
+						></line>
 						<line
 							x1="20"
 							y1="74"
@@ -291,7 +291,7 @@
 							y2="74"
 							class="stroke-surface-container-highest"
 							stroke-width="0.5"
-						/>
+						></line>
 						<line
 							x1="20"
 							y1="106"
@@ -299,7 +299,7 @@
 							y2="106"
 							class="stroke-surface-container-highest"
 							stroke-width="0.5"
-						/>
+						></line>
 						<rect
 							x="32"
 							y="22"
@@ -308,7 +308,7 @@
 							rx="3"
 							class="fill-surface-container-high stroke-on-surface-variant"
 							stroke-width="1"
-						/>
+						></rect>
 						<rect
 							x="112"
 							y="56"
@@ -317,7 +317,7 @@
 							rx="2"
 							class="fill-surface-container-high stroke-on-surface-variant"
 							stroke-width="1"
-						/>
+						></rect>
 						<rect
 							x="36"
 							y="80"
@@ -326,7 +326,7 @@
 							rx="3"
 							class="fill-secondary/15 stroke-secondary"
 							stroke-width="1.5"
-						/>
+						></rect>
 						<rect
 							x="124"
 							y="22"
@@ -335,22 +335,25 @@
 							rx="2"
 							class="fill-surface-container stroke-on-surface-variant"
 							stroke-width="0.75"
-						/>
+						></rect>
 						<circle
 							cx="158"
 							cy="104"
 							r="10"
 							class="fill-surface-container stroke-on-surface-variant"
 							stroke-width="0.75"
-						/>
-						<line x1="160" y1="130" x2="180" y2="130" class="stroke-surface" stroke-width="3" />
+						></circle>
+
+						<line x1="160" y1="130" x2="180" y2="130" class="stroke-surface" stroke-width="3"
+						></line>
+
 						<path
 							d="M160 130 Q160 112, 178 130"
 							class="stroke-outline"
 							stroke-width="1"
 							fill="none"
 							stroke-dasharray="3 2"
-						/>
+						></path>
 					</svg>
 					<h3 class="font-display text-lg font-semibold text-on-surface mb-2">
 						{m.home_empty_title()}
@@ -421,12 +424,13 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteDialogOpen = false)}
-				>{m.common_cancel()}</Button
-			>
-			<Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}
-				>{m.common_delete()}</Button
-			>
+			<Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteDialogOpen = false)}>
+				{m.common_cancel()}
+			</Button>
+
+			<Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}>
+				{m.common_delete()}
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
@@ -440,9 +444,9 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
-			<Button class="w-full sm:w-auto" onclick={() => (invalidImportDialogOpen = false)}
-				>{m.common_ok()}</Button
-			>
+			<Button class="w-full sm:w-auto" onclick={() => (invalidImportDialogOpen = false)}>
+				{m.common_ok()}
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

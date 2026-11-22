@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as m from '$lib/paraglide/messages';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as m from '#lib/paraglide/messages.js';
 	import CommentThread from './CommentThread.svelte';
 	import {
 		getActiveComment,
@@ -12,7 +12,7 @@
 		isCommentsVisible,
 		toggleCommentsVisibility,
 		type ClientComment
-	} from '$lib/stores/comments.svelte';
+	} from '#lib/stores/comments.svelte.ts';
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import X from '@lucide/svelte/icons/x';
@@ -260,28 +260,28 @@
 									<span class="text-sm font-medium text-on-surface truncate">
 										{comment.authorName ?? m.comments_thread_unknown()}
 									</span>
-									<span class="text-xs text-outline flex-shrink-0"
-										>{formatTime(comment.updatedAt ?? comment.createdAt)}</span
-									>
+									<span class="text-xs text-outline flex-shrink-0">
+										{formatTime(comment.updatedAt ?? comment.createdAt)}
+									</span>
 								</div>
 								<p class="text-xs text-on-surface-variant truncate">{getPreviewText(comment)}</p>
 								<div class="flex items-center gap-1.5 mt-0.5">
 									{#if comment.x != null && comment.y != null}
-										<span class="text-[10px] px-1 py-0.5 rounded bg-secondary-fixed text-secondary"
-											>pinned</span
-										>
+										<span class="text-[10px] px-1 py-0.5 rounded bg-secondary-fixed text-secondary">
+											pinned
+										</span>
 									{/if}
 									{#if comment.resolved}
-										<span class="text-[10px] px-1 py-0.5 rounded bg-secondary-fixed text-secondary"
-											>resolved</span
-										>
+										<span class="text-[10px] px-1 py-0.5 rounded bg-secondary-fixed text-secondary">
+											resolved
+										</span>
 									{/if}
 									{#if comment.replies.length > 0}
-										<span class="text-[10px] text-outline"
-											>{m.comments_thread_reply_count({
+										<span class="text-[10px] text-outline">
+											{m.comments_thread_reply_count({
 												count: comment.replies.length.toString()
-											})}</span
-										>
+											})}
+										</span>
 									{/if}
 								</div>
 							</div>

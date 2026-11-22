@@ -7,7 +7,7 @@
 		setActiveComment,
 		isPlacementMode,
 		type ClientComment
-	} from '$lib/stores/comments.svelte';
+	} from '#lib/stores/comments.svelte.ts';
 
 	interface Props {
 		isMobile: boolean;

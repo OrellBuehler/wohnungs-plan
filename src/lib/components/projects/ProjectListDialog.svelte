@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages';
-	import { getLocale } from '$lib/paraglide/runtime';
-	import type { ProjectMeta } from '$lib/types';
-	import { Button } from '$lib/components/ui/button';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import * as m from '#lib/paraglide/messages.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
+	import type { ProjectMeta } from '#lib/types/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 
 	interface Props {
 		open: boolean;
@@ -104,12 +104,16 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={() => (deleteConfirmOpen = false)}
-				>{m.common_cancel()}</Button
+			<Button
+				variant="outline"
+				class="w-full sm:w-auto"
+				onclick={() => (deleteConfirmOpen = false)}
 			>
-			<Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}
-				>{m.common_delete()}</Button
-			>
+				{m.common_cancel()}
+			</Button>
+			<Button variant="destructive" class="w-full sm:w-auto" onclick={confirmDelete}>
+				{m.common_delete()}
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

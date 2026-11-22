@@ -1,20 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from './+server';
 
-vi.mock('$lib/server/projects', () => ({
+vi.mock('#lib/server/projects.ts', () => ({
 	getProjectRole: vi.fn()
 }));
 
-vi.mock('$lib/server/branches', () => ({
+vi.mock('#lib/server/branches.ts', () => ({
 	getBranchById: vi.fn()
 }));
 
-vi.mock('$lib/server/items', () => ({
+vi.mock('#lib/server/items.ts', () => ({
 	getItemById: vi.fn(),
 	insertHistoryEntries: vi.fn()
 }));
 
-vi.mock('$lib/server/item-images', () => ({
+vi.mock('#lib/server/item-images.ts', () => ({
 	getItemImages: vi.fn(),
 	createItemImage: vi.fn(),
 	saveItemImageFile: vi.fn(),
@@ -23,7 +23,7 @@ vi.mock('$lib/server/item-images', () => ({
 	getItemImageThumbPath: vi.fn()
 }));
 
-vi.mock('$lib/server/env', () => ({
+vi.mock('#lib/server/env.ts', () => ({
 	config: { uploads: { dir: '/uploads', maxImageSize: 5242880 } }
 }));
 
@@ -32,10 +32,10 @@ vi.mock('node:fs/promises', () => {
 	return { unlink, default: { unlink } };
 });
 
-import { getProjectRole } from '$lib/server/projects';
-import { getBranchById } from '$lib/server/branches';
-import { getItemById } from '$lib/server/items';
-import { getItemImages } from '$lib/server/item-images';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getBranchById } from '#lib/server/branches.ts';
+import { getItemById } from '#lib/server/items.ts';
+import { getItemImages } from '#lib/server/item-images.ts';
 
 function createEvent(options: { user?: { id: string } | null } = {}) {
 	const { user = { id: 'user-1' } } = options;

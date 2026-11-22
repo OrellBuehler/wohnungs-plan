@@ -1,12 +1,12 @@
 import { vi } from 'vitest';
-import type { Project } from '$lib/types';
+import type { Project } from '#lib/types/index.ts';
 
 /**
- * Mock for $lib/stores/auth.svelte
+ * Mock for #lib/stores/auth.svelte
  *
  * Usage:
  * ```ts
- * vi.mock('$lib/stores/auth.svelte', () => ({
+ * vi.mock('#lib/stores/auth.svelte.ts', () => ({
  *   isAuthenticated: vi.fn(() => false),
  *   waitForAuth: vi.fn(() => Promise.resolve())
  * }));
@@ -33,12 +33,12 @@ export function createMockAuthStore(authenticated = false) {
 }
 
 /**
- * Mock for $lib/stores/sync.svelte
+ * Mock for #lib/stores/sync.svelte
  *
  * Usage:
  * ```ts
  * const syncMock = createMockSyncStore(true);
- * vi.mock('$lib/stores/sync.svelte', () => syncMock);
+ * vi.mock('#lib/stores/sync.svelte.ts', () => syncMock);
  * ```
  */
 export function createMockSyncStore(online = true) {
@@ -64,14 +64,14 @@ export function createMockSyncStore(online = true) {
 }
 
 /**
- * Mock for $lib/db (IndexedDB operations)
+ * Mock for #lib/db (IndexedDB operations)
  *
  * Uses an in-memory Map to simulate IndexedDB storage.
  *
  * Usage:
  * ```ts
  * const dbMock = createMockDb();
- * vi.mock('$lib/db', () => dbMock);
+ * vi.mock('#lib/db/index.ts', () => dbMock);
  * ```
  */
 export function createMockDb() {

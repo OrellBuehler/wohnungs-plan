@@ -1,8 +1,8 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { createItem, getBranchItems, parseItemCreateBody } from '$lib/server/items';
-import { resolveDefaultBranch } from '$lib/server/branches';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { createItem, getBranchItems, parseItemCreateBody } from '#lib/server/items.ts';
+import { resolveDefaultBranch } from '#lib/server/branches.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 
 	const branch = await resolveDefaultBranch(params.id);
 	const items = await getBranchItems(params.id, branch.id);
-	return json({ items });
+	return Response.json({ items });
 };
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -34,5 +34,5 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	const body = await request.json();
 	const item = await createItem(params.id, branch.id, locals.user.id, parseItemCreateBody(body));
 
-	return json({ item }, { status: 201 });
+	return Response.json({ item }, { status: 201 });
 };

@@ -1,6 +1,5 @@
-import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { config } from '$lib/server/env';
+import { config } from '#lib/server/env.ts';
 
 const REQUIRED_SCOPE = 'mcp:access';
 
@@ -12,7 +11,7 @@ function getBaseUrl(url: URL): string {
 export const GET: RequestHandler = async ({ url }) => {
 	const baseUrl = getBaseUrl(url);
 
-	return json({
+	return Response.json({
 		issuer: baseUrl,
 		authorization_endpoint: `${baseUrl}/api/oauth/authorize`,
 		token_endpoint: `${baseUrl}/api/oauth/token`,

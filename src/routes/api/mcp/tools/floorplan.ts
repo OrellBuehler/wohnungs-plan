@@ -1,16 +1,16 @@
 import { z } from 'zod';
-import { getBranchItems } from '$lib/server/items';
+import { getBranchItems } from '#lib/server/items.ts';
 import {
 	saveFloorplanAnalysis,
 	getFloorplanAnalysis,
 	type FloorplanAnalysisData
-} from '$lib/server/floorplan-analyses';
+} from '#lib/server/floorplan-analyses.ts';
 import {
 	getItemsInRoom,
 	getRoomAvailableSpace,
 	checkPlacement,
 	suggestPlacement
-} from '$lib/server/spatial-queries';
+} from '#lib/server/spatial-queries.ts';
 import type { McpServer, ToolHelpers } from '../types';
 
 export function registerFloorplanTools(server: McpServer, helpers: ToolHelpers): void {

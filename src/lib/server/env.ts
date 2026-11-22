@@ -1,21 +1,29 @@
-import { env } from '$env/dynamic/private';
-import { dev } from '$app/environment';
+import {
+	INFOMANIAK_CLIENT_ID,
+	INFOMANIAK_CLIENT_SECRET,
+	INFOMANIAK_REDIRECT_URI,
+	DATABASE_URL,
+	SESSION_SECRET,
+	UPLOAD_DIR,
+	MAX_IMAGE_SIZE_BYTES,
+	PUBLIC_URL
+} from '$app/env/private';
+
+import { dev } from '$app/env';
 
 export const config = {
 	infomaniak: {
-		clientId: env.INFOMANIAK_CLIENT_ID ?? '',
-		clientSecret: env.INFOMANIAK_CLIENT_SECRET ?? '',
-		redirectUri: env.INFOMANIAK_REDIRECT_URI ?? 'http://localhost:5173/api/auth/callback',
+		clientId: INFOMANIAK_CLIENT_ID ?? '',
+		clientSecret: INFOMANIAK_CLIENT_SECRET ?? '',
+		redirectUri: INFOMANIAK_REDIRECT_URI ?? 'http://localhost:5173/api/auth/callback',
 		authorizationEndpoint: 'https://login.infomaniak.com/authorize',
 		tokenEndpoint: 'https://login.infomaniak.com/token',
 		userinfoEndpoint: 'https://login.infomaniak.com/oauth2/userinfo'
 	},
-	database: {
-		url: env.DATABASE_URL ?? ''
-	},
+	database: { url: DATABASE_URL ?? '' },
 	session: {
 		secret:
-			env.SESSION_SECRET ||
+			SESSION_SECRET ||
 			(dev
 				? 'dev-secret-do-not-use-in-production'
 				: (() => {
@@ -23,8 +31,8 @@ export const config = {
 					})())
 	},
 	uploads: {
-		dir: env.UPLOAD_DIR ?? './uploads',
-		maxImageSize: Number.parseInt(env.MAX_IMAGE_SIZE_BYTES ?? '5242880', 10)
+		dir: UPLOAD_DIR ?? './uploads',
+		maxImageSize: Number.parseInt(MAX_IMAGE_SIZE_BYTES ?? '5242880', 10)
 	},
-	publicUrl: env.PUBLIC_URL ?? ''
+	publicUrl: PUBLIC_URL ?? ''
 };

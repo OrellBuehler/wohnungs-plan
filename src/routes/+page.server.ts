@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
+import { parseSessionCookie, getSessionWithUser } from '#lib/server/session.ts';
 
 export const load: PageServerLoad = async ({ request }) => {
 	const sessionId = parseSessionCookie(request.headers.get('cookie'));

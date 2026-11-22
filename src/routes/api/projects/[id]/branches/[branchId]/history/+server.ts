@@ -1,8 +1,8 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getBranchById } from '$lib/server/branches';
-import { listItemChanges } from '$lib/server/items';
-import { getProjectRole } from '$lib/server/projects';
+import { getBranchById } from '#lib/server/branches.ts';
+import { listItemChanges } from '#lib/server/items.ts';
+import { getProjectRole } from '#lib/server/projects.ts';
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
@@ -32,5 +32,5 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
 	const limit = Math.min(parsePositiveInt(url.searchParams.get('limit'), DEFAULT_LIMIT), MAX_LIMIT);
 	const offset = parsePositiveInt(url.searchParams.get('offset'), 0);
 	const changes = await listItemChanges(params.id, params.branchId, limit, offset);
-	return json({ changes, limit, offset });
+	return Response.json({ changes, limit, offset });
 };

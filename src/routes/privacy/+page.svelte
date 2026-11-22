@@ -1,9 +1,9 @@
 <script lang="ts">
-	import SEO from '$lib/components/SEO.svelte';
-	import { Button } from '$lib/components/ui/button';
+	import SEO from '#lib/components/SEO.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import { getLocale, setLocale, locales, type Locale } from '$lib/paraglide/runtime';
-	import * as m from '$lib/paraglide/messages';
+	import { getLocale, setLocale, locales, type Locale } from '#lib/paraglide/runtime.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	const locale = $derived(getLocale());
 	const GITHUB_URL = 'https://github.com/OrellBuehler/wohnungs-plan';

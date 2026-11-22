@@ -1,9 +1,9 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { getBranchById } from '$lib/server/branches';
-import { getItemById, insertHistoryEntries } from '$lib/server/items';
-import { deleteItemImage, getItemImages } from '$lib/server/item-images';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getBranchById } from '#lib/server/branches.ts';
+import { getItemById, insertHistoryEntries } from '#lib/server/items.ts';
+import { deleteItemImage, getItemImages } from '#lib/server/item-images.ts';
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -50,5 +50,5 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 		}
 	]);
 
-	return json({ success: true });
+	return Response.json({ success: true });
 };

@@ -12,7 +12,7 @@ let cacheTimestamp = 0;
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
 
 /**
- * Fetch exchange rates from frankfurter.app
+ * Fetch exchange rates from frankfurter.dev
  * Free API, no key required
  */
 export async function fetchExchangeRates(baseCurrency: CurrencyCode): Promise<ExchangeRates> {
@@ -30,7 +30,7 @@ export async function fetchExchangeRates(baseCurrency: CurrencyCode): Promise<Ex
 			(s) => s !== baseCurrency
 		);
 		const response = await fetch(
-			`https://api.frankfurter.app/latest?from=${baseCurrency}&to=${symbols.join(',')}`
+			`https://api.frankfurter.dev/v1/latest?base=${baseCurrency}&symbols=${symbols.join(',')}`
 		);
 
 		if (!response.ok) {

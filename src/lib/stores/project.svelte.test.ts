@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createTestProject, createTestBranch, createTestItem } from '$lib/test-utils/factories';
+import { createTestProject, createTestBranch, createTestItem } from '#lib/test-utils/factories.ts';
 
 // Mock UI/platform deps that are unavailable in the test environment
 vi.mock('svelte-sonner', () => ({ toast: { error: vi.fn(), success: vi.fn(), info: vi.fn() } }));
-vi.mock('$lib/paraglide/messages');
-vi.mock('$lib/utils/upload', () => ({ uploadWithProgress: vi.fn() }));
-vi.mock('$lib/components/shared/UploadProgress.svelte', () => ({ default: {} }));
+vi.mock('#lib/paraglide/messages.js');
+vi.mock('#lib/utils/upload.ts', () => ({ uploadWithProgress: vi.fn() }));
+vi.mock('#lib/components/shared/UploadProgress.svelte', () => ({ default: {} }));
 
 // Mock dependencies before importing
-vi.mock('$lib/db', () => {
+vi.mock('#lib/db/index.ts', () => {
 	const projects = new Map();
 	return {
 		getAllProjects: vi.fn(async () => Array.from(projects.values())),
@@ -25,13 +25,13 @@ vi.mock('$lib/db', () => {
 	};
 });
 
-vi.mock('$lib/stores/auth.svelte', () => ({
+vi.mock('#lib/stores/auth.svelte.ts', () => ({
 	isAuthenticated: vi.fn(() => false),
 	waitForAuth: vi.fn(() => Promise.resolve()),
 	authFetch: vi.fn((...args: Parameters<typeof fetch>) => globalThis.fetch(...args))
 }));
 
-vi.mock('$lib/stores/sync.svelte', () => ({
+vi.mock('#lib/stores/sync.svelte.ts', () => ({
 	isOnline: vi.fn(() => true),
 	queueChange: vi.fn()
 }));
@@ -45,9 +45,9 @@ import {
 	updateItem,
 	deleteItem
 } from './project.svelte';
-import * as authStore from '$lib/stores/auth.svelte';
-import * as syncStore from '$lib/stores/sync.svelte';
-import * as db from '$lib/db';
+import * as authStore from '#lib/stores/auth.svelte.ts';
+import * as syncStore from '#lib/stores/sync.svelte.ts';
+import * as db from '#lib/db/index.ts';
 
 describe('project store - critical decision logic', () => {
 	beforeEach(() => {

@@ -20,7 +20,6 @@ updates:
           - 'vite'
           - '@vitejs/*'
           - 'vite-*'
-          - '@vite-pwa/*'
       tailwind:
         patterns:
           - 'tailwindcss'

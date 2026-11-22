@@ -1,4 +1,4 @@
-import type { Item, CutoutCorner } from '$lib/types';
+import type { Item, CutoutCorner } from '#lib/types/index.ts';
 
 interface Rect {
 	x: number;
@@ -373,7 +373,7 @@ export function getOverlappingItems(items: Item[], scale: number): Set<string> {
 // Architectural Collision Detection (Walls, Doors, Windows)
 // ============================================================================
 
-import type { Wall, Door, Window } from '$lib/stores/project.svelte';
+import type { Wall, Door, Window } from '#lib/stores/project.svelte.ts';
 
 /**
  * Check if a rectangular item intersects with a wall (line segment)

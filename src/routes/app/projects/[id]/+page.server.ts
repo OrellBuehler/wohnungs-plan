@@ -1,4 +1,4 @@
-import { getProjectById } from '$lib/server/projects';
+import { getProjectById } from '#lib/server/projects.ts';
 import type { PageServerLoad } from './$types';
 
 const BASE_URL = 'https://floorplanner.orellbuehler.ch';

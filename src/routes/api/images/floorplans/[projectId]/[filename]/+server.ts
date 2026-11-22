@@ -1,10 +1,10 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole, getProjectFloorplan } from '$lib/server/projects';
-import { getFloorplanPath } from '$lib/server/floorplans';
-import { config } from '$lib/server/env';
+import { getProjectRole, getProjectFloorplan } from '#lib/server/projects.ts';
+import { getFloorplanPath } from '#lib/server/floorplans.ts';
+import { config } from '#lib/server/env.ts';
 import { readFile, stat } from 'node:fs/promises';
-import { isInsideDir, serveFileWithEtag } from '$lib/server/http';
+import { isInsideDir, serveFileWithEtag } from '#lib/server/http.ts';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

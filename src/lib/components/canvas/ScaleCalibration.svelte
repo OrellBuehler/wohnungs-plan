@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { Stage, Layer, Image as KonvaImage, Line, Circle, Text } from 'svelte-konva';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Minus from '@lucide/svelte/icons/minus';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
-	import * as m from '$lib/paraglide/messages';
-	import { formatDecimal } from '$lib/utils/format';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatDecimal } from '#lib/utils/format.ts';
 	import type Konva from 'konva';
 
 	interface Props {
@@ -490,14 +490,16 @@
 				{/if}
 			</div>
 			<div class="flex gap-2">
-				<Button variant="outline" onclick={onCancel} class="flex-1 md:flex-initial min-h-[44px]"
-					>{m.common_cancel()}</Button
-				>
+				<Button variant="outline" onclick={onCancel} class="flex-1 md:flex-initial min-h-[44px]">
+					{m.common_cancel()}
+				</Button>
 				<Button
 					onclick={handleConfirm}
 					disabled={scale === 0}
-					class="flex-1 md:flex-initial min-h-[44px]">{m.canvas_calibrate_confirm()}</Button
+					class="flex-1 md:flex-initial min-h-[44px]"
 				>
+					{m.canvas_calibrate_confirm()}
+				</Button>
 			</div>
 		</div>
 	</div>

@@ -1,4 +1,4 @@
-import type { Project, Item, ProjectBranch } from '$lib/types';
+import type { Project, Item, ProjectBranch } from '#lib/types/index.ts';
 
 /**
  * Creates a test Project with sensible defaults

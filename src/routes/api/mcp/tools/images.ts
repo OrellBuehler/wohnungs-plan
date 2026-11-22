@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { unlink } from 'node:fs/promises';
 import { z } from 'zod';
-import { getItemById, insertHistoryEntries } from '$lib/server/items';
+import { getItemById, insertHistoryEntries } from '#lib/server/items.ts';
 import {
 	getItemImages,
 	createItemImage,
@@ -10,10 +10,10 @@ import {
 	deleteItemImage,
 	getItemImagePath,
 	getItemImageThumbPath
-} from '$lib/server/item-images';
-import { EXT_BY_MIME } from '$lib/server/image-utils';
-import { downloadImageFromUrl } from '$lib/server/url-download';
-import { checkRateLimit } from '$lib/server/rate-limit';
+} from '#lib/server/item-images.ts';
+import { EXT_BY_MIME } from '#lib/server/image-utils.ts';
+import { downloadImageFromUrl } from '#lib/server/url-download.ts';
+import { checkRateLimit } from '#lib/server/rate-limit.ts';
 import type { McpServer, ToolHelpers } from '../types';
 
 export function registerImageTools(server: McpServer, helpers: ToolHelpers): void {

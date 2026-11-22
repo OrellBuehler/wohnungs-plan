@@ -1,8 +1,8 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getBranchById } from '$lib/server/branches';
-import { revertItemChanges } from '$lib/server/items';
-import { getProjectRole } from '$lib/server/projects';
+import { getBranchById } from '#lib/server/branches.ts';
+import { revertItemChanges } from '#lib/server/items.ts';
+import { getProjectRole } from '#lib/server/projects.ts';
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -29,5 +29,5 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	await revertItemChanges(params.id, params.branchId, locals.user.id, changeIds);
-	return json({ success: true, reverted: changeIds.length });
+	return Response.json({ success: true, reverted: changeIds.length });
 };

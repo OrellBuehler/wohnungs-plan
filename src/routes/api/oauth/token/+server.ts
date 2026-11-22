@@ -1,6 +1,5 @@
-import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { logger } from '$lib/server/logger';
+import { logger } from '#lib/server/logger.ts';
 import {
 	verifyOAuthClient,
 	getPublicOAuthClient,
@@ -9,7 +8,7 @@ import {
 	refreshAccessToken,
 	ACCESS_TOKEN_LIFETIME_MS,
 	isValidCodeVerifier
-} from '$lib/server/oauth';
+} from '#lib/server/oauth.ts';
 
 /**
  * OAuth 2.0 Token Endpoint (RFC 6749 Section 3.2)
@@ -35,14 +34,14 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	// Validate grant_type
 	if (!grantType || typeof grantType !== 'string') {
-		return json(
+		return Response.json(
 			{ error: 'invalid_request', error_description: 'Missing grant_type' },
 			{ status: 400 }
 		);
 	}
 
 	if (grantType !== 'authorization_code' && grantType !== 'refresh_token') {
-		return json(
+		return Response.json(
 			{
 				error: 'unsupported_grant_type',
 				error_description: 'Supported grant types: authorization_code, refresh_token'
@@ -60,7 +59,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			!clientId ||
 			typeof clientId !== 'string'
 		) {
-			return json(
+			return Response.json(
 				{ error: 'invalid_request', error_description: 'Missing refresh_token or client_id' },
 				{ status: 400 }
 			);
@@ -74,7 +73,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			client = await getPublicOAuthClient(clientId);
 		}
 		if (!client) {
-			return json(
+			return Response.json(
 				{ error: 'invalid_client', error_description: 'Invalid client credentials' },
 				{ status: 401 }
 			);
@@ -82,13 +81,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		const result = await refreshAccessToken(refreshTokenValue, clientId);
 		if (!result) {
-			return json(
+			return Response.json(
 				{ error: 'invalid_grant', error_description: 'Invalid or expired refresh token' },
 				{ status: 400 }
 			);
 		}
 
-		return json(
+		return Response.json(
 			{
 				access_token: result.accessToken,
 				token_type: 'Bearer',
@@ -118,7 +117,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		typeof clientId !== 'string' ||
 		typeof codeVerifier !== 'string'
 	) {
-		return json(
+		return Response.json(
 			{
 				error: 'invalid_request',
 				error_description: 'Missing or invalid required parameters'
@@ -129,7 +128,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	// Validate code_verifier format per RFC 7636
 	if (!isValidCodeVerifier(codeVerifier)) {
-		return json(
+		return Response.json(
 			{
 				error: 'invalid_request',
 				error_description:
@@ -152,7 +151,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			clientId,
 			ip: request.headers.get('x-forwarded-for') || 'unknown'
 		});
-		return json(
+		return Response.json(
 			{
 				error: 'invalid_client',
 				error_description: 'Invalid client credentials'
@@ -169,7 +168,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			clientId,
 			ip: request.headers.get('x-forwarded-for') || 'unknown'
 		});
-		return json(
+		return Response.json(
 			{
 				error: 'invalid_grant',
 				error_description: 'Invalid or expired authorization code, or PKCE verification failed'
@@ -185,7 +184,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const expiresIn = Math.floor(ACCESS_TOKEN_LIFETIME_MS / 1000); // Convert to seconds
 
 	// Return OAuth token response
-	return json(
+	return Response.json(
 		{
 			access_token: accessToken,
 			token_type: 'Bearer',

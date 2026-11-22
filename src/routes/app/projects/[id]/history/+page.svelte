@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import type { ItemChange } from '$lib/types';
-	import { FlexRender, createTable, renderComponent } from '$lib/components/ui/data-table';
+	import { page } from '$app/state';
+	import type { ItemChange } from '#lib/types/index.ts';
+	import { FlexRender, createTable, renderComponent } from '#lib/components/ui/data-table/index.ts';
 	import {
 		type ColumnDef,
 		type PaginationState,
@@ -13,16 +13,16 @@
 		rowSelectionFeature,
 		tableFeatures
 	} from '@tanstack/table-core';
-	import * as Table from '$lib/components/ui/table';
-	import * as Select from '$lib/components/ui/select';
-	import { Button } from '$lib/components/ui/button';
-	import { Checkbox } from '$lib/components/ui/checkbox';
+	import * as Table from '#lib/components/ui/table/index.ts';
+	import * as Select from '#lib/components/ui/select/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import ClockIcon from '@lucide/svelte/icons/clock';
-	import HistoryActionBadge from '$lib/components/projects/HistoryActionBadge.svelte';
-	import HistoryTextCell from '$lib/components/projects/HistoryTextCell.svelte';
-	import HistoryChangeCell from '$lib/components/projects/HistoryChangeCell.svelte';
+	import HistoryActionBadge from '#lib/components/projects/HistoryActionBadge.svelte';
+	import HistoryTextCell from '#lib/components/projects/HistoryTextCell.svelte';
+	import HistoryChangeCell from '#lib/components/projects/HistoryChangeCell.svelte';
 	import {
 		getProject,
 		getItems,
@@ -30,13 +30,13 @@
 		revertHistoryChanges,
 		loadProjectById,
 		setProject
-	} from '$lib/stores/project.svelte';
-	import { waitForAuth } from '$lib/stores/auth.svelte';
-	import * as m from '$lib/paraglide/messages';
-	import { getLocale } from '$lib/paraglide/runtime';
-	import { formatRelativeTime } from '$lib/utils/format';
+	} from '#lib/stores/project.svelte.ts';
+	import { waitForAuth } from '#lib/stores/auth.svelte.ts';
+	import * as m from '#lib/paraglide/messages.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
+	import { formatRelativeTime } from '#lib/utils/format.ts';
 
-	const projectId = $derived($page.params.id);
+	const projectId = $derived(page.params.id);
 	const project = $derived(getProject());
 	const items = $derived(getItems());
 
@@ -76,6 +76,7 @@
 			? (itemOptions.find((o) => o.value === filterItem)?.label ?? m.history_filter_items_all())
 			: m.history_filter_items_all()
 	);
+
 	const filterUserLabel = $derived(
 		filterUser
 			? (userOptions.find((o) => o.value === filterUser)?.label ?? m.history_filter_users_all())
@@ -252,7 +253,7 @@
 
 	onMount(async () => {
 		if (!projectId) {
-			goto('/');
+			goto('/app');
 			return;
 		}
 		if (!project) {
@@ -376,9 +377,9 @@
 							<Table.Cell><div class="h-4 w-20 rounded bg-muted animate-pulse"></div></Table.Cell>
 							<Table.Cell><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Cell>
 							<Table.Cell><div class="h-4 w-24 rounded bg-muted animate-pulse"></div></Table.Cell>
-							<Table.Cell
-								><div class="h-5 w-14 rounded-full bg-muted animate-pulse"></div></Table.Cell
-							>
+							<Table.Cell>
+								<div class="h-5 w-14 rounded-full bg-muted animate-pulse"></div>
+							</Table.Cell>
 							<Table.Cell><div class="h-4 w-16 rounded bg-muted animate-pulse"></div></Table.Cell>
 							<Table.Cell><div class="h-4 w-28 rounded bg-muted animate-pulse"></div></Table.Cell>
 						</Table.Row>
@@ -412,9 +413,7 @@
 						{@const isStart = groupStarts.has(row.original.id)}
 						<Table.Row class={isStart ? '' : 'border-t-0'}>
 							{#each row.getAllCells() as cell (cell.id)}
-								<Table.Cell>
-									<FlexRender {cell} />
-								</Table.Cell>
+								<Table.Cell><FlexRender {cell} /></Table.Cell>
 							{/each}
 						</Table.Row>
 					{/each}

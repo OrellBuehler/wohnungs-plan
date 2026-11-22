@@ -1,5 +1,5 @@
-import { getLocale } from '$lib/paraglide/runtime';
-import * as m from '$lib/paraglide/messages';
+import { getLocale } from '#lib/paraglide/runtime.js';
+import * as m from '#lib/paraglide/messages.js';
 
 export function getInitials(name: string | null): string {
 	if (!name) return '?';

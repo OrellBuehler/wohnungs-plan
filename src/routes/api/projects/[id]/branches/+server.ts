@@ -1,7 +1,7 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createBranch, ensureMainBranch, listProjectBranches } from '$lib/server/branches';
-import { getProjectById, getProjectRole } from '$lib/server/projects';
+import { createBranch, ensureMainBranch, listProjectBranches } from '#lib/server/branches.ts';
+import { getProjectById, getProjectRole } from '#lib/server/projects.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 		branches = await listProjectBranches(params.id);
 	}
 
-	return json({ branches });
+	return Response.json({ branches });
 };
 
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 			name,
 			body.forkFromBranchId ?? null
 		);
-		return json({ branch }, { status: 201 });
+		return Response.json({ branch }, { status: 201 });
 	} catch (err) {
 		if (err instanceof Error && err.message === 'Branch name is required') {
 			throw error(400, err.message);

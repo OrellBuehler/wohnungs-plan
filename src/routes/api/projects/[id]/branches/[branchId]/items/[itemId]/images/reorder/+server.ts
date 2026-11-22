@@ -1,9 +1,9 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { getBranchById } from '$lib/server/branches';
-import { getItemById } from '$lib/server/items';
-import { reorderItemImages } from '$lib/server/item-images';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getBranchById } from '#lib/server/branches.ts';
+import { getItemById } from '#lib/server/items.ts';
+import { reorderItemImages } from '#lib/server/item-images.ts';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	if (!locals.user) {
@@ -33,5 +33,5 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	await reorderItemImages(params.itemId, imageIds);
-	return json({ success: true });
+	return Response.json({ success: true });
 };

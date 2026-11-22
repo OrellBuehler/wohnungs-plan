@@ -7,7 +7,7 @@ import {
 	screenToWorld,
 	worldToScreen,
 	zoomTowardPoint
-} from '$lib/utils/canvas-math';
+} from '#lib/utils/canvas-math.ts';
 
 const EPSILON = 1e-6;
 

@@ -1,14 +1,14 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
+import { getProjectRole } from '#lib/server/projects.ts';
 import {
 	getItemImageByFilename,
 	getItemImagePath,
 	getItemImageThumbPath
-} from '$lib/server/item-images';
-import { config } from '$lib/server/env';
+} from '#lib/server/item-images.ts';
+import { config } from '#lib/server/env.ts';
 import { readFile, stat } from 'node:fs/promises';
-import { isInsideDir, serveFileWithEtag } from '$lib/server/http';
+import { isInsideDir, serveFileWithEtag } from '#lib/server/http.ts';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

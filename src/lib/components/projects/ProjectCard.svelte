@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages';
-	import type { ProjectMeta } from '$lib/types';
-	import { Button } from '$lib/components/ui/button';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import * as Tooltip from '$lib/components/ui/tooltip';
+	import * as m from '#lib/paraglide/messages.js';
+	import type { ProjectMeta } from '#lib/types/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.ts';
+	import * as Tooltip from '#lib/components/ui/tooltip/index.ts';
 	import Cloud from '@lucide/svelte/icons/cloud';
 	import HardDrive from '@lucide/svelte/icons/hard-drive';
 	import Users from '@lucide/svelte/icons/users';
@@ -14,10 +14,10 @@
 	import Download from '@lucide/svelte/icons/download';
 	import Copy from '@lucide/svelte/icons/copy';
 	import House from '@lucide/svelte/icons/house';
-	import { isAuthenticated } from '$lib/stores/auth.svelte';
-	import { getLocalFloorplanUrl } from '$lib/stores/project.svelte';
-	import { formatRelativeTime } from '$lib/utils/format';
-	import { getThumbnail as getLocalThumbnail } from '$lib/db';
+	import { isAuthenticated } from '#lib/stores/auth.svelte.ts';
+	import { getLocalFloorplanUrl } from '#lib/stores/project.svelte.ts';
+	import { formatRelativeTime } from '#lib/utils/format.ts';
+	import { getThumbnail as getLocalThumbnail } from '#lib/db/index.ts';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -81,7 +81,7 @@
 		style="background-image: radial-gradient(circle, var(--color-surface-container-highest) 1px, transparent 1px); background-size: 24px 24px;"
 	>
 		{#if thumbnailUrl}
-			<img src={thumbnailUrl} alt="{project.name} preview" class="w-full h-full object-cover" />
+			<img src={thumbnailUrl} alt="{project.name} preview" class="w-full h-full object-contain" />
 		{:else}
 			<div class="w-full h-full flex items-center justify-center">
 				<House class="size-12 text-outline" />
@@ -110,9 +110,9 @@
 					{#snippet child({ props })}
 						<Button
 							{...props}
-							variant="secondary"
+							variant="ghost"
 							size="icon"
-							class="bg-surface-container-lowest/90 backdrop-blur-sm hover:bg-surface-container-lowest"
+							class="bg-surface-container-high/80 backdrop-blur-[12px] text-on-surface hover:bg-surface-container-highest"
 						>
 							<MoreVertical class="size-4" />
 							<span class="sr-only">{m.project_card_actions()}</span>

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { Item } from '$lib/types';
-	import type { CurrencyCode } from '$lib/utils/currency';
-	import { CURRENCIES, formatPrice } from '$lib/utils/currency';
-	import { Button } from '$lib/components/ui/button';
-	import * as Select from '$lib/components/ui/select';
+	import type { Item } from '#lib/types/index.ts';
+	import type { CurrencyCode } from '#lib/utils/currency.ts';
+	import { CURRENCIES, formatPrice } from '#lib/utils/currency.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Select from '#lib/components/ui/select/index.ts';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Package from '@lucide/svelte/icons/package';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '#lib/paraglide/messages.js';
 	import ItemCard from './ItemCard.svelte';
 
 	interface Props {
@@ -99,9 +99,10 @@
 				{m.item_list_title({ count: items.length.toString() })}
 			</h2>
 			{#if !readonly}
-				<Button size="sm" onclick={onAddItem}
-					><Plus size={16} class="mr-1" /> {m.item_list_add()}</Button
-				>
+				<Button size="sm" onclick={onAddItem}>
+					<Plus size={16} class="mr-1" />
+					{m.item_list_add()}
+				</Button>
 			{/if}
 		</div>
 	</div>

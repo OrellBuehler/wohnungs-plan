@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount, onDestroy, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import type { Item } from '$lib/types';
-	import type { CurrencyCode } from '$lib/utils/currency';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { page } from '$app/state';
+	import type { Item } from '#lib/types/index.ts';
+	import type { CurrencyCode } from '#lib/utils/currency.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.ts';
 	import Share2 from '@lucide/svelte/icons/share-2';
 	import GitBranch from '@lucide/svelte/icons/git-branch';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -22,15 +22,15 @@
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import Loader2 from '@lucide/svelte/icons/loader-2';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '#lib/paraglide/messages.js';
 	import { toast } from 'svelte-sonner';
-	import SidebarTrigger from '$lib/components/layout/SidebarTrigger.svelte';
-	import OfflineBadge from '$lib/components/shared/OfflineBadge.svelte';
-	import ShareDialog from '$lib/components/sharing/ShareDialog.svelte';
-	import SEO from '$lib/components/SEO.svelte';
-	import { isAuthenticated, waitForAuth } from '$lib/stores/auth.svelte';
-	import { registerProjectContext, clearProjectContext } from '$lib/stores/sidebar.svelte';
-	import type { ProjectActionGroup, BranchContext } from '$lib/stores/sidebar.svelte';
+	import SidebarTrigger from '#lib/components/layout/SidebarTrigger.svelte';
+	import OfflineBadge from '#lib/components/shared/OfflineBadge.svelte';
+	import ShareDialog from '#lib/components/sharing/ShareDialog.svelte';
+	import SEO from '#lib/components/SEO.svelte';
+	import { isAuthenticated, waitForAuth } from '#lib/stores/auth.svelte.ts';
+	import { registerProjectContext, clearProjectContext } from '#lib/stores/sidebar.svelte.ts';
+	import type { ProjectActionGroup, BranchContext } from '#lib/stores/sidebar.svelte.ts';
 	import type { PageData } from './$types';
 	import {
 		getProject,
@@ -58,10 +58,10 @@
 		loadProjectById,
 		uploadItemImage,
 		deleteItemImage as storeDeleteItemImage
-	} from '$lib/stores/project.svelte';
-	import { saveThumbnail } from '$lib/db';
-	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '$lib/utils/exchange';
-	import { shouldApplyUrlBranch } from '$lib/utils/branch-sync';
+	} from '#lib/stores/project.svelte.ts';
+	import { saveThumbnail } from '#lib/db/index.ts';
+	import { fetchExchangeRates, convertCurrency, type ExchangeRates } from '#lib/utils/exchange.ts';
+	import { shouldApplyUrlBranch } from '#lib/utils/branch-sync.ts';
 	import {
 		loadComments,
 		resetComments,
@@ -77,24 +77,24 @@
 		getPinningCommentId,
 		setActiveComment,
 		getActiveComment
-	} from '$lib/stores/comments.svelte';
-	import CommentPanel from '$lib/components/comments/CommentPanel.svelte';
-	import PlacementOverlay from '$lib/components/comments/PlacementOverlay.svelte';
+	} from '#lib/stores/comments.svelte.ts';
+	import CommentPanel from '#lib/components/comments/CommentPanel.svelte';
+	import PlacementOverlay from '#lib/components/comments/PlacementOverlay.svelte';
 
-	import MobileNav from '$lib/components/layout/MobileNav.svelte';
-	import FloorplanCanvas from '$lib/components/canvas/FloorplanCanvas.svelte';
-	import FloorplanUpload from '$lib/components/canvas/FloorplanUpload.svelte';
-	import ScaleCalibration from '$lib/components/canvas/ScaleCalibration.svelte';
-	import CanvasControls from '$lib/components/canvas/CanvasControls.svelte';
-	import ItemList from '$lib/components/items/ItemList.svelte';
-	import ItemForm from '$lib/components/items/ItemForm.svelte';
-	import ItemBottomSheet from '$lib/components/items/ItemBottomSheet.svelte';
-	import McpToolsDialog from '$lib/components/projects/McpToolsDialog.svelte';
+	import MobileNav from '#lib/components/layout/MobileNav.svelte';
+	import FloorplanCanvas from '#lib/components/canvas/FloorplanCanvas.svelte';
+	import FloorplanUpload from '#lib/components/canvas/FloorplanUpload.svelte';
+	import ScaleCalibration from '#lib/components/canvas/ScaleCalibration.svelte';
+	import CanvasControls from '#lib/components/canvas/CanvasControls.svelte';
+	import ItemList from '#lib/components/items/ItemList.svelte';
+	import ItemForm from '#lib/components/items/ItemForm.svelte';
+	import ItemBottomSheet from '#lib/components/items/ItemBottomSheet.svelte';
+	import McpToolsDialog from '#lib/components/projects/McpToolsDialog.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	// Route params
-	const projectId = $derived($page.params.id);
+	const projectId = $derived(page.params.id);
 
 	// Auth state
 	const authed = $derived(isAuthenticated());
@@ -156,7 +156,7 @@
 		if (isRefreshing || isLocalProject || !projectId) return;
 		isRefreshing = true;
 		try {
-			const branchParam = $page.url.searchParams.get('branch') ?? undefined;
+			const branchParam = page.url.searchParams.get('branch') ?? undefined;
 			const loaded = await loadProjectById(projectId, branchParam);
 			if (loaded) setProject(loaded);
 		} finally {
@@ -212,12 +212,11 @@
 	}
 
 	async function syncBranchUrl(branchId: string) {
-		const url = new URL($page.url);
+		const url = new URL(page.url.href);
 		url.searchParams.set('branch', branchId);
 		await goto(`${url.pathname}?${url.searchParams.toString()}`, {
-			replaceState: true,
-			keepFocus: true,
-			noScroll: true
+			replace: true,
+			reset: false
 		});
 	}
 
@@ -396,13 +395,13 @@
 	}
 
 	onMount(async () => {
-		const id = $page.params.id;
+		const id = page.params.id;
 		if (!id) {
-			goto('/');
+			goto('/app');
 			return;
 		}
 		await waitForAuth();
-		const branchParam = $page.url.searchParams.get('branch') ?? undefined;
+		const branchParam = page.url.searchParams.get('branch') ?? undefined;
 		const loaded = await loadProjectById(id, branchParam);
 		if (loaded) {
 			setProject(loaded);
@@ -423,12 +422,12 @@
 			}
 		} else {
 			toast.error(m.error_load_project());
-			goto('/');
+			goto('/app');
 		}
 	});
 
 	$effect(() => {
-		const branchParam = $page.url.searchParams.get('branch');
+		const branchParam = page.url.searchParams.get('branch');
 		if (!branchParam) return;
 		const activeBranchId = activeBranch?.id ?? null;
 		if (!shouldApplyUrlBranch(branchParam, activeBranchId, pendingBranchUrlSyncId)) return;
@@ -497,13 +496,13 @@
 								onclick: () => handleChangeFloorplan()
 							},
 							{
-								label: showGrid ? m.project_hide_grid() : m.project_show_grid(),
+								label: m.canvas_control_grid(),
 								icon: Grid3x3,
 								onclick: () => (showGrid = !showGrid),
 								indicator: showGrid ? m.project_sidebar_toggle_on() : m.project_sidebar_toggle_off()
 							},
 							{
-								label: snapToGrid ? m.project_disable_snap() : m.project_enable_snap(),
+								label: m.canvas_control_snap(),
 								icon: Magnet,
 								onclick: () => (snapToGrid = !snapToGrid),
 								indicator: snapToGrid
@@ -889,7 +888,11 @@
 		style="padding-top: max(0.75rem, env(safe-area-inset-top));"
 	>
 		<div class="flex items-center gap-2 min-w-0 flex-1">
-			<a href="/" class="flex items-center flex-shrink-0 md:hidden">
+			<a
+				href="/app"
+				class="flex items-center flex-shrink-0 md:hidden"
+				aria-label={m.nav_projects()}
+			>
 				<img src="/icon.svg" alt="Floorplanner" class="size-8" />
 			</a>
 			{#if isEditingName}
@@ -1158,6 +1161,7 @@
 	</main>
 
 	<!-- Comment placement overlay -->
+
 	<PlacementOverlay {isMobile} onPlace={handlePlaceCommentMobile} />
 
 	<MobileNav
@@ -1213,11 +1217,9 @@
 	>
 		<Dialog.Content class="sm:max-w-md">
 			<Dialog.Header>
-				<Dialog.Title
-					>{branchDialogMode === 'create'
-						? m.branch_create_title()
-						: m.branch_rename_title()}</Dialog.Title
-				>
+				<Dialog.Title>
+					{branchDialogMode === 'create' ? m.branch_create_title() : m.branch_rename_title()}
+				</Dialog.Title>
 				<Dialog.Description>
 					{branchDialogMode === 'create'
 						? m.branch_create_description()
@@ -1235,8 +1237,10 @@
 						type="button"
 						variant="outline"
 						class="w-full sm:w-auto"
-						onclick={closeBranchNameDialog}>{m.common_cancel()}</Button
+						onclick={closeBranchNameDialog}
 					>
+						{m.common_cancel()}
+					</Button>
 					<Button
 						type="submit"
 						class="w-full sm:w-auto"
@@ -1260,8 +1264,10 @@
 					type="button"
 					variant="outline"
 					class="w-full sm:w-auto"
-					onclick={closeConfirmDialog}>{m.common_cancel()}</Button
+					onclick={closeConfirmDialog}
 				>
+					{m.common_cancel()}
+				</Button>
 				<Button
 					type="button"
 					class="w-full sm:w-auto"

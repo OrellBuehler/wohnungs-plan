@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import LogIn from '@lucide/svelte/icons/log-in';
-	import { getUser, isAuthenticated, isLoading, login } from '$lib/stores/auth.svelte';
-	import { setSidebarOpen } from '$lib/stores/sidebar.svelte';
-	import { getInitials } from '$lib/utils/format';
+	import { getUser, isAuthenticated, isLoading, login } from '#lib/stores/auth.svelte.ts';
+	import { setSidebarOpen } from '#lib/stores/sidebar.svelte.ts';
+	import { getInitials } from '#lib/utils/format.ts';
+	import * as m from '#lib/paraglide/messages.js';
 
 	const user = $derived(getUser());
 	const authed = $derived(isAuthenticated());
@@ -21,7 +22,7 @@
 		{#if user?.avatarUrl && !avatarError}
 			<img
 				src={user.avatarUrl}
-				alt={user.name ?? 'User avatar'}
+				alt={user.name ?? m.nav_user_fallback()}
 				class="absolute inset-0 h-full w-full rounded-xl object-cover"
 				onerror={() => (avatarError = true)}
 			/>
@@ -36,6 +37,6 @@
 {:else}
 	<Button variant="outline" onclick={login} disabled={loading}>
 		<LogIn class="mr-2 h-4 w-4" />
-		{loading ? 'Loading...' : 'Sign in'}
+		{loading ? m.common_loading() : m.common_sign_in()}
 	</Button>
 {/if}

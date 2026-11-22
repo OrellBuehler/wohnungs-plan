@@ -1,6 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Project, ProjectMeta } from '$lib/types';
-import { DEFAULT_CURRENCY } from '$lib/utils/currency';
+import type { Project, ProjectMeta } from '#lib/types/index.ts';
+import { DEFAULT_CURRENCY } from '#lib/utils/currency.ts';
 
 function ensureProjectBranches(project: Project): Project {
 	if (project.branches && project.branches.length > 0) {

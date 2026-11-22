@@ -205,10 +205,6 @@
 	"project_history": "History",
 	"project_recalibrate": "Recalibrate Scale",
 	"project_change_floorplan": "Change Floorplan",
-	"project_hide_grid": "Hide Grid",
-	"project_show_grid": "Show Grid",
-	"project_disable_snap": "Disable Snap",
-	"project_enable_snap": "Enable Snap",
 
 	"project_card_actions": "Actions",
 	"project_card_sync": "Sync to cloud",
@@ -617,5 +613,11 @@
 	"privacy_changes": "If this policy changes, the updated version will be posted here with a new effective date. Since this is a small hobby project, changes will be rare.",
 
 	"privacy_h_contact": "Contact",
-	"privacy_contact": "For questions about this policy or to exercise your rights under Swiss data protection law, open an issue on the GitHub repository."
+	"privacy_contact": "For questions about this policy or to exercise your rights under Swiss data protection law, open an issue on the GitHub repository.",
+
+	"error_not_found_title": "Page not found",
+	"error_not_found_description": "This page doesn't exist or has been moved.",
+	"error_generic_title": "Something went wrong",
+	"error_generic_description": "An unexpected error occurred. Please try again.",
+	"error_back_to_projects": "Back to projects"
 }

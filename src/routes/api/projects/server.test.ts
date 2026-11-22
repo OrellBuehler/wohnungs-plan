@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST } from './+server';
 
 // Mock DB functions
-vi.mock('$lib/server/projects', () => ({
+vi.mock('#lib/server/projects.ts', () => ({
 	getUserProjectsWithDetails: vi.fn(),
 	createProject: vi.fn()
 }));
 
-import { getUserProjectsWithDetails, createProject } from '$lib/server/projects';
+import { getUserProjectsWithDetails, createProject } from '#lib/server/projects.ts';
 
 function createEvent(
 	options: {

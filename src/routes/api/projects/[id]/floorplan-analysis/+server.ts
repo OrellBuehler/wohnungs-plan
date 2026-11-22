@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
-import { json, error } from '@sveltejs/kit';
-import { getProjectRole } from '$lib/server/projects';
-import { getFloorplanAnalysis } from '$lib/server/floorplan-analyses';
+import { error } from '@sveltejs/kit';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getFloorplanAnalysis } from '#lib/server/floorplan-analyses.ts';
 
 /**
  * GET /api/projects/[id]/floorplan-analysis
@@ -28,7 +28,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	const analysis = await getFloorplanAnalysis(projectId);
 
 	if (!analysis) {
-		return json({
+		return Response.json({
 			exists: false,
 			data: null,
 			message:
@@ -37,7 +37,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	}
 
 	// Return structured data for canvas rendering
-	return json({
+	return Response.json({
 		exists: true,
 		data: {
 			walls: analysis.walls || [],

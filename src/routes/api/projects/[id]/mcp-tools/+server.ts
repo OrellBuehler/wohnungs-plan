@@ -1,7 +1,7 @@
-import { json, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getProjectRole } from '$lib/server/projects';
-import { getProjectDisabledTools, updateProjectDisabledTools } from '$lib/server/projects';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getProjectDisabledTools, updateProjectDisabledTools } from '#lib/server/projects.ts';
 
 export const GET: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const disabledTools = await getProjectDisabledTools(params.id);
-	return json({ disabledTools });
+	return Response.json({ disabledTools });
 };
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
@@ -36,5 +36,5 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	await updateProjectDisabledTools(params.id, body.disabledTools);
-	return json({ disabledTools: body.disabledTools });
+	return Response.json({ disabledTools: body.disabledTools });
 };

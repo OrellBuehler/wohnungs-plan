@@ -1,15 +1,15 @@
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { logger } from '$lib/server/logger';
-import { parseSessionCookie, getSessionWithUser } from '$lib/server/session';
+import { logger } from '#lib/server/logger.ts';
+import { parseSessionCookie, getSessionWithUser } from '#lib/server/session.ts';
 import {
 	getOrCreateOAuthClient,
 	regenerateClientSecret,
 	addAllowedRedirectUri
-} from '$lib/server/oauth';
-import { getDB, oauthClients } from '$lib/server/db';
+} from '#lib/server/oauth.ts';
+import { getDB, oauthClients } from '#lib/server/db.ts';
 import { eq } from 'drizzle-orm';
-import { config } from '$lib/server/env';
+import { config } from '#lib/server/env.ts';
 
 export const load: PageServerLoad = async ({ parent, url }) => {
 	const { user } = await parent();

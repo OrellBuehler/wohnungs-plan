@@ -1,9 +1,9 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getBranchById } from '$lib/server/branches';
-import { deleteItem, getItemById, updateItem } from '$lib/server/items';
-import { getProjectRole } from '$lib/server/projects';
-import { getItemImagesDir } from '$lib/server/item-images';
+import { getBranchById } from '#lib/server/branches.ts';
+import { deleteItem, getItemById, updateItem } from '#lib/server/items.ts';
+import { getProjectRole } from '#lib/server/projects.ts';
+import { getItemImagesDir } from '#lib/server/item-images.ts';
 import { rm } from 'node:fs/promises';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
@@ -44,7 +44,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		cutoutCorner: body.cutoutCorner
 	});
 
-	return json({ item });
+	return Response.json({ item });
 };
 
 export const DELETE: RequestHandler = async ({ locals, params }) => {
@@ -76,5 +76,5 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 		// Directory may not exist
 	}
 
-	return json({ success: true });
+	return Response.json({ success: true });
 };
