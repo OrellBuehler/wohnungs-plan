@@ -102,3 +102,5 @@ docker build -t wohnungs-plan .
 Required environment variables: `DATABASE_URL`, `SESSION_SECRET`, `INFOMANIAK_CLIENT_ID`, `INFOMANIAK_CLIENT_SECRET`. See `.env.example` for the full list.
 
 The container runs on port 3000 with a health check at `/api/auth/me`.
+
+Releases are pull-based: pushing a `v*` tag builds the image and publishes it to GHCR as `:latest` (plus the version tags). The server's reconcile job pulls `:latest` on its next run; nothing in this repository connects to the server.
