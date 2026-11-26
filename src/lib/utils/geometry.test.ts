@@ -8,6 +8,9 @@ import {
 	getItemShapePoints,
 	getRotatedBoundingBox,
 	getMinEdgeDistance,
+	getShapeParts,
+	rotateAroundCenter,
+	shapesOverlap,
 	intersectsWall,
 	blocksDoor,
 	blocksWindow,
@@ -82,6 +85,95 @@ describe('getOverlappingItems', () => {
 		expect(overlaps.has('b')).toBe(true);
 		expect(overlaps.has('c')).toBe(false);
 		expect(overlaps.has('d')).toBe(false);
+	});
+});
+
+describe('getOverlappingItems (shapes)', () => {
+	it('ignores items that only touch', () => {
+		const overlaps = getOverlappingItems(
+			[makeItem('a', 0, 0, 100, 100), makeItem('b', 100, 0, 100, 100)],
+			1
+		);
+		expect(overlaps.size).toBe(0);
+	});
+
+	it('scales item sizes but not positions', () => {
+		const items = [makeItem('a', 0, 0, 100, 100), makeItem('b', 150, 0, 100, 100)];
+		expect(getOverlappingItems(items, 1).size).toBe(0);
+		expect(getOverlappingItems(items, 2).size).toBe(2);
+	});
+
+	it('does not flag rotated items whose bounding boxes merely intersect', () => {
+		// 200x20 bar rotated 45°: its bounding box covers b, the bar itself does not
+		const overlaps = getOverlappingItems(
+			[makeItem('a', 0, 0, 200, 20, 45), makeItem('b', 90, 10, 30, 30)],
+			1
+		);
+		expect(overlaps.size).toBe(0);
+	});
+
+	it('lets an item sit inside the cutout of an L-shape', () => {
+		const lShape: Item = {
+			...makeItem('l', 0, 0, 200, 200),
+			shape: 'l-shape',
+			cutoutWidth: 100,
+			cutoutHeight: 100,
+			cutoutCorner: 'top-right'
+		};
+		expect(getOverlappingItems([lShape, makeItem('b', 110, 0, 80, 80)], 1).size).toBe(0);
+		expect(getOverlappingItems([lShape, makeItem('b', 110, 50, 80, 80)], 1).size).toBe(2);
+	});
+});
+
+describe('getShapeParts', () => {
+	it('splits an L-shape into two rectangles covering its area', () => {
+		const parts = getShapeParts({
+			x: 0,
+			y: 0,
+			width: 200,
+			height: 100,
+			rotation: 0,
+			cutout: { width: 50, height: 40, corner: 'bottom-left' }
+		});
+		expect(parts).toHaveLength(2);
+		expect(parts[0]).toEqual([
+			{ x: 0, y: 0 },
+			{ x: 200, y: 0 },
+			{ x: 200, y: 60 },
+			{ x: 0, y: 60 }
+		]);
+		expect(parts[1]).toEqual([
+			{ x: 50, y: 60 },
+			{ x: 200, y: 60 },
+			{ x: 200, y: 100 },
+			{ x: 50, y: 100 }
+		]);
+	});
+});
+
+describe('shapesOverlap', () => {
+	it('applies the tolerance to the penetration depth', () => {
+		const a = { x: 0, y: 0, width: 100, height: 100, rotation: 0 };
+		const b = { x: 97, y: 0, width: 100, height: 100, rotation: 0 };
+		expect(shapesOverlap(a, b, 0)).toBe(true);
+		expect(shapesOverlap(a, b, 5)).toBe(false);
+	});
+});
+
+describe('rotateAroundCenter', () => {
+	it('keeps the center fixed across a full turn', () => {
+		let position = { x: 100, y: 50 };
+		let rotation = 0;
+		for (let i = 0; i < 4; i++) {
+			const next = rotation + 90;
+			position = rotateAroundCenter(position.x, position.y, 200, 80, rotation, next);
+			const box = getRotatedBoundingBox(position.x, position.y, 200, 80, next);
+			expect((box.minX + box.maxX) / 2).toBeCloseTo(200, 6);
+			expect((box.minY + box.maxY) / 2).toBeCloseTo(90, 6);
+			rotation = next;
+		}
+		expect(position.x).toBeCloseTo(100, 6);
+		expect(position.y).toBeCloseTo(50, 6);
 	});
 });
 
@@ -224,13 +316,28 @@ describe('getMinEdgeDistance', () => {
 		expect(distance).toBeCloseTo(0, 5);
 	});
 
-	it('returns small distance for overlapping boxes (edge-to-edge metric)', () => {
-		// getMinEdgeDistance computes min distance between edges of both boxes
-		// For overlapping boxes, edges still have a measurable distance
+	it('returns 0 for overlapping boxes', () => {
 		const a: BoundingBox = { minX: 0, minY: 0, maxX: 10, maxY: 10 };
 		const b: BoundingBox = { minX: 5, minY: 5, maxX: 15, maxY: 15 };
-		const { distance } = getMinEdgeDistance(a, b);
-		expect(distance).toBeLessThanOrEqual(10);
+		expect(getMinEdgeDistance(a, b).distance).toBe(0);
+	});
+
+	it('measures straight across the shared span of facing boxes', () => {
+		const a: BoundingBox = { minX: 0, minY: 0, maxX: 100, maxY: 10 };
+		const b: BoundingBox = { minX: 60, minY: 50, maxX: 200, maxY: 80 };
+		const result = getMinEdgeDistance(a, b);
+		expect(result.distance).toBe(40);
+		expect(result.pointA).toEqual({ x: 80, y: 10 });
+		expect(result.pointB).toEqual({ x: 80, y: 50 });
+	});
+
+	it('measures between the nearest corners of diagonal boxes', () => {
+		const a: BoundingBox = { minX: 0, minY: 0, maxX: 10, maxY: 10 };
+		const b: BoundingBox = { minX: 13, minY: 14, maxX: 20, maxY: 20 };
+		const result = getMinEdgeDistance(a, b);
+		expect(result.distance).toBe(5);
+		expect(result.pointA).toEqual({ x: 10, y: 10 });
+		expect(result.pointB).toEqual({ x: 13, y: 14 });
 	});
 
 	it('returns correct distance for distant boxes', () => {

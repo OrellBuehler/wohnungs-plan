@@ -16,11 +16,7 @@
 	import type { Shape as KonvaShape } from 'konva/lib/Shape';
 	import WallsDoorsLayer from './WallsDoorsLayer.svelte';
 	import CommentsLayer from './CommentsLayer.svelte';
-	import {
-		isPlacementMode,
-		getItemCommentCount,
-		isCommentsVisible
-	} from '#lib/stores/comments.svelte.ts';
+	import { isPlacementMode, getComments, isCommentsVisible } from '#lib/stores/comments.svelte.ts';
 	import {
 		getMinEdgeDistance,
 		getOverlappingItems,
@@ -28,19 +24,20 @@
 		getRotatedBoundingBox,
 		selectNearestByDistance,
 		hasArchitecturalCollision,
+		rotateAroundCenter,
 		type BoundingBox
 	} from '#lib/utils/geometry.ts';
+	import { computeSnap, type SnapGuide } from '#lib/utils/snapping.ts';
 	import { getFloorplanAnalysis, isWallsDoorsVisible } from '#lib/stores/project.svelte.ts';
 	import {
 		buildDimensionMap,
 		buildIdMap,
 		getCanvasLabelFontSizes,
 		getItemShadowStyle,
-		getGridStepCount,
+		getVisibleGridStep,
 		resolveItemDisplayPosition,
 		shouldEnableItemLayerListening,
 		shouldShowDistanceIndicators,
-		shouldRenderGrid,
 		shouldRenderItemLabels
 	} from '#lib/utils/canvas-performance.ts';
 	import {
@@ -72,7 +69,7 @@
 		mobileMode?: boolean;
 		onItemSelect: (id: string | null) => void;
 		onItemMove: (id: string, x: number, y: number) => void;
-		onItemRotate: (id: string, rotation: number) => void;
+		onItemRotate: (id: string, rotation: number, position: { x: number; y: number }) => void;
 		onItemUnplace: (id: string) => void;
 		onThumbnailReady?: (dataUrl: string) => void;
 		onCommentPlace?: (x: number, y: number) => void;
@@ -135,6 +132,7 @@
 	let longPressItemId = $state<string | null>(null);
 	let isLongPressDragging = $state(false);
 	let longPressStartPoint = $state<{ x: number; y: number } | null>(null);
+	let longPressGrabOffset: { x: number; y: number } | null = null;
 	const LONG_PRESS_DURATION = 300; // ms
 	const LONG_PRESS_MOVE_THRESHOLD = 10; // px - cancel if finger moves too much
 
@@ -157,12 +155,9 @@
 	});
 
 	// Alignment guides state
-	let alignmentGuides = $state<{ type: 'h' | 'v'; pos: number }[]>([]);
+	let alignmentGuides = $state<SnapGuide[]>([]);
 	let draggingItemId = $state<string | null>(null);
 	let dragPosition = $state<{ x: number; y: number } | null>(null);
-
-	// Architectural collision state (walls, doors, windows)
-	let architecturalCollisionItemId = $state<string | null>(null);
 
 	// Context menu state
 	let contextMenuOpen = $state(false);
@@ -172,7 +167,11 @@
 	const MIN_ZOOM = 0.5;
 	const MAX_ZOOM = 5;
 	const ZOOM_STEP = 0.1;
-	const ALIGNMENT_THRESHOLD = 5; // pixels
+	const ZOOM_BUTTON_FACTOR = 1.25;
+	const ALIGNMENT_THRESHOLD = 6; // screen pixels
+	const FALLBACK_SCALE = 2; // px per cm when the floorplan is not calibrated
+	const NUDGE_CM = 1;
+	const NUDGE_LARGE_CM = 10;
 
 	// Distance indicator constants
 	const MAX_DISTANCE_CM = 400; // 4 meters
@@ -267,11 +266,6 @@
 		}
 	});
 
-	function snapValue(value: number): number {
-		if (!snapToGrid) return value;
-		return Math.round(value / gridSize) * gridSize;
-	}
-
 	function handleStageClick(e: { target: Konva.Node }) {
 		if (isPlacementMode()) {
 			const stage = stageRef?.node;
@@ -291,148 +285,116 @@
 		}
 	}
 
-	function handleDragEnd(itemId: string, e: { target: Konva.Node }) {
-		const node = e.target;
-		const displayX = snapValue(node.x());
-		const displayY = snapValue(node.y());
-		node.x(displayX);
-		node.y(displayY);
-		// Convert to natural image coordinates for storage (screen-size independent)
-		const natural = displayToNatural(displayX, displayY);
-		onItemMove(itemId, natural.x, natural.y);
+	function snapDragPosition(
+		itemId: string,
+		x: number,
+		y: number,
+		free = false
+	): { x: number; y: number } {
+		const item = itemsById.get(itemId);
+		const dimensions = itemDimensionsPxById.get(itemId);
+		if (free || !item || !dimensions) {
+			alignmentGuides = [];
+			return { x, y };
+		}
+
+		const others: BoundingBox[] = [];
+		for (const [id, box] of displayBoxesById) {
+			if (id !== itemId) others.push(box);
+		}
+
+		const snap = computeSnap({
+			box: getRotatedBoundingBox(x, y, dimensions.widthPx, dimensions.heightPx, item.rotation),
+			others,
+			threshold: ALIGNMENT_THRESHOLD / zoom,
+			grid:
+				snapToGrid && gridStepPx > 0
+					? { originX: imageDimensions.x, originY: imageDimensions.y, step: gridStepPx }
+					: null
+		});
+
+		alignmentGuides = snap.guides;
+		return { x: x + snap.dx, y: y + snap.dy };
+	}
+
+	function endDrag() {
 		draggingItemId = null;
 		dragPosition = null;
 		alignmentGuides = [];
-		architecturalCollisionItemId = null;
 	}
 
 	function handleDragStart(itemId: string) {
 		draggingItemId = itemId;
+		if (selectedItemId !== itemId) onItemSelect(itemId);
 	}
 
-	function handleDragMove(itemId: string, e: { target: Konva.Node }) {
+	function handleDragMove(itemId: string, e: { target: Konva.Node; evt?: Event }) {
 		const node = e.target;
-		const dragX = node.x();
-		const dragY = node.y();
+		const free = (e.evt as MouseEvent | undefined)?.altKey === true;
+		const snapped = snapDragPosition(itemId, node.x(), node.y(), free);
+		node.position(snapped);
+		dragPosition = snapped;
+	}
 
-		// Track current drag position for distance indicators
-		dragPosition = { x: dragX, y: dragY };
+	function handleDragEnd(itemId: string, e: { target: Konva.Node }) {
+		const node = e.target;
+		const natural = displayToNatural(node.x(), node.y());
+		onItemMove(itemId, natural.x, natural.y);
+		endDrag();
+	}
 
-		const draggedItem = itemsById.get(itemId);
-		if (!draggedItem) return;
-		const draggedDimensions = itemDimensionsPxById.get(itemId);
-		if (!draggedDimensions) return;
-
-		const dragW = draggedDimensions.widthPx;
-		const dragH = draggedDimensions.heightPx;
-
-		// Get rotated bounding box for dragged item
-		const dragBox = getRotatedBoundingBox(dragX, dragY, dragW, dragH, draggedItem.rotation);
-		const dragCenterX = (dragBox.minX + dragBox.maxX) / 2;
-		const dragCenterY = (dragBox.minY + dragBox.maxY) / 2;
-
-		const guides: { type: 'h' | 'v'; pos: number }[] = [];
-		let snapX: number | null = null;
-		let snapY: number | null = null;
-
-		for (const other of placedItems) {
-			if (other.id === itemId) continue;
-			const otherDimensions = itemDimensionsPxById.get(other.id);
-			if (!otherDimensions) continue;
-
-			const otherW = otherDimensions.widthPx;
-			const otherH = otherDimensions.heightPx;
-
-			// Convert other item's natural coordinates to display coordinates for alignment
-			const otherDisplayPos = naturalToDisplay(other.position!.x, other.position!.y);
-
-			// Get rotated bounding box for other item
-			const otherBox = getRotatedBoundingBox(
-				otherDisplayPos.x,
-				otherDisplayPos.y,
-				otherW,
-				otherH,
-				other.rotation
-			);
-			const otherCenterX = (otherBox.minX + otherBox.maxX) / 2;
-			const otherCenterY = (otherBox.minY + otherBox.maxY) / 2;
-
-			// Check vertical alignments (x positions) using bounding box edges
-			const vChecks = [
-				{ drag: dragBox.minX, other: otherBox.minX, offset: dragBox.minX - dragX },
-				{ drag: dragBox.minX, other: otherBox.maxX, offset: dragBox.minX - dragX },
-				{ drag: dragBox.maxX, other: otherBox.minX, offset: dragBox.maxX - dragX },
-				{ drag: dragBox.maxX, other: otherBox.maxX, offset: dragBox.maxX - dragX },
-				{ drag: dragCenterX, other: otherCenterX, offset: dragCenterX - dragX }
-			];
-
-			for (const check of vChecks) {
-				if (Math.abs(check.drag - check.other) < ALIGNMENT_THRESHOLD) {
-					guides.push({ type: 'v', pos: check.other });
-					if (snapX === null) snapX = dragX + (check.other - check.drag);
-				}
-			}
-
-			// Check horizontal alignments (y positions) using bounding box edges
-			const hChecks = [
-				{ drag: dragBox.minY, other: otherBox.minY, offset: dragBox.minY - dragY },
-				{ drag: dragBox.minY, other: otherBox.maxY, offset: dragBox.minY - dragY },
-				{ drag: dragBox.maxY, other: otherBox.minY, offset: dragBox.maxY - dragY },
-				{ drag: dragBox.maxY, other: otherBox.maxY, offset: dragBox.maxY - dragY },
-				{ drag: dragCenterY, other: otherCenterY, offset: dragCenterY - dragY }
-			];
-
-			for (const check of hChecks) {
-				if (Math.abs(check.drag - check.other) < ALIGNMENT_THRESHOLD) {
-					guides.push({ type: 'h', pos: check.other });
-					if (snapY === null) snapY = dragY + (check.other - check.drag);
-				}
-			}
-		}
-
-		// Snap to alignment if found
-		if (snapX !== null) node.x(snapX);
-		if (snapY !== null) node.y(snapY);
-
-		alignmentGuides = guides;
-
-		// Check for architectural collisions (walls, doors, windows)
-		if (isWallsDoorsVisible()) {
-			const analysis = getFloorplanAnalysis();
-			const finalX = node.x();
-			const finalY = node.y();
-
-			// Use rotated bounding box so collision accounts for item rotation
-			const collisionBox = getRotatedBoundingBox(
-				finalX,
-				finalY,
-				dragW,
-				dragH,
-				draggedItem.rotation
-			);
-			const hasCollision = hasArchitecturalCollision(
-				collisionBox.minX,
-				collisionBox.minY,
-				collisionBox.maxX - collisionBox.minX,
-				collisionBox.maxY - collisionBox.minY,
-				analysis.walls,
-				analysis.doors,
-				analysis.windows
-			);
-
-			architecturalCollisionItemId = hasCollision ? itemId : null;
-		} else {
-			architecturalCollisionItemId = null;
-		}
+	function rotateItem(itemId: string, delta: number) {
+		const item = itemsById.get(itemId);
+		if (!item?.position) return;
+		const rotation = (((item.rotation + delta) % 360) + 360) % 360;
+		const position = rotateAroundCenter(
+			item.position.x,
+			item.position.y,
+			item.width * naturalScale,
+			item.height * naturalScale,
+			item.rotation,
+			rotation
+		);
+		onItemRotate(itemId, rotation, {
+			x: roundCoordinate(position.x),
+			y: roundCoordinate(position.y)
+		});
 	}
 
 	function handleRotate(itemId: string, direction: 'cw' | 'ccw') {
-		const item = itemsById.get(itemId);
-		if (item) {
-			const delta = direction === 'cw' ? 90 : -90;
-			const newRotation = (item.rotation + delta + 360) % 360;
-			onItemRotate(itemId, newRotation);
+		rotateItem(itemId, direction === 'cw' ? 90 : -90);
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (mobileMode || !selectedItemId || e.ctrlKey || e.metaKey || e.altKey) return;
+		// Only when focus is not in a form field, dialog or other widget
+		const target = e.target as Node | null;
+		if (target !== document.body && !(target && containerEl?.contains(target))) return;
+
+		const item = itemsById.get(selectedItemId);
+		if (!item?.position) return;
+
+		if (e.key === 'r' || e.key === 'R') {
+			e.preventDefault();
+			rotateItem(item.id, e.shiftKey ? -90 : 90);
+			return;
 		}
+		if (e.key === 'Escape') {
+			onItemSelect(null);
+			return;
+		}
+
+		const step = (e.shiftKey ? NUDGE_LARGE_CM : NUDGE_CM) * naturalScale;
+		const moves: Record<string, [number, number]> = {
+			ArrowLeft: [-step, 0],
+			ArrowRight: [step, 0],
+			ArrowUp: [0, -step],
+			ArrowDown: [0, step]
+		};
+		const move = moves[e.key];
+		if (!move) return;
+		e.preventDefault();
+		onItemMove(item.id, item.position.x + move[0], item.position.y + move[1]);
 	}
 
 	function handleStageContextMenu(e: { evt: MouseEvent; target: Konva.Node }) {
@@ -497,22 +459,21 @@
 		const pointer = stage.getPointerPosition();
 		if (!pointer) return;
 
-		pendingWheelSteps += e.deltaY < 0 ? 1 : -1;
+		// Normalize so mouse wheels step evenly and trackpads zoom smoothly
+		const delta = -e.deltaY * (e.deltaMode === 1 ? 33 : 1);
+		pendingWheelSteps += Math.max(-1, Math.min(1, delta / 100)) * (e.ctrlKey ? 4 : 1);
 		pendingWheelAnchorX = pointer.x;
 		pendingWheelAnchorY = pointer.y;
 		markInteractionActive();
 		scheduleInteractionFrame();
 	}
 
-	function zoomIn() {
-		const centerX = stageWidth / 2;
-		const centerY = stageHeight / 2;
-		const newZoom = clampZoom(zoom + ZOOM_STEP * 2, MIN_ZOOM, MAX_ZOOM);
+	function zoomByFactor(factor: number) {
 		const result = zoomTowardPoint({
-			anchorX: centerX,
-			anchorY: centerY,
+			anchorX: stageWidth / 2,
+			anchorY: stageHeight / 2,
 			oldZoom: zoom,
-			newZoom,
+			newZoom: clampZoom(zoom * factor, MIN_ZOOM, MAX_ZOOM),
 			panX,
 			panY
 		});
@@ -521,21 +482,12 @@
 		panY = result.panY;
 	}
 
+	function zoomIn() {
+		zoomByFactor(ZOOM_BUTTON_FACTOR);
+	}
+
 	function zoomOut() {
-		const centerX = stageWidth / 2;
-		const centerY = stageHeight / 2;
-		const newZoom = clampZoom(zoom - ZOOM_STEP * 2, MIN_ZOOM, MAX_ZOOM);
-		const result = zoomTowardPoint({
-			anchorX: centerX,
-			anchorY: centerY,
-			oldZoom: zoom,
-			newZoom,
-			panX,
-			panY
-		});
-		zoom = result.zoom;
-		panX = result.panX;
-		panY = result.panY;
+		zoomByFactor(1 / ZOOM_BUTTON_FACTOR);
 	}
 
 	function resetView() {
@@ -642,20 +594,14 @@
 
 			if (isLongPressDragging && longPressItemId) {
 				markInteractionActive();
-				// Move item with finger
+				// Move item with finger, keeping the point where it was grabbed
 				const point = Array.from(pointers.values())[0];
-				const canvasX = (point.x - panX) / zoom;
-				const canvasY = (point.y - panY) / zoom;
-				// Center item on finger
-				const itemDimensions = itemDimensionsPxById.get(longPressItemId);
-				if (itemDimensions) {
-					const itemW = itemDimensions.widthPx;
-					const itemH = itemDimensions.heightPx;
-					const displayX = snapValue(canvasX - itemW / 2);
-					const displayY = snapValue(canvasY - itemH / 2);
-					// Update drag position for distance indicators
-					dragPosition = { x: displayX, y: displayY };
-				}
+				const offset = longPressGrabOffset ?? { x: 0, y: 0 };
+				dragPosition = snapDragPosition(
+					longPressItemId,
+					(point.x - panX) / zoom - offset.x,
+					(point.y - panY) / zoom - offset.y
+				);
 			} else if (!mobileMode || !longPressStartPoint) {
 				// Pan (only when not in long-press detection on mobile)
 				const isDraggingItem = draggingItemId !== null;
@@ -700,6 +646,16 @@
 	function startLongPressTimer(itemId: string, x: number, y: number) {
 		cancelLongPress();
 		longPressStartPoint = { x, y };
+		const item = itemsById.get(itemId);
+		if (item?.position) {
+			const display = naturalToDisplay(item.position.x, item.position.y);
+			longPressGrabOffset = {
+				x: (x - panX) / zoom - display.x,
+				y: (y - panY) / zoom - display.y
+			};
+		} else {
+			longPressGrabOffset = null;
+		}
 		longPressTimer = setTimeout(() => {
 			longPressItemId = itemId;
 			isLongPressDragging = true;
@@ -724,24 +680,16 @@
 		}
 		isLongPressDragging = false;
 		longPressItemId = null;
-		draggingItemId = null;
-		dragPosition = null;
-		alignmentGuides = [];
+		longPressGrabOffset = null;
+		endDrag();
 		cancelLongPress();
 	}
 
 	// Pan functions
 	function handleMouseDown(e: { evt: MouseEvent; target: Konva.Node }) {
 		// Only pan if clicking on stage background or image (not on furniture items)
-		const className = e.target.getClassName();
-		// Check if it's a grid line or background, not furniture
-		// Furniture items are Rect (with width > 1) or Line shapes
-		const isGridOrBg =
-			className === 'Stage' ||
-			className === 'Image' ||
-			(className === 'Rect' && (e.target.width() === 1 || e.target.height() === 1));
-
-		if (isGridOrBg) {
+		if (e.evt.button !== 0 && e.evt.button !== 1) return;
+		if (e.target.getClassName() === 'Stage' || e.evt.button === 1) {
 			isPanning = true;
 			lastPanPoint = { x: e.evt.clientX, y: e.evt.clientY };
 			// Change cursor to grabbing
@@ -840,9 +788,14 @@
 	// This makes positions screen-size independent
 	function displayToNatural(displayX: number, displayY: number): { x: number; y: number } {
 		return {
-			x: (displayX - imageDimensions.x) / displayScale,
-			y: (displayY - imageDimensions.y) / displayScale
+			x: roundCoordinate((displayX - imageDimensions.x) / displayScale),
+			y: roundCoordinate((displayY - imageDimensions.y) / displayScale)
 		};
+	}
+
+	// Stored coordinates keep two decimals; avoids float noise like 199.99999999999997
+	function roundCoordinate(value: number): number {
+		return Math.round(value * 100) / 100;
 	}
 
 	export function getViewportCenterNatural(): { x: number; y: number } {
@@ -862,12 +815,11 @@
 		};
 	}
 
-	// Get the effective scale for overlap detection (in display pixels per cm)
-	const effectiveScale = $derived.by(() => {
-		if (!floorplan?.scale) return 2;
-		return floorplan.scale * displayScale;
-	});
-	const gridVisible = $derived(shouldRenderGrid(showGrid, isInteractionActive));
+	// Pixels per cm in natural image coordinates and in display coordinates
+	const naturalScale = $derived(floorplan?.scale || FALLBACK_SCALE);
+	const effectiveScale = $derived(naturalScale * displayScale);
+	// Grid size is in cm, anchored at the floorplan image origin
+	const gridStepPx = $derived(Math.max(0, gridSize) * effectiveScale);
 	const itemShadowStyle = $derived(getItemShadowStyle(isInteractionActive));
 	const itemShadowsEnabled = $derived(itemShadowStyle.opacity > 0);
 	const itemLayerListening = $derived.by(() =>
@@ -879,31 +831,111 @@
 	);
 
 	function drawGridScene(context: Context, shape: KonvaShape) {
-		const step = Math.max(1, gridSize);
-		const verticalCount = getGridStepCount(stageWidth, step);
-		const horizontalCount = getGridStepCount(stageHeight, step);
+		const stage = shape.getStage();
+		if (!stage) return;
+		const scale = stage.scaleX() || 1;
+		const step = getVisibleGridStep(gridStepPx, scale);
+		if (step <= 0) return;
+
+		const left = -stage.x() / scale;
+		const top = -stage.y() / scale;
+		const right = left + stage.width() / scale;
+		const bottom = top + stage.height() / scale;
+		const originX = imageDimensions.x;
+		const originY = imageDimensions.y;
 
 		context.beginPath();
-		for (let i = 0; i < verticalCount; i++) {
-			const x = i * step + 0.5;
-			context.moveTo(x, 0);
-			context.lineTo(x, stageHeight);
+		for (let x = originX + Math.ceil((left - originX) / step) * step; x <= right; x += step) {
+			context.moveTo(x, top);
+			context.lineTo(x, bottom);
 		}
-		for (let i = 0; i < horizontalCount; i++) {
-			const y = i * step + 0.5;
-			context.moveTo(0, y);
-			context.lineTo(stageWidth, y);
+		for (let y = originY + Math.ceil((top - originY) / step) * step; y <= bottom; y += step) {
+			context.moveTo(left, y);
+			context.lineTo(right, y);
 		}
 		context.strokeShape(shape);
 	}
+
+	// The grid is drawn imperatively, so redraw when its inputs change
+	$effect(() => {
+		void [gridStepPx, imageDimensions];
+		stageRef?.node.batchDraw();
+	});
 
 	const placedItems = $derived(items.filter((i) => i.position !== null));
 	const itemsById = $derived.by(() => buildIdMap(items));
 	const itemDimensionsPxById = $derived.by(() => buildDimensionMap(items, effectiveScale));
 
-	// Overlap detection
+	const displayBoxesById = $derived.by(() => {
+		const boxes = new Map<string, BoundingBox>();
+		for (const item of placedItems) {
+			const display = naturalToDisplay(item.position!.x, item.position!.y);
+			boxes.set(
+				item.id,
+				getRotatedBoundingBox(
+					display.x,
+					display.y,
+					item.width * effectiveScale,
+					item.height * effectiveScale,
+					item.rotation
+				)
+			);
+		}
+		return boxes;
+	});
+
+	const itemCommentCounts = $derived.by(() => {
+		const counts = new Map<string, number>();
+		for (const comment of getComments()) {
+			if (comment.type !== 'item' || !comment.itemId || comment.resolved) continue;
+			counts.set(comment.itemId, (counts.get(comment.itemId) ?? 0) + 1);
+		}
+		return counts;
+	});
+
+	// Natural position of the item being dragged, while it is being dragged
+	const liveDragNatural = $derived(
+		draggingItemId && dragPosition ? displayToNatural(dragPosition.x, dragPosition.y) : null
+	);
+
+	// Overlap detection in natural coordinates, live during drags
 	const overlappingIds = $derived.by(() => {
-		return getOverlappingItems(items, effectiveScale);
+		const live = liveDragNatural;
+		if (!live) return getOverlappingItems(items, naturalScale);
+		return getOverlappingItems(
+			items.map((item) => (item.id === draggingItemId ? { ...item, position: live } : item)),
+			naturalScale
+		);
+	});
+
+	// Walls, doors and windows blocked by the dragged or selected item
+	const architecturalCollisionItemId = $derived.by(() => {
+		if (!isWallsDoorsVisible()) return null;
+		const activeId = draggingItemId ?? selectedItemId;
+		if (!activeId) return null;
+		const item = itemsById.get(activeId);
+		const position = (activeId === draggingItemId ? liveDragNatural : null) ?? item?.position;
+		if (!item || !position) return null;
+
+		const analysis = getFloorplanAnalysis();
+		const box = getRotatedBoundingBox(
+			position.x,
+			position.y,
+			item.width * naturalScale,
+			item.height * naturalScale,
+			item.rotation
+		);
+		return hasArchitecturalCollision(
+			box.minX,
+			box.minY,
+			box.maxX - box.minX,
+			box.maxY - box.minY,
+			analysis.walls,
+			analysis.doors,
+			analysis.windows
+		)
+			? activeId
+			: null;
 	});
 
 	// Distance indicators - show distances to 2 nearest items within 4m
@@ -952,19 +984,16 @@
 
 		for (const item of placedItems) {
 			if (item.id === activeItemId) continue;
-			const dimensions = itemDimensionsPxById.get(item.id);
-			if (!dimensions) continue;
-
-			const itemDisplayPos = naturalToDisplay(item.position!.x, item.position!.y);
-			const itemWidthPx = dimensions.widthPx;
-			const itemHeightPx = dimensions.heightPx;
-			const itemBox = getRotatedBoundingBox(
-				itemDisplayPos.x,
-				itemDisplayPos.y,
-				itemWidthPx,
-				itemHeightPx,
-				item.rotation
-			);
+			const itemBox = displayBoxesById.get(item.id);
+			if (!itemBox) continue;
+			// A gap measurement is meaningless for items that already overlap
+			if (
+				itemBox.minX < activeBox.maxX &&
+				itemBox.maxX > activeBox.minX &&
+				itemBox.minY < activeBox.maxY &&
+				itemBox.maxY > activeBox.minY
+			)
+				continue;
 
 			const { distance, pointA, pointB } = getMinEdgeDistance(activeBox, itemBox);
 			const distanceCm = distance / effectiveScale;
@@ -1050,6 +1079,8 @@
 	});
 </script>
 
+<svelte:window onkeydown={handleKeydown} />
+
 <div
 	bind:this={containerEl}
 	role="application"
@@ -1077,16 +1108,6 @@
 		onmouseleave={handleMouseUp}
 	>
 		<Layer listening={false}>
-			<!-- Grid -->
-			{#if gridVisible}
-				<Shape
-					listening={false}
-					stroke="rgba(255,255,255,0.1)"
-					strokeWidth={1}
-					sceneFunc={drawGridScene}
-				/>
-			{/if}
-
 			<!-- Floorplan image -->
 			{#if floorplanImage}
 				<KonvaImage
@@ -1099,8 +1120,27 @@
 				/>
 			{/if}
 
+			<!-- Grid -->
+			{#if showGrid}
+				<Shape
+					listening={false}
+					stroke="rgba(100,116,139,0.45)"
+					strokeWidth={1}
+					strokeScaleEnabled={false}
+					sceneFunc={drawGridScene}
+				/>
+			{/if}
+
 			<!-- Walls & Doors Layer (AI-extracted architectural elements) -->
-			<WallsDoorsLayer />
+			<Group
+				x={imageDimensions.x}
+				y={imageDimensions.y}
+				scaleX={displayScale}
+				scaleY={displayScale}
+				listening={false}
+			>
+				<WallsDoorsLayer />
+			</Group>
 		</Layer>
 
 		<Layer listening={itemLayerListening}>
@@ -1133,12 +1173,15 @@
 					dragPosition,
 					naturalToDisplay
 				})}
+				{@const quarterTurns = Math.round(item.rotation / 90)}
+				{@const labelWidthPx = quarterTurns % 2 !== 0 ? itemHeightPx : itemWidthPx}
+				{@const labelHeightPx = quarterTurns % 2 !== 0 ? itemWidthPx : itemHeightPx}
 				{@const renderLabels = shouldRenderItemLabels({
 					isInteractionActive,
 					isSelected: selectedItemId === item.id,
 					isDragging: draggingItemId === item.id || longPressItemId === item.id,
-					itemWidthPx,
-					itemHeightPx,
+					itemWidthPx: labelWidthPx,
+					itemHeightPx: labelHeightPx,
 					itemNameFontPx: itemNameFontSize
 				})}
 				<Group
@@ -1201,43 +1244,47 @@
 						/>
 					{/if}
 					{#if renderLabels.showName || renderLabels.showDimensions}
-						{#if renderLabels.showName && item.name}
-							<!-- Item name -->
-							<Text
-								x={0}
-								y={itemHeightPx / 2 - 12}
-								text={item.name}
-								fontSize={itemNameFontSize}
-								fontFamily="system-ui, sans-serif"
-								fontStyle="bold"
-								fill="#1e293b"
-								align="center"
-								width={itemWidthPx}
-								wrap="none"
-								ellipsis={true}
-								listening={false}
-							/>
-						{/if}
-						{#if renderLabels.showDimensions && itemWidthPx > 0}
-							<!-- Item dimensions -->
-							<Text
-								x={0}
-								y={renderLabels.showName && item.name
-									? itemHeightPx / 2 + 2
-									: (itemHeightPx - itemDimensionsFontSize) / 2}
-								text={formatDimension(item.width, item.height)}
-								fontSize={itemDimensionsFontSize}
-								fontFamily="system-ui, sans-serif"
-								fill="#475569"
-								align="center"
-								width={itemWidthPx}
-								listening={false}
-							/>
-						{/if}
+						<!-- Labels are turned back so they stay upright on rotated items -->
+						<Group
+							x={itemWidthPx / 2}
+							y={itemHeightPx / 2}
+							rotation={-quarterTurns * 90}
+							listening={false}
+						>
+							{#if renderLabels.showName && item.name}
+								<Text
+									x={-labelWidthPx / 2}
+									y={-12}
+									text={item.name}
+									fontSize={itemNameFontSize}
+									fontFamily="system-ui, sans-serif"
+									fontStyle="bold"
+									fill="#1e293b"
+									align="center"
+									width={labelWidthPx}
+									wrap="none"
+									ellipsis={true}
+									listening={false}
+								/>
+							{/if}
+							{#if renderLabels.showDimensions && labelWidthPx > 0}
+								<Text
+									x={-labelWidthPx / 2}
+									y={renderLabels.showName && item.name ? 2 : -itemDimensionsFontSize / 2}
+									text={formatDimension(item.width, item.height)}
+									fontSize={itemDimensionsFontSize}
+									fontFamily="system-ui, sans-serif"
+									fill="#475569"
+									align="center"
+									width={labelWidthPx}
+									listening={false}
+								/>
+							{/if}
+						</Group>
 					{/if}
-					{#if isCommentsVisible() && getItemCommentCount(item.id) > 0}
+					{@const badgeCount = itemCommentCounts.get(item.id) ?? 0}
+					{#if isCommentsVisible() && badgeCount > 0}
 						{@const badgeRadius = 8}
-						{@const badgeCount = getItemCommentCount(item.id)}
 						<Circle
 							x={itemWidthPx - badgeRadius / 2}
 							y={-badgeRadius / 2}

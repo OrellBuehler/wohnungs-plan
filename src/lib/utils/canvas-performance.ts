@@ -78,10 +78,15 @@ export function getCanvasLabelFontSizes(input: CanvasLabelFontSizeInput): Canvas
 	};
 }
 
-export function getGridStepCount(stageSize: number, gridSize: number): number {
-	const safeGridSize = Number.isFinite(gridSize) && gridSize > 0 ? gridSize : 1;
-	const safeStageSize = Number.isFinite(stageSize) && stageSize > 0 ? stageSize : 0;
-	return Math.ceil(safeStageSize / safeGridSize) + 1;
+const GRID_STEP_MULTIPLIERS = [1, 2, 5, 10, 20, 50, 100];
+
+export function getVisibleGridStep(baseStep: number, zoom: number, minScreenPx = 8): number {
+	if (!Number.isFinite(baseStep) || baseStep <= 0) return 0;
+	const safeZoom = zoom > 0 ? zoom : 1;
+	for (const multiplier of GRID_STEP_MULTIPLIERS) {
+		if (baseStep * multiplier * safeZoom >= minScreenPx) return baseStep * multiplier;
+	}
+	return baseStep * GRID_STEP_MULTIPLIERS[GRID_STEP_MULTIPLIERS.length - 1];
 }
 
 export function buildIdMap<T extends { id: string }>(items: T[]): Map<string, T> {
@@ -102,10 +107,6 @@ export function buildDimensionMap<T extends { id: string; width: number; height:
 			}
 		])
 	);
-}
-
-export function shouldRenderGrid(showGrid: boolean, isInteractionActive: boolean): boolean {
-	return showGrid && !isInteractionActive;
 }
 
 const MIN_LABEL_SIZE_MULTIPLIER = 3;

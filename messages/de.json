@@ -158,7 +158,7 @@
 	"canvas_control_walls_doors_title": "KI-erkannte Wände und Türen ein-/ausblenden",
 	"canvas_control_comments": "Kommentare",
 	"canvas_control_gridsize": "Rastergrösse:",
-	"canvas_control_px": "px",
+	"canvas_control_cm": "cm",
 	"canvas_control_analysis": "{walls} Wände, {doors} Türen",
 	"canvas_control_comments_count": "{count} {count, plural, one {Kommentar} other {Kommentare}}",
 	"canvas_control_recalibrate": "Neu kalibrieren",

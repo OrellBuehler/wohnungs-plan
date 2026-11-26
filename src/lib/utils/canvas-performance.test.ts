@@ -3,22 +3,13 @@ import {
 	buildDimensionMap,
 	getCanvasLabelFontSizes,
 	getItemShadowStyle,
-	getGridStepCount,
+	getVisibleGridStep,
 	remToPx,
 	resolveItemDisplayPosition,
 	shouldEnableItemLayerListening,
 	shouldShowDistanceIndicators,
-	shouldRenderGrid,
 	shouldRenderItemLabels
 } from '#lib/utils/canvas-performance.ts';
-
-describe('shouldRenderGrid', () => {
-	it('renders grid only when enabled and not in active interaction mode', () => {
-		expect(shouldRenderGrid(true, false)).toBe(true);
-		expect(shouldRenderGrid(true, true)).toBe(false);
-		expect(shouldRenderGrid(false, false)).toBe(false);
-	});
-});
 
 describe('shouldRenderItemLabels', () => {
 	const large = { itemWidthPx: 100, itemHeightPx: 80, itemNameFontPx: 12 };
@@ -203,15 +194,20 @@ describe('remToPx', () => {
 	});
 });
 
-describe('getGridStepCount', () => {
-	it('returns enough steps to cover stage plus one trailing line', () => {
-		expect(getGridStepCount(800, 50)).toBe(17);
-		expect(getGridStepCount(801, 50)).toBe(18);
+describe('getVisibleGridStep', () => {
+	it('keeps the base step while lines are far enough apart', () => {
+		expect(getVisibleGridStep(20, 1)).toBe(20);
+		expect(getVisibleGridStep(4, 2)).toBe(4);
 	});
 
-	it('guards against invalid grid sizes', () => {
-		expect(getGridStepCount(200, 0)).toBe(201);
-		expect(getGridStepCount(200, -5)).toBe(201);
+	it('coarsens the grid when zoomed out', () => {
+		expect(getVisibleGridStep(2, 1)).toBe(10);
+		expect(getVisibleGridStep(10, 0.5)).toBe(20);
+	});
+
+	it('returns 0 for invalid steps', () => {
+		expect(getVisibleGridStep(0, 1)).toBe(0);
+		expect(getVisibleGridStep(-5, 1)).toBe(0);
 	});
 });
 

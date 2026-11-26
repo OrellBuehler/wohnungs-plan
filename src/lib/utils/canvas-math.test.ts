@@ -167,9 +167,9 @@ describe('applyCoalescedPanAndZoom', () => {
 			maxZoom: 5
 		});
 
-		expect(next.zoom).toBeCloseTo(1.3, 8);
-		expect(next.panX).toBeCloseTo(-60, 8);
-		expect(next.panY).toBeCloseTo(-30, 8);
+		expect(next.zoom).toBeCloseTo(1.331, 8);
+		expect(next.panX).toBeCloseTo(-66.2, 8);
+		expect(next.panY).toBeCloseTo(-33.1, 8);
 	});
 
 	it('applies pan and then zoom in a single coalesced update', () => {
@@ -187,9 +187,10 @@ describe('applyCoalescedPanAndZoom', () => {
 			maxZoom: 5
 		});
 
-		expect(next.zoom).toBeCloseTo(1.8, 8);
-		expect(next.panX).toBeCloseTo(34.5, 8);
-		expect(next.panY).toBeCloseTo(55.5, 8);
+		const zoom = 2 / 1.21;
+		expect(next.zoom).toBeCloseTo(zoom, 8);
+		expect(next.panX).toBeCloseTo(300 - 147.5 * zoom, 8);
+		expect(next.panY).toBeCloseTo(240 - 102.5 * zoom, 8);
 	});
 });
 

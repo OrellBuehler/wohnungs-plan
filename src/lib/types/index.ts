@@ -56,7 +56,7 @@ export interface Project {
 	activeBranchId?: string | null;
 	defaultBranchId?: string | null;
 	currency: CurrencyCode;
-	gridSize: number; // Grid size in pixels
+	gridSize: number; // Grid size in cm
 	isLocal?: boolean; // true if stored only in IndexedDB
 }
 

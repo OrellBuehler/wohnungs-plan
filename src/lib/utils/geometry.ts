@@ -1,13 +1,5 @@
 import type { Item, CutoutCorner } from '#lib/types/index.ts';
 
-interface Rect {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	rotation: number;
-}
-
 /**
  * Generate polygon points for an L-shape
  * Returns flat array [x1, y1, x2, y2, ...] for Konva.Line
@@ -135,108 +127,31 @@ const MIN_SPATIAL_CELL_SIZE = 64;
 const MAX_SPATIAL_CELL_SIZE = 512;
 
 /**
- * Calculate minimum edge-to-edge distance between two bounding boxes
- * Returns the shortest distance and the two closest points
+ * Gap between two axis-aligned boxes and the two points to draw it between.
+ * Boxes that face each other get a straight horizontal or vertical measurement
+ * through the middle of their shared span; otherwise the nearest corners are used.
  */
 export function getMinEdgeDistance(
 	boxA: BoundingBox,
 	boxB: BoundingBox
 ): { distance: number; pointA: { x: number; y: number }; pointB: { x: number; y: number } } {
-	// Get all edges of both boxes
-	const edgesA = [
-		// Top edge
-		{ start: { x: boxA.minX, y: boxA.minY }, end: { x: boxA.maxX, y: boxA.minY } },
-		// Right edge
-		{ start: { x: boxA.maxX, y: boxA.minY }, end: { x: boxA.maxX, y: boxA.maxY } },
-		// Bottom edge
-		{ start: { x: boxA.maxX, y: boxA.maxY }, end: { x: boxA.minX, y: boxA.maxY } },
-		// Left edge
-		{ start: { x: boxA.minX, y: boxA.maxY }, end: { x: boxA.minX, y: boxA.minY } }
-	];
+	const gapX = Math.max(boxB.minX - boxA.maxX, boxA.minX - boxB.maxX, 0);
+	const gapY = Math.max(boxB.minY - boxA.maxY, boxA.minY - boxB.maxY, 0);
+	const aIsLeft = boxA.maxX <= boxB.minX;
+	const aIsAbove = boxA.maxY <= boxB.minY;
+	const sharedX = (Math.max(boxA.minX, boxB.minX) + Math.min(boxA.maxX, boxB.maxX)) / 2;
+	const sharedY = (Math.max(boxA.minY, boxB.minY) + Math.min(boxA.maxY, boxB.maxY)) / 2;
 
-	const edgesB = [
-		{ start: { x: boxB.minX, y: boxB.minY }, end: { x: boxB.maxX, y: boxB.minY } },
-		{ start: { x: boxB.maxX, y: boxB.minY }, end: { x: boxB.maxX, y: boxB.maxY } },
-		{ start: { x: boxB.maxX, y: boxB.maxY }, end: { x: boxB.minX, y: boxB.maxY } },
-		{ start: { x: boxB.minX, y: boxB.maxY }, end: { x: boxB.minX, y: boxB.minY } }
-	];
-
-	let minDistance = Infinity;
-	let closestPointA = { x: 0, y: 0 };
-	let closestPointB = { x: 0, y: 0 };
-
-	// Check distance from each edge of A to each edge of B
-	for (const edgeA of edgesA) {
-		for (const edgeB of edgesB) {
-			// Check both endpoints of edgeA to edgeB
-			const d1 = pointToSegmentDistance(edgeA.start, edgeB.start, edgeB.end);
-			if (d1.distance < minDistance) {
-				minDistance = d1.distance;
-				closestPointA = edgeA.start;
-				closestPointB = d1.closestPoint;
-			}
-
-			const d2 = pointToSegmentDistance(edgeA.end, edgeB.start, edgeB.end);
-			if (d2.distance < minDistance) {
-				minDistance = d2.distance;
-				closestPointA = edgeA.end;
-				closestPointB = d2.closestPoint;
-			}
-
-			// Check both endpoints of edgeB to edgeA
-			const d3 = pointToSegmentDistance(edgeB.start, edgeA.start, edgeA.end);
-			if (d3.distance < minDistance) {
-				minDistance = d3.distance;
-				closestPointA = d3.closestPoint;
-				closestPointB = edgeB.start;
-			}
-
-			const d4 = pointToSegmentDistance(edgeB.end, edgeA.start, edgeA.end);
-			if (d4.distance < minDistance) {
-				minDistance = d4.distance;
-				closestPointA = d4.closestPoint;
-				closestPointB = edgeB.end;
-			}
-		}
-	}
+	const ax = gapX > 0 ? (aIsLeft ? boxA.maxX : boxA.minX) : sharedX;
+	const bx = gapX > 0 ? (aIsLeft ? boxB.minX : boxB.maxX) : sharedX;
+	const ay = gapY > 0 ? (aIsAbove ? boxA.maxY : boxA.minY) : sharedY;
+	const by = gapY > 0 ? (aIsAbove ? boxB.minY : boxB.maxY) : sharedY;
 
 	return {
-		distance: minDistance,
-		pointA: closestPointA,
-		pointB: closestPointB
+		distance: Math.hypot(gapX, gapY),
+		pointA: { x: ax, y: ay },
+		pointB: { x: bx, y: by }
 	};
-}
-
-/**
- * Calculate distance from a point to a line segment
- */
-function pointToSegmentDistance(
-	point: { x: number; y: number },
-	segStart: { x: number; y: number },
-	segEnd: { x: number; y: number }
-): { distance: number; closestPoint: { x: number; y: number } } {
-	const dx = segEnd.x - segStart.x;
-	const dy = segEnd.y - segStart.y;
-	const lengthSquared = dx * dx + dy * dy;
-
-	if (lengthSquared === 0) {
-		// Segment is a point
-		const dist = Math.sqrt((point.x - segStart.x) ** 2 + (point.y - segStart.y) ** 2);
-		return { distance: dist, closestPoint: segStart };
-	}
-
-	// Find projection of point onto line (parameterized 0-1)
-	let t = ((point.x - segStart.x) * dx + (point.y - segStart.y) * dy) / lengthSquared;
-	t = Math.max(0, Math.min(1, t)); // Clamp to segment
-
-	const closestPoint = {
-		x: segStart.x + t * dx,
-		y: segStart.y + t * dy
-	};
-
-	const distance = Math.sqrt((point.x - closestPoint.x) ** 2 + (point.y - closestPoint.y) ** 2);
-
-	return { distance, closestPoint };
 }
 
 function chooseSpatialCellSize(boxes: BoundingBox[]): number {
@@ -331,38 +246,185 @@ export function selectNearestByDistance<T extends { distance: number }>(
 	return nearest;
 }
 
-export function itemToRect(item: Item, scale: number): Rect | null {
-	if (!item.position) return null;
-	return {
-		x: item.position.x,
-		y: item.position.y,
+export interface Point {
+	x: number;
+	y: number;
+}
+
+export interface PlacedShape {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	rotation: number;
+	cutout?: { width: number; height: number; corner: CutoutCorner };
+}
+
+export function itemToShape(
+	item: Item,
+	scale: number,
+	position: Point | null = item.position
+): PlacedShape | null {
+	if (!position) return null;
+	const shape: PlacedShape = {
+		x: position.x,
+		y: position.y,
 		width: item.width * scale,
 		height: item.height * scale,
 		rotation: item.rotation
 	};
+	if (item.shape === 'l-shape' && item.cutoutWidth && item.cutoutHeight && item.cutoutCorner) {
+		shape.cutout = {
+			width: Math.min(item.cutoutWidth, item.width) * scale,
+			height: Math.min(item.cutoutHeight, item.height) * scale,
+			corner: item.cutoutCorner
+		};
+	}
+	return shape;
 }
 
-// Minimum overlap in pixels required to be considered overlapping
-const OVERLAP_TOLERANCE = 5;
+export function getShapeBoundingBox(shape: PlacedShape): BoundingBox {
+	return getRotatedBoundingBox(shape.x, shape.y, shape.width, shape.height, shape.rotation);
+}
 
+/**
+ * Convex parts of a placed shape in world coordinates.
+ * Items rotate around their position (the unrotated top-left corner).
+ */
+export function getShapeParts(shape: PlacedShape): Point[][] {
+	const { width: w, height: h, cutout } = shape;
+	const localRects: Array<[number, number, number, number]> = [];
+
+	if (cutout && cutout.width < w && cutout.height < h) {
+		const top = cutout.corner.startsWith('top');
+		const left = cutout.corner.endsWith('left');
+		const bandY = top ? cutout.height : 0;
+		localRects.push([0, bandY, w, h - cutout.height]);
+		localRects.push([
+			left ? cutout.width : 0,
+			top ? 0 : h - cutout.height,
+			w - cutout.width,
+			cutout.height
+		]);
+	} else {
+		localRects.push([0, 0, w, h]);
+	}
+
+	const rad = (shape.rotation * Math.PI) / 180;
+	const cos = Math.cos(rad);
+	const sin = Math.sin(rad);
+	const toWorld = (lx: number, ly: number): Point => ({
+		x: lx * cos - ly * sin + shape.x,
+		y: lx * sin + ly * cos + shape.y
+	});
+
+	return localRects.map(([rx, ry, rw, rh]) => [
+		toWorld(rx, ry),
+		toWorld(rx + rw, ry),
+		toWorld(rx + rw, ry + rh),
+		toWorld(rx, ry + rh)
+	]);
+}
+
+/**
+ * Penetration depth of two convex polygons (separating axis theorem).
+ * Zero or negative when they do not overlap.
+ */
+export function getPenetrationDepth(a: Point[], b: Point[]): number {
+	let depth = Infinity;
+	for (const poly of [a, b]) {
+		for (let i = 0; i < poly.length; i++) {
+			const p1 = poly[i];
+			const p2 = poly[(i + 1) % poly.length];
+			const ex = p2.x - p1.x;
+			const ey = p2.y - p1.y;
+			const length = Math.hypot(ex, ey);
+			if (length === 0) continue;
+			const ax = -ey / length;
+			const ay = ex / length;
+
+			let minA = Infinity;
+			let maxA = -Infinity;
+			for (const p of a) {
+				const d = p.x * ax + p.y * ay;
+				if (d < minA) minA = d;
+				if (d > maxA) maxA = d;
+			}
+			let minB = Infinity;
+			let maxB = -Infinity;
+			for (const p of b) {
+				const d = p.x * ax + p.y * ay;
+				if (d < minB) minB = d;
+				if (d > maxB) maxB = d;
+			}
+
+			const overlap = Math.min(maxA, maxB) - Math.max(minA, minB);
+			if (overlap <= 0) return overlap;
+			if (overlap < depth) depth = overlap;
+		}
+	}
+	return depth === Infinity ? 0 : depth;
+}
+
+export function shapesOverlap(a: PlacedShape, b: PlacedShape, tolerance = 0): boolean {
+	const partsA = getShapeParts(a);
+	const partsB = getShapeParts(b);
+	for (const partA of partsA) {
+		for (const partB of partsB) {
+			if (getPenetrationDepth(partA, partB) > tolerance) return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Position that keeps the center of a width x height box in place
+ * when its rotation changes (rotation pivots around the position).
+ */
+export function rotateAroundCenter(
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	fromDeg: number,
+	toDeg: number
+): Point {
+	const from = (fromDeg * Math.PI) / 180;
+	const to = (toDeg * Math.PI) / 180;
+	const hw = width / 2;
+	const hh = height / 2;
+	const cx = x + hw * Math.cos(from) - hh * Math.sin(from);
+	const cy = y + hw * Math.sin(from) + hh * Math.cos(from);
+	return {
+		x: cx - (hw * Math.cos(to) - hh * Math.sin(to)),
+		y: cy - (hw * Math.sin(to) + hh * Math.cos(to))
+	};
+}
+
+// Items may intersect by this much (in cm) before they count as overlapping
+const OVERLAP_TOLERANCE_CM = 1;
+
+/**
+ * Ids of placed items that overlap another item.
+ * `scale` is pixels per cm in the coordinate space of the item positions.
+ */
 export function getOverlappingItems(items: Item[], scale: number): Set<string> {
 	const overlapping = new Set<string>();
-	const placedItems = items.filter((item) => item.position !== null);
-	const rects = placedItems.map((item) => ({ item, rect: itemToRect(item, scale)! }));
-	const boxes = rects.map(({ rect }) =>
-		getRotatedBoundingBox(rect.x, rect.y, rect.width, rect.height, rect.rotation)
-	);
-	const candidatePairs = collectPotentialOverlapPairs(boxes, chooseSpatialCellSize(boxes));
+	const ids: string[] = [];
+	const shapes: PlacedShape[] = [];
+	for (const item of items) {
+		const shape = itemToShape(item, scale);
+		if (!shape) continue;
+		ids.push(item.id);
+		shapes.push(shape);
+	}
+	const boxes = shapes.map(getShapeBoundingBox);
+	const tolerance = OVERLAP_TOLERANCE_CM * scale;
 
-	for (const [i, j] of candidatePairs) {
-		const boxA = boxes[i];
-		const boxB = boxes[j];
-		const overlapX = Math.min(boxA.maxX, boxB.maxX) - Math.max(boxA.minX, boxB.minX);
-		const overlapY = Math.min(boxA.maxY, boxB.maxY) - Math.max(boxA.minY, boxB.minY);
-
-		if (overlapX > OVERLAP_TOLERANCE && overlapY > OVERLAP_TOLERANCE) {
-			overlapping.add(rects[i].item.id);
-			overlapping.add(rects[j].item.id);
+	for (const [i, j] of collectPotentialOverlapPairs(boxes, chooseSpatialCellSize(boxes))) {
+		if (shapesOverlap(shapes[i], shapes[j], tolerance)) {
+			overlapping.add(ids[i]);
+			overlapping.add(ids[j]);
 		}
 	}
 
