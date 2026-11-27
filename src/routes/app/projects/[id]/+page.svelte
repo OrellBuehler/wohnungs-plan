@@ -83,6 +83,7 @@
 
 	import MobileNav from '#lib/components/layout/MobileNav.svelte';
 	import FloorplanCanvas from '#lib/components/canvas/FloorplanCanvas.svelte';
+	import { rotateAroundCenter } from '#lib/utils/geometry.ts';
 	import FloorplanUpload from '#lib/components/canvas/FloorplanUpload.svelte';
 	import ScaleCalibration from '#lib/components/canvas/ScaleCalibration.svelte';
 	import CanvasControls from '#lib/components/canvas/CanvasControls.svelte';
@@ -725,8 +726,19 @@
 	function handleItemBottomSheetRotate(id: string, direction: 'cw' | 'ccw') {
 		const item = items.find((i) => i.id === id);
 		if (item) {
-			const delta = direction === 'cw' ? 90 : -90;
-			handleItemRotate(id, (item.rotation + delta + 360) % 360);
+			const rotation = (item.rotation + (direction === 'cw' ? 90 : -90) + 360) % 360;
+			const scale = project?.floorplan?.scale || 2;
+			const position = item.position
+				? rotateAroundCenter(
+						item.position.x,
+						item.position.y,
+						item.width * scale,
+						item.height * scale,
+						item.rotation,
+						rotation
+					)
+				: null;
+			updateItem(id, position ? { rotation, position } : { rotation });
 		}
 	}
 
@@ -839,8 +851,8 @@
 		updateItem(id, { position: { x, y } });
 	}
 
-	function handleItemRotate(id: string, rotation: number) {
-		updateItem(id, { rotation });
+	function handleItemRotate(id: string, rotation: number, position: { x: number; y: number }) {
+		updateItem(id, { rotation, position });
 	}
 
 	async function handleThumbnailReady(dataUrl: string) {

@@ -158,7 +158,7 @@
 	"canvas_control_walls_doors_title": "Show/hide AI-detected walls and doors",
 	"canvas_control_comments": "Comments",
 	"canvas_control_gridsize": "Grid size:",
-	"canvas_control_px": "px",
+	"canvas_control_cm": "cm",
 	"canvas_control_analysis": "{walls} walls, {doors} doors",
 	"canvas_control_comments_count": "{count} {count, plural, one {comment} other {comments}}",
 	"canvas_control_recalibrate": "Recalibrate",

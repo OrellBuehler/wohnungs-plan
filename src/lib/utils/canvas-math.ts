@@ -91,7 +91,7 @@ export function applyCoalescedPanAndZoom(input: CoalescedPanAndZoomInput): ZoomT
 
 	if (input.wheelSteps !== 0 && input.wheelAnchorX !== null && input.wheelAnchorY !== null) {
 		const targetZoom = clampZoom(
-			nextZoom + input.wheelSteps * input.zoomStep,
+			nextZoom * Math.pow(1 + input.zoomStep, input.wheelSteps),
 			input.minZoom,
 			input.maxZoom
 		);

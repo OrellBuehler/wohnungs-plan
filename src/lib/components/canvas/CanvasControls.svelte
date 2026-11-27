@@ -94,7 +94,7 @@
 				step={1}
 				class="w-14 h-7 shrink-0 font-technical text-sm"
 			/>
-			{m.canvas_control_px()}
+			{m.canvas_control_cm()}
 		</Label>
 	</div>
 
